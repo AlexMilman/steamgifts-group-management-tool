@@ -26,8 +26,9 @@ def main(argv):
     check_real_cv_value=False
     check_level=False
     level=0
+    days=0
     try:
-        opts, args = getopt.getopt(argv, "whf:g:s:n:m:p:u:c:a:o:", ["--help", "--feature", "--group_webpage", "--steam_thread", "--n", "--month", "--max_pages", "--user", "--cookies", "--addition_date"])
+        opts, args = getopt.getopt(argv, "whf:g:s:n:m:p:u:c:a:o:d:", [])
     except getopt.GetoptError:
         print 'INVALID COMMAND: GGTMStandalone.py ' +  argv + '\n'
         SGMTBusinessLogic.print_usage()
@@ -36,26 +37,26 @@ def main(argv):
         SGMTBusinessLogic.print_usage()
         sys.exit(2)
     for opt, arg in opts:
-        if opt in ('-h', "--help"):
+        if opt == '-h':
             SGMTBusinessLogic.print_usage()
             sys.exit()
-        elif opt in ("-f", "--feature"):
+        elif opt == "-f":
             feature = arg
-        elif opt in ("-g", "--group_webpage"):
+        elif opt == "-g":
             group_webpage = arg
-        elif opt in ("-s", "--steam_thread"):
+        elif opt == "-s":
             steam_thread = arg
-        elif opt in ("-m", "--month"):
+        elif opt == "-m":
             month = int(arg)
-        elif opt in ("-p", "--max_pages"):
+        elif opt == "-p":
             max_pages = int(arg)
-        elif opt in ("-u", "--user"):
+        elif opt == "-u":
             user = arg
         elif opt == "-n":
             n = arg
-        elif opt in ("-c", "--cookies"):
+        elif opt == "-c":
             cookies = arg
-        elif opt in ("-a", "--addition_date"):
+        elif opt == "-a":
             addition_date = arg
         elif opt == "-o":
             for option in arg.split(':'):
@@ -72,6 +73,8 @@ def main(argv):
             print_warranty = True
         elif opt == "-c" and not arg:
             print_conditions = True
+        elif opt == "-d":
+            days = arg
 
     if print_warranty:
         SGMTBusinessLogic.print_warranty()
@@ -84,7 +87,7 @@ def main(argv):
     if feature == 'MissingAfterNGiveaway':
         SGMTBusinessLogic.missing_after_n_giveaway(group_webpage, n, steam_thread)
     elif feature == 'CheckMonthly':
-        SGMTBusinessLogic.check_monthly(group_webpage, month, cookies)
+        SGMTBusinessLogic.check_monthly(group_webpage, month, cookies, days)
     elif feature == 'GetAllUsersInGroup':
         SGMTBusinessLogic.get_all_users_in_group(group_webpage)
     elif feature == 'GetAllGiveawaysInGroup':

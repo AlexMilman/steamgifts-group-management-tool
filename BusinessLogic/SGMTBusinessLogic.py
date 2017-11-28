@@ -126,20 +126,21 @@ def get_all_users_in_group(group_webpage):
         print user
 
 
-def check_monthly(group_webpage, month, cookies):
+def check_monthly(group_webpage, month, cookies, min_days=0):
     load_group(group_webpage, cookies)
-    group_users = groups[group_webpage].group_users.keys()
+    users = groups[group_webpage].group_users.keys()
     monthly_posters = set()
     for group_ga in groups[group_webpage].group_giveaways.values():
-        if group_ga.creator in group_users and len(group_ga.groups) == 1 \
-                and group_ga.start_date.tm_mon == month and group_ga.end_date.tm_mon == month:
+        if group_ga.creator in users and len(group_ga.groups) == 1 \
+                and group_ga.start_date.tm_mon == month and group_ga.end_date.tm_mon == month\
+                and group_ga.end_date.tm_mday - group_ga.start_date.tm_mday >= min_days:
             monthly_posters.add(group_ga.creator)
 
     # users_list = DemoValues.get_demo_users()
     # monthly_posters = DemoValues.get_demo_posters()
-    for user in group_users:
-        if user.user_name not in monthly_posters:
-            print user.user_name
+    for user in users:
+        if user not in monthly_posters:
+            print SteamGiftsScrapingUtils.get_user_link(user)
 
 
 def get_month(datetime):
@@ -257,8 +258,8 @@ def print_usage():
     print '\tEXAMPLE: GGTMStandalone.py -f MissingAfterNGiveaway -w https://www.steamgifts.com/group/AhzO3/giftropolis -s http://steamcommunity.com/groups/Giftropolis/discussions/0/355043117503501545 -n 3'
     print ''
     print '\t' + printBold('CheckMonthly') + ' - Returns a list of all users who didn\'t create a giveaway in a given month'
-    print '\tSYNTAX: GGTMStandalone.py -f CheckMonthly -w <steamgifts group webpage> -m <Month number>'
-    print '\tEXAMPLE: GGTMStandalone.py -f CheckMonthly -w https://www.steamgifts.com/group/AhzO3/giftropolis -m 11'
+    print '\tSYNTAX: GGTMStandalone.py -f CheckMonthly -w <steamgifts group webpage> -m <Month number> -d <Minimum number of days of a GA>'
+    print '\tEXAMPLE: GGTMStandalone.py -f CheckMonthly -w https://www.steamgifts.com/group/AhzO3/giftropolis -m 11 -d 3'
     print ''
     print '\t' + printBold('NegativeSteamgiftsRatio') + ' - Returns a list of all users who have a negative won/gifted ratio in SteamGifts'
     print '\tSYNTAX: GGTMStandalone.py -f NegativeSteamgiftsRatio -w <steamgifts group webpage>'
