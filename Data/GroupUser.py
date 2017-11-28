@@ -5,6 +5,7 @@ class GroupUser(object):
     user_name=None
     won_games=0.0
     sent_games=0.0
+    steam_id=None
 
     def __init__(self, user_name, won_games=0.0, sent_games=0.0):
         self.user_name = user_name
