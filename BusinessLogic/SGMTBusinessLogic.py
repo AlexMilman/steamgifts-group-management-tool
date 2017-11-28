@@ -275,7 +275,7 @@ def print_usage():
     print '\t\tn - Check user doesn\'t have non activated games'
     print '\t\tm - Check user doesn\'t have multiple wins'
     print '\t\tr - Check user has positive real CV ratio'
-    print '\t\tl+<number> - Chekc user is above certain level'
+    print '\t\tl+<level> - Check user is above certain level'
     print '\tEXAMPLE: GGTMStandalone.py -f UserCheckRules -u Mdk25 -o "n:m:r:l+1"'
     print ''
     print ''
