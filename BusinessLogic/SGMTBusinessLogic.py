@@ -131,7 +131,7 @@ def check_monthly(group_webpage, month, cookies, min_days=0):
     users = groups[group_webpage].group_users.keys()
     monthly_posters = set()
     for group_ga in groups[group_webpage].group_giveaways.values():
-        if group_ga.creator in users and len(group_ga.groups) == 1 \
+        if group_ga.creator in users and len(group_ga.groups) == 1 and len(group_ga.winners) > 0\
                 and group_ga.start_date.tm_mon == month and group_ga.end_date.tm_mon == month\
                 and group_ga.end_date.tm_mday - group_ga.start_date.tm_mday >= min_days:
             monthly_posters.add(group_ga.creator)
