@@ -191,7 +191,7 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
 
     if check_steamrep:
         user_steam_id = steamscraper.get_user_steam_id(user)
-        if user_steam_id and steamrepscraper.check_user_not_public_or_banned(user_steam_id):
+        if user_steam_id and not steamrepscraper.check_user_not_public_or_banned(user_steam_id):
             broken_rules.append('User is not public or banned: ' + SteamRepScrapingUtils.get_steamrep_link(user_steam_id))
 
     for message in broken_rules:

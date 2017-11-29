@@ -20,7 +20,12 @@ class SteamRepScraper(BaseScraper):
         community_ban_status = self.get_item_by_xpath(html_content, u'.//span[@id="communitybanstatus"]/span/text()')
         no_special_reputation = self.get_item_by_xpath(html_content, u'.//div[@class="norep reptag"]')
 
-        return privacy_status != 'Public' and trade_ban_status != 'None' and vac_ban_status != 'None' and community_ban_status != 'None' and no_special_reputation
+        return privacy_status == 'Public' and self.check_no_ban(trade_ban_status) and self.check_no_ban(vac_ban_status) \
+               and self.check_no_ban(community_ban_status) and no_special_reputation
+
+    def check_no_ban(self, trade_ban_status):
+        return trade_ban_status == 'None' or trade_ban_status == '---'
+
 
 def get_steamrep_link(user_id):
     return steamrep_check_profile + user_id
