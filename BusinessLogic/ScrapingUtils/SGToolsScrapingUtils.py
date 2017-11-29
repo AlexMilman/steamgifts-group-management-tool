@@ -1,4 +1,4 @@
-from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsConsts
+from BusinessLogic.ScrapingUtils import SGToolsConsts, SteamGiftsConsts
 from BusinessLogic.Utils import StringUtils, WebUtils
 
 # All scraping implementations for SGtools
@@ -7,7 +7,7 @@ from BusinessLogic.Utils import StringUtils, WebUtils
 
 
 def check_level(user, level):
-    user_html_content = WebUtils.get_html_page(SteamGiftsScrapingUtils.get_user_link(user))
+    user_html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user))
     user_level_item = WebUtils.get_item_by_xpath(user_html_content, u'.//div[@class="featured__table__row__right"]/span/@data-ui-tooltip')
     user_level = user_level_item.split('name" : "')[2].split('", "color')[0]
     return StringUtils.normalize_float(user_level) < level
