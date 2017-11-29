@@ -1,16 +1,15 @@
 from lxml import html
 
-from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils
+from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SteamFinderScrapingUtils
 from BusinessLogic.Utils import WebUtils
 
-# All scraping implementations for Steam & SteamFinder pages
+# All scraping implementations for SteamFinder pages
 # Copyright (C) 2017  Alex Milman
 
 steam_filter_link = 'https://steamcommunity.com/linkfilter/?url='
 steam_profile_link = 'http://steamcommunity.com/profiles/'
 steam_user_id_link = 'http://steamcommunity.com/id/'
 steam_search_query = '/?ctp='
-steamfinder_lookup_link = 'https://steamidfinder.com/lookup/'
 
 
 def get_steam_id_to_user_dict(users):
@@ -41,10 +40,7 @@ def verify_after_n_giveaways(steam_after_n_thread_link, giveaways, group_users, 
             if steam_profile_link in steam_user:
                 steam_id = steam_user.split(steam_profile_link)[1]
             else:
-                page_content = WebUtils.get_page_content(steamfinder_lookup_link + steam_user.split(steam_user_id_link)[1])
-                partial_page = page_content[:page_content.find('" target="_blanl"')]
-                steam_id = partial_page[partial_page.find('<br>profile <code><a href="') + 27:].split(steam_profile_link)[1]
-
+                steam_id = SteamFinderScrapingUtils.get_steam_id(steam_user)
             # Check if steam_id is currently in SG group
             if steam_id in steam_id_to_user:
                 user = steam_id_to_user[steam_id]
