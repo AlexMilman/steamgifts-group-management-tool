@@ -26,6 +26,7 @@ def main(argv):
     check_real_cv_value=False
     check_level=False
     level=0
+    check_steamrep=False
     days=0
     try:
         opts, args = getopt.getopt(argv, "whf:g:s:n:m:p:u:c:a:o:d:", [])
@@ -69,6 +70,8 @@ def main(argv):
                 elif option.startswith('l'):
                     check_level = True
                     level = option.split('+')[1]
+                elif option == 's':
+                    check_steamrep = True
         elif opt == "-w":
             print_warranty = True
         elif opt == "-c" and not arg:
@@ -107,7 +110,7 @@ def main(argv):
     elif feature == 'UserEnteredGiveaways':
         SGMTBusinessLogic.get_user_entered_giveaways(group_webpage, user, cookies, addition_date)
     elif feature == 'UserCheckRules':
-        SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_level, level)
+        SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_level, level, check_steamrep)
     elif feature == 'Test':
         SGMTBusinessLogic.test(cookies)
     else:
