@@ -3,10 +3,6 @@ import pylru
 
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
     SteamScrapingUtils
-from BusinessLogic.ScrapingUtils.SGToolsScrapingUtils import SGToolsScraper
-from BusinessLogic.ScrapingUtils.SteamGiftsScrapingUtils import SteamGiftsScraper
-from BusinessLogic.ScrapingUtils.SteamRepScrapingUtils import SteamRepScraper
-from BusinessLogic.ScrapingUtils.SteamScrapingUtils import SteamScraper
 from Data.Group import Group
 
 # Internal business logic of different SGMT commands
@@ -30,11 +26,6 @@ END = '\033[0m'
 # Going forward need to consider using an external (persistent) cache server
 groups = pylru.lrucache(LRU_CACHE_SIZE)
 
-sgscraper = SteamGiftsScraper()
-sgtoolsscraper = SGToolsScraper()
-steamscraper = SteamScraper()
-steamrepscraper = SteamRepScraper()
-
 
 def missing_after_n_giveaway(group_webpage, n, steam_thread):
     load_group(group_webpage)
@@ -44,7 +35,7 @@ def missing_after_n_giveaway(group_webpage, n, steam_thread):
     group_users = group_data.group_users
     print 'group giveaways: ' + str(group_giveaways)
     print 'group users: ' + str(group_users)
-    after_n_giveaways = steamscraper.verify_after_n_giveaways(steam_thread, group_giveaways, group_users.keys())
+    after_n_giveaways = SteamScrapingUtils.verify_after_n_giveaways(steam_thread, group_giveaways, group_users.keys())
     print 'after-n giveaways per user: ' + str(after_n_giveaways)
     wins = get_user_wins(group_data)
     discrepancies = findDiscrepancies(n, wins, after_n_giveaways)
@@ -78,7 +69,7 @@ def get_all_after_n_giveaways_per_user(group_webpage, n, steam_thread):
     load_group_user_steam_ids(group_webpage)
     group_giveaways = groups[group_webpage].group_giveaways
     group_users = groups[group_webpage].group_users
-    after_n_giveaways = steamscraper.verify_after_n_giveaways(steam_thread, group_giveaways, group_users.keys())
+    after_n_giveaways = SteamScrapingUtils.verify_after_n_giveaways(steam_thread, group_giveaways, group_users.keys())
     print 'after-n giveaways per user: ' + str(after_n_giveaways)
     for poster in after_n_giveaways:
         print 'User: ' + SteamGiftsScrapingUtils.get_user_link(poster) + ' Posted the following after-' + n + ' giveaways: ' + parse_list(after_n_giveaways[poster])
@@ -109,7 +100,7 @@ def get_all_user_wins(group_webpage):
 
 def get_stemagifts_to_steam_user_translation(group_webpage):
     load_group_users(group_webpage)
-    steam_id_to_user = steamscraper.get_steam_id_to_user_dict(groups[group_webpage].group_users.values())
+    steam_id_to_user = SteamScrapingUtils.get_steam_id_to_user_dict(groups[group_webpage].group_users.values())
     for steam_profile_id, user in steam_id_to_user.iteritems():
         print 'Steamgifts User: ' + SteamGiftsScrapingUtils.get_user_link(user) + '.  Steam profile: ' + SteamScrapingUtils.steam_profile_link + steam_profile_id
 
@@ -122,7 +113,7 @@ def get_all_giveaways_in_group(group_webpage):
 
 
 def get_all_users_in_group(group_webpage):
-    users_list = sgscraper.get_group_users(group_webpage)
+    users_list = SteamGiftsScrapingUtils.get_group_users(group_webpage)
     for user in users_list:
         print user
 
@@ -150,7 +141,7 @@ def get_month(datetime):
 
 def get_users_with_negative_steamgifts_ratio(group_webpage):
     load_group_users(group_webpage)
-    users_with_negative_ratio = sgscraper.check_users_steamgifts_ratio(groups[group_webpage].group_users.keys())
+    users_with_negative_ratio = SteamGiftsScrapingUtils.check_users_steamgifts_ratio(groups[group_webpage].group_users.keys())
     for user in users_with_negative_ratio:
         print user
 
@@ -166,36 +157,36 @@ def get_users_with_negative_group_ratio(group_webpage):
 
 def get_user_entered_giveaways(group_webpage, user, cookies, addition_date):
     load_group_giveaways(group_webpage, cookies)
-    giveaways = sgscraper.get_group_giveaways_user_entered(groups[group_webpage].group_giveaways.values(), user, cookies, addition_date)
+    giveaways = SteamGiftsScrapingUtils.get_group_giveaways_user_entered(groups[group_webpage].group_giveaways.values(), user, cookies, addition_date)
     for giveaway in giveaways:
         print giveaway
 
 
 def check_user_first_giveaway(group_webpage, user, cookies, addition_date, days_to_create_ga, min_ga_time):
     load_group_giveaways(group_webpage, cookies)
-    giveaway = sgscraper.check_user_fist_giveaway(groups[group_webpage].group_giveaways.values(), user, addition_date, days_to_create_ga, min_ga_time)
+    giveaway = SteamGiftsScrapingUtils.check_user_fist_giveaway(groups[group_webpage].group_giveaways.values(), user, addition_date, days_to_create_ga, min_ga_time)
     print 'User\'s first giveaway: ' + str(giveaway)
 
 
 def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, level=0, check_steamrep=False):
     broken_rules = []
-    if check_nonactivated and sgtoolsscraper.check_nonactivated(user):
+    if check_nonactivated and SGToolsScrapingUtils.check_nonactivated(user):
         broken_rules.append('Has non-activated games: ' + SGToolsScrapingUtils.sgtools_check_nonactivated_link + user)
 
-    if check_multiple_wins and sgtoolsscraper.check_multiple_wins(user):
+    if check_multiple_wins and SGToolsScrapingUtils.check_multiple_wins(user):
         broken_rules.append('Has multiple wins: ' + SGToolsScrapingUtils.sgtools_check_multiple_wins_link + user)
 
-    if check_real_cv_value and sgtoolsscraper.check_real_cv_value(user):
+    if check_real_cv_value and SGToolsScrapingUtils.check_real_cv_value(user):
         broken_rules.append(
             'Won more than Sent. Won: ' + SGToolsScrapingUtils.sgtools_check_won_link + user + ', '
                                'Sent: ' + SGToolsScrapingUtils.sgtools_check_sent_link + user)
 
-    if check_level and level > 0 and sgtoolsscraper.check_level(user, level):
+    if check_level and level > 0 and SGToolsScrapingUtils.check_level(user, level):
         broken_rules.append('User level is less than 1: ' + SteamGiftsScrapingUtils.get_user_link(user))
 
     if check_steamrep:
-        user_steam_id = steamscraper.get_user_steam_id(user)
-        if user_steam_id and not steamrepscraper.check_user_not_public_or_banned(user_steam_id):
+        user_steam_id = SteamScrapingUtils.get_user_steam_id(user)
+        if user_steam_id and not SteamRepScrapingUtils.check_user_not_public_or_banned(user_steam_id):
             broken_rules.append('User ' + SteamGiftsScrapingUtils.get_user_link(user)
                                 + ' is not public or banned: ' + SteamRepScrapingUtils.get_steamrep_link(user_steam_id))
 
@@ -212,33 +203,33 @@ def test(group_webpage):
 
 def load_group(group_webpage, cookies=None):
     if group_webpage not in groups:
-        group_users = sgscraper.get_group_users(group_webpage)
-        group_giveaways = sgscraper.get_group_giveaways(group_webpage, cookies)
+        group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
+        group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
         groups[group_webpage] = Group(group_users, group_giveaways)
 
 
 def load_group_users(group_webpage):
     if group_webpage not in groups:
-        group_users = sgscraper.get_group_users(group_webpage)
+        group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
         groups[group_webpage] = Group(group_users=group_users)
     elif groups[group_webpage].group_users:
-        group_users = sgscraper.get_group_users(group_webpage)
+        group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
         groups[group_webpage].group_users = group_users
 
 
 def load_group_giveaways(group_webpage, cookies=None):
     if group_webpage not in groups:
-        group_giveaways = sgscraper.get_group_giveaways(group_webpage, cookies)
+        group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
         groups[group_webpage] = Group(group_giveaways=group_giveaways)
     elif groups[group_webpage].group_giveaways:
-        group_giveaways = sgscraper.get_group_giveaways(group_webpage, cookies)
+        group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
         groups[group_webpage].group_giveaways = group_giveaways
 
 
 def load_group_user_steam_ids(group_webpage):
     if group_webpage in groups and groups[group_webpage].group_users:
         for user in groups[group_webpage].group_users.values():
-            user.steam_id = steamscraper.get_user_steam_id(user.user_name)
+            user.steam_id = SteamScrapingUtils.get_user_steam_id(user.user_name)
 
 
 def print_warranty():
