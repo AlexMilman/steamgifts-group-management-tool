@@ -112,33 +112,16 @@ class SteamGiftsScraper(BaseScraper):
             page_index += 1
     
         return posters
-    
-    #TODO: Rewrite using Groups object
-    def get_group_giveaways_user_entered(self, group_webpage, user, cookies, user_addition_date=None, max_pages=0):
-        # Go over all giveaways not closed before "addition_date"
+
+
+    def get_group_giveaways_user_entered(self, group_giveaways, user, cookies, user_addition_date=None):
         giveaways = []
-        page_index = 1
-        while page_index < max_pages or max_pages == 0:
-            html_content = self.get_html_page(group_webpage + steamgifts_search_query + str(page_index))
-            current_page_num = self.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
-            if current_page_num != str(page_index):
-                break
-    
-            giveaway_elements = self.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
-            for giveaway_elem in giveaway_elements:
-                giveaway_ends_epoch = self.get_items_by_xpath(giveaway_elem, u'.//div[@class="giveaway__columns"]/div/span/@Data-timestamp')[1]
-                giveaway_ends = time.strftime('%Y-%m-%d', time.localtime(StringUtils.normalize_float(giveaway_ends_epoch)))
-                if not user_addition_date or user_addition_date < giveaway_ends:
-                    giveaway_link = self.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
-                    giveaway_content = self.get_html_page(get_giveaway_entries_link(giveaway_link), cookies=cookies)
-                    giveaway_entries = self.get_items_by_xpath(giveaway_content, u'.//a[@class="table__column__heading"]/text()')
-                    for entry in giveaway_entries:
-                        if user == entry:
-                            giveaways.append(get_giveaway_link(giveaway_link))
-                            break
-    
-            page_index += 1
-    
+        for group_giveaway in group_giveaways:
+            # Go over all giveaways not closed before "addition_date"
+            if not user_addition_date or user_addition_date < time.strftime('%Y-%m-%d',group_giveaway.end_date):
+                if user in group_giveaway.entries:
+                    giveaways.append(group_giveaway.link)
+
         return giveaways
     
     

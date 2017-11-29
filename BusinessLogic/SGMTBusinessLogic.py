@@ -165,7 +165,8 @@ def get_users_with_negative_group_ratio(group_webpage):
         print user
 
 def get_user_entered_giveaways(group_webpage, user, cookies, addition_date):
-    giveaways = sgscraper.get_group_giveaways_user_entered(group_webpage, user, cookies, addition_date)
+    load_group_giveaways(group_webpage, cookies)
+    giveaways = sgscraper.get_group_giveaways_user_entered(groups[group_webpage].group_giveaways.values(), user, cookies, addition_date)
     for giveaway in giveaways:
         print giveaway
 
