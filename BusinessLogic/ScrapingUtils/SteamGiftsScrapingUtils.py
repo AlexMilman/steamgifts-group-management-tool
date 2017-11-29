@@ -1,5 +1,4 @@
 import time
-from lxml import html
 import requests
 
 from BusinessLogic import StringUtils

@@ -1,12 +1,12 @@
 import time
 import pylru
 
-import SGToolsScrapingUtils
-from BusinessLogic import SteamGiftsScrapingUtils, SteamScrapingUtils, SteamRepScrapingUtils
-from BusinessLogic.SGToolsScrapingUtils import SGToolsScraper
-from BusinessLogic.SteamGiftsScrapingUtils import SteamGiftsScraper
-from BusinessLogic.SteamRepScrapingUtils import SteamRepScraper
-from BusinessLogic.SteamScrapingUtils import SteamScraper
+from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
+    SteamScrapingUtils
+from BusinessLogic.ScrapingUtils.SGToolsScrapingUtils import SGToolsScraper
+from BusinessLogic.ScrapingUtils.SteamGiftsScrapingUtils import SteamGiftsScraper
+from BusinessLogic.ScrapingUtils.SteamRepScrapingUtils import SteamRepScraper
+from BusinessLogic.ScrapingUtils.SteamScrapingUtils import SteamScraper
 from Data.Group import Group
 
 # Internal business logic of different SGMT commands

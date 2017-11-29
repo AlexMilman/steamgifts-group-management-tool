@@ -1,7 +1,7 @@
-from BusinessLogic import SteamGiftsScrapingUtils
-from BusinessLogic.BaseScraper import BaseScraper
 from lxml import html
 
+from BusinessLogic.BaseScraper import BaseScraper
+from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils
 
 # All scraping implementations for Steam & SteamFinder pages
 # Copyright (C) 2017  Alex Milman

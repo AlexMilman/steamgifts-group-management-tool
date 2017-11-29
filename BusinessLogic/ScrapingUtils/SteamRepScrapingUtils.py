@@ -1,6 +1,4 @@
-from BusinessLogic import StringUtils, SteamGiftsScrapingUtils
 from BusinessLogic.BaseScraper import BaseScraper
-from lxml import html
 
 # All scraping implementations for SteamRep
 # Copyright (C) 2017  Alex Milman
