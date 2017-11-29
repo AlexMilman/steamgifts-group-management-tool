@@ -182,7 +182,7 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
                                'Sent: ' + SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user)
 
     if check_level and level > 0 and SGToolsScrapingUtils.check_level(user, level):
-        broken_rules.append('User level is less than 1: ' + SteamGiftsConsts.get_user_link(user))
+        broken_rules.append('User level is less than ' + str(level) + ': ' + SteamGiftsConsts.get_user_link(user))
 
     if check_steamrep:
         user_steam_id = SteamGiftsScrapingUtils.get_user_steam_id(user)
