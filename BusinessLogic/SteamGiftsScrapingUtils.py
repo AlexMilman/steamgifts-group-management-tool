@@ -46,28 +46,6 @@ class SteamGiftsScraper(BaseScraper):
         return group_users
 
 
-    def checkUsersGroupRatio(self, group_webpage, max_pages=0):
-        users_with_negative_ratio = []
-        page_index = 1
-        while page_index < max_pages or max_pages == 0:
-            html_content = html.fromstring(self._get_page_content(get_steamgifts_users_page(group_webpage) + steamgifts_search_query + str(page_index)))
-            current_page_num = self._get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
-            if current_page_num != str(page_index):
-                break
-    
-            user_elements = self._get_items_by_xpath(html_content, u'.//div[@class="table__row-inner-wrap"]')
-            for user_elem in user_elements:
-                user = self._get_item_by_xpath(user_elem, u'.//a[@class="table__column__heading"]/text()')
-                user_data_elements = self._get_items_by_xpath(user_elem, u'.//div[@class="table__column--width-small text-center"]/text()')
-                user_giveaway_ratio = user_data_elements[2]
-                if StringUtils.normalize_float(user_giveaway_ratio) < 0:
-                    users_with_negative_ratio.append(get_user_link(user))
-    
-            page_index += 1
-    
-        return users_with_negative_ratio
-
-
     def get_group_giveaways(self, group_webpage, cookies=None, max_pages=0):
         group_giveaways=dict()
         page_index = 1
