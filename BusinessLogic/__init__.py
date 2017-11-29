@@ -3,4 +3,4 @@
 
 __author__ = 'AlexMilman'
 
-__all__ = ['BaseScraper']
+__all__ = ['WebUtils', 'StringUtils']
