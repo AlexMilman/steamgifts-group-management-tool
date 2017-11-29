@@ -2,6 +2,7 @@ import time
 
 import requests
 
+from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SteamConsts
 from BusinessLogic.Utils import StringUtils, WebUtils
 from Data.GroupGiveaway import GroupGiveaway
 from Data.GroupUser import GroupUser
@@ -9,17 +10,13 @@ from Data.GroupUser import GroupUser
 # All scraping implementations for SteamGifts
 # Copyright (C) 2017  Alex Milman
 
-steamgifts_search_query = '/search?page='
-steamgifts_user_link = 'https://www.steamgifts.com/user/'
-steamgifts_giveaway_link = 'https://www.steamgifts.com/giveaway/'
-steamgifts_link = 'https://www.steamgifts.com'
 
 
 def get_group_users(group_webpage, max_pages=0):
     group_users = dict()
     page_index = 1
     while page_index < max_pages or max_pages == 0:
-        html_content = WebUtils.get_html_page(get_steamgifts_users_page(group_webpage) + steamgifts_search_query + str(page_index))
+        html_content = WebUtils.get_html_page(SteamGiftsConsts.get_steamgifts_users_page(group_webpage) + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
             break
@@ -44,7 +41,7 @@ def get_group_giveaways(group_webpage, cookies=None, max_pages=0):
     group_giveaways=dict()
     page_index = 1
     while page_index < max_pages or max_pages == 0:
-        html_content = WebUtils.get_html_page(group_webpage + steamgifts_search_query + str(page_index))
+        html_content = WebUtils.get_html_page(group_webpage + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
             break
@@ -64,13 +61,13 @@ def get_group_giveaways(group_webpage, cookies=None, max_pages=0):
             giveaway_entries=[]
             giveaway_groups=[]
             if cookies:
-                giveaway_entries_content = WebUtils.get_html_page(get_giveaway_entries_link(giveaway_link), cookies=cookies)
+                giveaway_entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(giveaway_link), cookies=cookies)
                 giveaway_entries = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//a[@class="table__column__heading"]/text()')
 
-                giveaway_groups_content = WebUtils.get_html_page(get_giveaway_groups_link(giveaway_link), cookies=cookies)
+                giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(giveaway_link), cookies=cookies)
                 giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
 
-            group_giveaways[get_giveaway_link(giveaway_link)] = (GroupGiveaway(get_giveaway_link(giveaway_link), poster, creation_time, end_time, giveaway_entries, giveaway_groups, winners))
+            group_giveaways[SteamGiftsConsts.get_giveaway_link(giveaway_link)] = (GroupGiveaway(SteamGiftsConsts.get_giveaway_link(giveaway_link), poster, creation_time, end_time, giveaway_entries, giveaway_groups, winners))
 
         if not current_page_num:
             break
@@ -85,7 +82,7 @@ def get_monthly_posters(group_webpage, month, max_pages=0):
     posters=set()
     page_index = 1
     while page_index < max_pages or max_pages == 0:
-        html_content = WebUtils.get_html_page(group_webpage + steamgifts_search_query + str(page_index))
+        html_content = WebUtils.get_html_page(group_webpage + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
             break
@@ -123,7 +120,7 @@ def get_group_giveaways_user_entered(group_giveaways, user, cookies, user_additi
 def check_users_steamgifts_ratio(group_users):
     users_with_negative_ratio=[]
     for user in group_users:
-        html_content = WebUtils.get_html_page(get_user_link(user))
+        html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user))
         all_rows = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="featured__table__row"]')
         for row_content in all_rows:
             row_title = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__left"]/text()')
@@ -133,7 +130,7 @@ def check_users_steamgifts_ratio(group_users):
                 gifts_sent = WebUtils.get_item_by_xpath(row_content, u'.//div[@class=" featured__table__row__right"]/span/span/a/text()')
 
         if gifts_won and gifts_sent and StringUtils.normalize_int(gifts_won) > StringUtils.normalize_int(gifts_sent):
-            users_with_negative_ratio.append(get_user_link(user))
+            users_with_negative_ratio.append(SteamGiftsConsts.get_user_link(user))
 
     return users_with_negative_ratio
 
@@ -151,8 +148,13 @@ def check_user_fist_giveaway(group_giveaways, user, addition_date=None, days_to_
 
 
 def test(cookies):
-    self.get_page_content('https://www.steamgifts.com/giveaway/Rjkdw/sins-of-a-solar-empire-trinity', cookies)
+    WebUtils.get_page_content('https://www.steamgifts.com/giveaway/Rjkdw/sins-of-a-solar-empire-trinity', cookies)
 
+
+def get_user_steam_id(user):
+    html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user))
+    steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
+    return steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
 
 def isValidLink(link):
     try:
@@ -167,23 +169,5 @@ def isValidLink(link):
 
 
 
-def get_steamgifts_users_page(group_webpage):
-    return str(group_webpage) + '/users'
-
-
-def get_giveaway_entries_link(giveaway_link):
-    return get_giveaway_link(giveaway_link) + '/entries'
-
-
-def get_giveaway_groups_link(giveaway_link):
-    return get_giveaway_link(giveaway_link) + '/groups'
-
-
-def get_giveaway_link(giveaway_link):
-    return steamgifts_link + str(giveaway_link)
-
-
-def get_user_link(user):
-    return steamgifts_user_link + user
 
 

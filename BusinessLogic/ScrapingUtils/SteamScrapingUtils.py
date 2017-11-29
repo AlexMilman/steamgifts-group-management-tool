@@ -1,15 +1,10 @@
 from lxml import html
 
-from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SteamFinderScrapingUtils
+from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SteamFinderScrapingUtils, SteamConsts, SteamGiftsConsts
 from BusinessLogic.Utils import WebUtils
 
 # All scraping implementations for SteamFinder pages
 # Copyright (C) 2017  Alex Milman
-
-steam_filter_link = 'https://steamcommunity.com/linkfilter/?url='
-steam_profile_link = 'http://steamcommunity.com/profiles/'
-steam_user_id_link = 'http://steamcommunity.com/id/'
-steam_search_query = '/?ctp='
 
 
 def get_steam_id_to_user_dict(users):
@@ -24,7 +19,7 @@ def verify_after_n_giveaways(steam_after_n_thread_link, giveaways, group_users, 
     steam_id_to_user = get_steam_id_to_user_dict(group_users.values())
     page_index = 1
     while page_index < max_pages or max_pages == 0:
-        page_content = WebUtils.get_page_content(steam_after_n_thread_link + steam_search_query + str(page_index))
+        page_content = WebUtils.get_page_content(steam_after_n_thread_link + SteamConsts.STEAM_SEARCH_QUERY + str(page_index))
         partial_page = page_content[page_content.find('_pageend') + 10:]
         page_end = partial_page[:partial_page.find('</span>')]
         partial_page = page_content[page_content.find('_pagetotal') + 12:]
@@ -37,8 +32,8 @@ def verify_after_n_giveaways(steam_after_n_thread_link, giveaways, group_users, 
             if not steam_user:
                 continue  # this means this is the creator of the thread
 
-            if steam_profile_link in steam_user:
-                steam_id = steam_user.split(steam_profile_link)[1]
+            if SteamConsts.STEAM_PROFILE_LINK in steam_user:
+                steam_id = steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
             else:
                 steam_id = SteamFinderScrapingUtils.get_steam_id(steam_user)
             # Check if steam_id is currently in SG group
@@ -46,9 +41,9 @@ def verify_after_n_giveaways(steam_after_n_thread_link, giveaways, group_users, 
                 user = steam_id_to_user[steam_id]
                 giveaway_links = WebUtils.get_items_by_xpath(gifter_elem, u'.//div[@class="commentthread_comment_text"]/a/@href')
                 for giveaway_link in giveaway_links:
-                    giveaway_link = str(giveaway_link).replace(steam_filter_link, '')
+                    giveaway_link = str(giveaway_link).replace(SteamConsts.STEAM_FILTER_LINK, '')
                     if (giveaway_link in giveaways.keys() and giveaways[giveaway_link].creator == user and giveaway_link
-                        and giveaway_link.startswith(SteamGiftsScrapingUtils.steamgifts_giveaway_link)):
+                        and giveaway_link.startswith(SteamGiftsConsts.STEAMGIFTS_GIVEAWAY_LINK)):
                         if user not in after_n_giveaways:
                             after_n_giveaways[user] = set()
                         after_n_giveaways[user].add(giveaway_link)
@@ -60,8 +55,5 @@ def verify_after_n_giveaways(steam_after_n_thread_link, giveaways, group_users, 
     return after_n_giveaways
 
 
-def get_user_steam_id(user):
-    html_content = WebUtils.get_html_page(SteamGiftsScrapingUtils.get_user_link(user))
-    steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
-    return steam_user.split(steam_profile_link)[1]
+
 
