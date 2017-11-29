@@ -1,7 +1,8 @@
 import time
+
 import requests
 
-from BusinessLogic import StringUtils, WebUtils
+from BusinessLogic.Utils import StringUtils, WebUtils
 from Data.GroupGiveaway import GroupGiveaway
 from Data.GroupUser import GroupUser
 
@@ -91,7 +92,8 @@ def get_monthly_posters(group_webpage, month, max_pages=0):
 
         giveaway_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
         for giveaway_elem in giveaway_elements:
-            post_month = time.localtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(giveaway_elem, u'.//span/@Data-timestamp'))).tm_mon
+            post_month = time.localtime(
+                StringUtils.normalize_float(WebUtils.get_item_by_xpath(giveaway_elem, u'.//span/@Data-timestamp'))).tm_mon
             if post_month == month:
                 giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
                 poster = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__username"]/text()')

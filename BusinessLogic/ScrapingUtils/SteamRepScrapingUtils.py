@@ -1,4 +1,4 @@
-from BusinessLogic import WebUtils
+from BusinessLogic.Utils import WebUtils
 
 # All scraping implementations for SteamRep
 # Copyright (C) 2017  Alex Milman

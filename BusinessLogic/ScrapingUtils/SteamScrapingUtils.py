@@ -1,7 +1,7 @@
 from lxml import html
 
-from BusinessLogic import WebUtils
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils
+from BusinessLogic.Utils import WebUtils
 
 # All scraping implementations for Steam & SteamFinder pages
 # Copyright (C) 2017  Alex Milman

@@ -1,5 +1,5 @@
-from BusinessLogic import StringUtils, WebUtils
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils
+from BusinessLogic.Utils import StringUtils, WebUtils
 
 # All scraping implementations for SGtools
 # Copyright (C) 2017  Alex Milman
