@@ -164,13 +164,16 @@ def get_users_with_negative_group_ratio(group_webpage):
     for user in users_with_negative_ratio:
         print user
 
-def get_user_entered_giveaways(group_webpage, giveaway, cookies, addition_date):
-    if addition_date:
-        giveaways = sgscraper.get_group_giveaways_user_entered(group_webpage, giveaway, cookies, user_addition_date=addition_date)
-    else:
-        giveaways = sgscraper.get_group_giveaways_user_entered(group_webpage, giveaway, cookies)
+def get_user_entered_giveaways(group_webpage, user, cookies, addition_date):
+    giveaways = sgscraper.get_group_giveaways_user_entered(group_webpage, user, cookies, addition_date)
     for giveaway in giveaways:
         print giveaway
+
+
+def check_user_first_giveaway(group_webpage, user, cookies, addition_date, days_to_create_ga, min_ga_time):
+    load_group_giveaways(group_webpage, cookies)
+    giveaway = sgscraper.check_user_fist_giveaway(groups[group_webpage].group_giveaways.values(), user, addition_date, days_to_create_ga, min_ga_time)
+    print 'User\'s first giveaway: ' + str(giveaway)
 
 
 def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, level=0, check_steamrep=False):
@@ -199,8 +202,11 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
         print message
 
 
-def test(cookies):
-    SteamGiftsScraper().test(cookies)
+def test(group_webpage):
+    load_group_users(group_webpage)
+    for user in groups[group_webpage].group_users.keys():
+        user_check_rules(user, check_steamrep=True)
+
 
 
 def load_group(group_webpage, cookies=None):
@@ -293,6 +299,12 @@ def print_usage():
           + '\tThis is helpfull in case of a new user, or a user in probation you want to verify is following the "no entering giveaways" rule.'
     print '\tSYNTAX: GGTMStandalone.py -f UserEnteredGiveaways -w <steamgifts group webpage> -u <steamgifts username> -a <date from which to start the check: YYYY-MM-DD> -c <your steamgifts cookies>'
     print '\tEXAMPLE: GGTMStandalone.py -f UserEnteredGiveaways -w https://www.steamgifts.com/group/AhzO3/giftropolis -u Oozyyy -a 2017-11-20 -c "_dm_sync=true; _dm_bid=true; ..."'
+    print ''
+    print '\t' + printBold('UserCheckFirstGiveaway') + ' - Check if a user complies with first giveaway rules:\n' \
+          + '\tCreates a giveaway unique to the group. Creates the giveaway within X days of entering the group. Creates the giveaway for a minimum of X days.'
+    print '\tSYNTAX: GGTMStandalone.py -f UserCheckFirstGiveaway -w <steamgifts group webpage> -u <steamgifts username> -c <your steamgifts cookies> (Optional:)\n'\
+          + '\t -a <date from which the user entered the group: YYYY-MM-DD> -d <within how many days since entering the group should the GA be created (in days)> -t <min GA running time (in days)>'
+    print '\tEXAMPLE: GGTMStandalone.py -f UserCheckFirstGiveaway -w https://www.steamgifts.com/group/AhzO3/giftropolis -u Oozyyy -c "_dm_sync=true; _dm_bid=true; ..." -a 2017-11-20 -d 2 -t 7'
     print ''
     print ''
     print 'Basic Features:'

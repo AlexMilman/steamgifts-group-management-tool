@@ -158,7 +158,19 @@ class SteamGiftsScraper(BaseScraper):
                 users_with_negative_ratio.append(get_user_link(user))
     
         return users_with_negative_ratio
-    
+
+
+    def check_user_fist_giveaway(self, group_giveaways, user, addition_date=None, days_to_create_ga=0, min_ga_time=0):
+        for group_giveaway in group_giveaways:
+            if group_giveaway.creator == user and len(group_giveaway.groups) == 1:
+                if (    ((not addition_date or days_to_create_ga == 0)
+                        or (addition_date and days_to_create_ga > 0 and group_giveaway.start_date.tm_mday <= int(addition_date.split('-')[2]) + int(days_to_create_ga)))
+                    and
+                        (min_ga_time == 0
+                        or (min_ga_time > 0 and group_giveaway.end_date.tm_mday - group_giveaway.start_date.tm_mday >= min_ga_time))):
+                    return group_giveaway.link
+        return None
+
 
     def test(self, cookies):
         self.get_page_content('https://www.steamgifts.com/giveaway/Rjkdw/sins-of-a-solar-empire-trinity', cookies)
@@ -173,8 +185,10 @@ class SteamGiftsScraper(BaseScraper):
                 return False
         except:
             return False
-    
-    
+
+
+
+
 def get_steamgifts_users_page(group_webpage):
     return str(group_webpage) + '/users'
 

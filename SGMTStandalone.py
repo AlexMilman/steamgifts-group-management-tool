@@ -17,7 +17,7 @@ def main(argv):
     month = ''
     user = ''
     cookies = ''
-    addition_date = ''
+    addition_date = None
     max_pages = 0
     print_warranty=False
     print_conditions=False
@@ -28,8 +28,9 @@ def main(argv):
     level=0
     check_steamrep=False
     days=0
+    min_time=0
     try:
-        opts, args = getopt.getopt(argv, "whf:g:s:n:m:p:u:c:a:o:d:", [])
+        opts, args = getopt.getopt(argv, "whf:g:s:n:m:p:u:c:a:o:d:t:", [])
     except getopt.GetoptError:
         print 'INVALID COMMAND: GGTMStandalone.py ' +  argv + '\n'
         SGMTBusinessLogic.print_usage()
@@ -78,6 +79,8 @@ def main(argv):
             print_conditions = True
         elif opt == "-d":
             days = arg
+        elif opt == "-t":
+            min_time = arg
 
     if print_warranty:
         SGMTBusinessLogic.print_warranty()
@@ -111,8 +114,10 @@ def main(argv):
         SGMTBusinessLogic.get_user_entered_giveaways(group_webpage, user, cookies, addition_date)
     elif feature == 'UserCheckRules':
         SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_level, level, check_steamrep)
+    elif feature == 'UserCheckFirstGiveaway':
+        SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user , cookies, addition_date, days, min_time)
     elif feature == 'Test':
-        SGMTBusinessLogic.test(cookies)
+        SGMTBusinessLogic.test(group_webpage)
     else:
         print 'INVALID FEATURE: ' +  feature + '\n'
         SGMTBusinessLogic.print_usage()
