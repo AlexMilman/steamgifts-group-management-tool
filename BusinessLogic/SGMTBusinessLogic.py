@@ -2,9 +2,10 @@ import time
 import pylru
 
 import SGToolsScrapingUtils
-from BusinessLogic import SteamGiftsScrapingUtils, SteamScrapingUtils
+from BusinessLogic import SteamGiftsScrapingUtils, SteamScrapingUtils, SteamRepScrapingUtils
 from BusinessLogic.SGToolsScrapingUtils import SGToolsScraper
 from BusinessLogic.SteamGiftsScrapingUtils import SteamGiftsScraper
+from BusinessLogic.SteamRepScrapingUtils import SteamRepScraper
 from BusinessLogic.SteamScrapingUtils import SteamScraper
 from Data.Group import Group
 
@@ -28,11 +29,11 @@ END = '\033[0m'
 # LRU cache used to hold data of last LRU_CACHE_SIZE groups. In order to cache the data and not retrieve it every time.
 # Going forward need to consider using an external (persistent) cache server
 groups = pylru.lrucache(LRU_CACHE_SIZE)
+
 sgscraper = SteamGiftsScraper()
 sgtoolsscraper = SGToolsScraper()
 steamscraper = SteamScraper()
-
-
+steamrepscraper = SteamRepScraper()
 
 
 def missing_after_n_giveaway(group_webpage, n, steam_thread):
@@ -149,7 +150,7 @@ def get_month(datetime):
 
 def get_users_with_negative_steamgifts_ratio(group_webpage):
     load_group_users(group_webpage)
-    users_with_negative_ratio = sgscraper.checkUsersSteamgiftsRatio(groups[group_webpage].group_users.keys())
+    users_with_negative_ratio = sgscraper.check_users_steamgifts_ratio(groups[group_webpage].group_users.keys())
     for user in users_with_negative_ratio:
         print user
 
@@ -165,14 +166,14 @@ def get_users_with_negative_group_ratio(group_webpage):
 
 def get_user_entered_giveaways(group_webpage, giveaway, cookies, addition_date):
     if addition_date:
-        giveaways = sgscraper.getGroupGiveawaysUserEntered(group_webpage, giveaway, cookies, user_addition_date=addition_date)
+        giveaways = sgscraper.get_group_giveaways_user_entered(group_webpage, giveaway, cookies, user_addition_date=addition_date)
     else:
-        giveaways = sgscraper.getGroupGiveawaysUserEntered(group_webpage, giveaway, cookies)
+        giveaways = sgscraper.get_group_giveaways_user_entered(group_webpage, giveaway, cookies)
     for giveaway in giveaways:
         print giveaway
 
 
-def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, level=0):
+def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, level=0, check_steamrep=False):
     broken_rules = []
     if check_nonactivated and sgtoolsscraper.check_nonactivated(user):
         broken_rules.append('Has non-activated games: ' + SGToolsScrapingUtils.sgtools_check_nonactivated_link + user)
@@ -187,6 +188,11 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
 
     if check_level and level > 0 and sgtoolsscraper.check_level(user, level):
         broken_rules.append('User level is less than 1: ' + SteamGiftsScrapingUtils.get_user_link(user))
+
+    if check_steamrep:
+        user_steam_id = steamscraper.get_user_steam_id(user)
+        if user_steam_id and steamrepscraper.check_user_not_public_or_banned(user_steam_id):
+            broken_rules.append('User is not public or banned: ' + SteamRepScrapingUtils.get_steamrep_link(user_steam_id))
 
     for message in broken_rules:
         print message
