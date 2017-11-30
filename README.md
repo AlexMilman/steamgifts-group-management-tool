@@ -1,15 +1,15 @@
 # steamgifts-management-tool
-SteamGifts Management Tool (SGMT) is designed to give SteamGifts group admins tools needed to automatically manage their groups
+SteamGifts Group Management Tool (SGMT) is designed to give SteamGifts group admins tools needed to automatically manage their groups
 
 ### Current Features 
 The tool currently implements the following features:
-##### Basic Features
+#### Basic Features
 * Print all users in a SteamGifts group
 * Print all giveaways in a SteamGifts group
 * Print Steam profile ID for each user in a SteamGifts group
 * Print a list of all games a user won in a SteamGifts group
 * Print a list of all giveaways a user created in a SteamGifts group
-##### Standard Features
+#### Standard Features
 * Print a list of all after-n giveaways in a SteamGifts group
     * "after-n giveaways" means that after winning N games in a group, as user is required (by group rules) to create a giveaway.
     * Requires a Steam discussion where each member writes down the after-n giveaway he created
@@ -24,7 +24,7 @@ The tool currently implements the following features:
     * User has positive real CV ratio
     * User has no SteamRep bans and his profile is public
     * Check user is above certain level on SteamGifts
-##### Advanced Features
+#### Advanced Features
 The following features are considered advanced, as they require you to provide a cookies of a user that is a member of the SteamGifts group in question, in order to work.
 * Print for a user, all the giveaways (in a SteamGifts group) he has joined since a given date (used to check if a user joined giveaways when he was not supposed to)
 * Check a user has created a giveaway (in a SteamGifts group) by some/all of the following rules (usually used for new users):
@@ -69,10 +69,10 @@ Steam may not care about a couple of hundred concurrent requests. But for SteamG
 So for now this tool will run slowly, but safely.
 
 ### Future plans
-For the future, I plan to develop the the tool to be able to run as a service.
-Then I will be able to load and cache the data for any given SteamGifts group, which will obsolete the need for many requests to Steam, SteamGifts, SGTools, etc.
-I will then be able to deploy this tool to a server somewhere, and let anyone use it as an API.
-In the more distant future, I'm also considering using an external (persistent) cache, instead of in-memory (as it's implemented at the moment) 
+* For the future, I plan to develop the the tool to be able to run as a service.
+* Then I will be able to load and cache the data for any given SteamGifts group, which will obsolete the need for many requests to Steam, SteamGifts, SGTools, etc.
+* I will then be able to deploy this tool to a server somewhere, and let anyone use it as an API.
+* In the more distant future, I'm also considering using an external (persistent) cache, instead of in-memory (as it's implemented at the moment) 
 
 ### TODO
 * Implement Service API
