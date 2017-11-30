@@ -3,6 +3,7 @@ import sys
 
 from BusinessLogic import SGMTBusinessLogic
 
+
 # Standalone CLI implementation of the SGMT functionality
 # Copyright (C) 2017  Alex Milman
 
@@ -176,9 +177,9 @@ def print_usage():
     print '\tSYNTAX: GGTMStandalone.py -f MissingAfterNGiveaway -w <steamgifts group webpage> -s <steam after-n giveaways thread> -n <number of GAs after which an exclusive GA is required>'
     print '\tEXAMPLE: GGTMStandalone.py -f MissingAfterNGiveaway -w https://www.steamgifts.com/group/AhzO3/giftropolis -s http://steamcommunity.com/groups/Giftropolis/discussions/0/355043117503501545 -n 3'
     print ''
-    print '\t' + printBold('CheckMonthly') + ' - Returns a list of all users who didn\'t create a giveaway in a given month'
-    print '\tSYNTAX: GGTMStandalone.py -f CheckMonthly -w <steamgifts group webpage> -m <Month number> -d <Minimum number of days of a GA>'
-    print '\tEXAMPLE: GGTMStandalone.py -f CheckMonthly -w https://www.steamgifts.com/group/AhzO3/giftropolis -m 11 -d 3'
+    print '\t' + printBold('GetAllAfterNGiveawaysPerUser') + ' - Get for each user, all the After-N giveaways he created'
+    print '\tSYNTAX: GGTMStandalone.py -f GetAllAfterNGiveawaysPerUser -w <steamgifts group webpage> -s <steam after-n giveaways thread> -n <number of GAs after which an exclusive GA is required>'
+    print '\tEXAMPLE: GGTMStandalone.py -f GetAllAfterNGiveawaysPerUser -w https://www.steamgifts.com/group/AhzO3/giftropolis -s http://steamcommunity.com/groups/Giftropolis/discussions/0/355043117503501545 -n 3'
     print ''
     print '\t' + printBold('NegativeSteamgiftsRatio') + ' - Returns a list of all users who have a negative won/gifted ratio in SteamGifts'
     print '\tSYNTAX: GGTMStandalone.py -f NegativeSteamgiftsRatio -w <steamgifts group webpage>'
@@ -208,9 +209,13 @@ def print_usage():
     print ''
     print '\t' + printBold('UserCheckFirstGiveaway') + ' - Check if a user complies with first giveaway rules:\n' \
           + '\tCreates a giveaway unique to the group. Creates the giveaway within X days of entering the group. Creates the giveaway for a minimum of X days.'
-    print '\tSYNTAX: GGTMStandalone.py -f UserCheckFirstGiveaway -w <steamgifts group webpage> -u <steamgifts username> -c <your steamgifts cookies> (Optional:)\n'\
-          + '\t -a <date from which the user entered the group: YYYY-MM-DD> -d <within how many days since entering the group should the GA be created (in days)> -t <min GA running time (in days)>'
+    print '\tSYNTAX: GGTMStandalone.py -f UserCheckFirstGiveaway -w <steamgifts group webpage> -u <steamgifts username> -c <your steamgifts cookies> \n'\
+          + '\t(Optional:) -a <date from which the user entered the group: YYYY-MM-DD> -d <within how many days since entering the group should the GA be created (in days)> -t <min GA running time (in days)>'
     print '\tEXAMPLE: GGTMStandalone.py -f UserCheckFirstGiveaway -w https://www.steamgifts.com/group/AhzO3/giftropolis -u Oozyyy -c "_dm_sync=true; _dm_bid=true; ..." -a 2017-11-20 -d 2 -t 7'
+    print ''
+    print '\t' + printBold('CheckMonthly') + ' - Returns a list of all users who didn\'t create a giveaway in a given month'
+    print '\tSYNTAX: GGTMStandalone.py -f CheckMonthly -w <steamgifts group webpage> -m <Month number> -d <Minimum number of days of a GA>'
+    print '\tEXAMPLE: GGTMStandalone.py -f CheckMonthly -w https://www.steamgifts.com/group/AhzO3/giftropolis -m 11 -d 3'
     print ''
     print ''
     print 'Basic Features:'
@@ -233,10 +238,6 @@ def print_usage():
     print '\t' + printBold('GetAllUserGiveaways') + ' - Get for each user, all the giveaways he created in the group'
     print '\tSYNTAX: GGTMStandalone.py -f GetAllUserGiveaways -w <steamgifts group webpage> '
     print '\tEXAMPLE: GGTMStandalone.py -f GetAllUserGiveaways -w https://www.steamgifts.com/group/AhzO3/giftropolis'
-    print ''
-    print '\t' + printBold('GetAllAfterNGiveawaysPerUser') + ' - Get for each user, all the After-N giveaways he created'
-    print '\tSYNTAX: GGTMStandalone.py -f GetAllAfterNGiveawaysPerUser -w <steamgifts group webpage> -s <steam after-n giveaways thread> -n <number of GAs after which an exclusive GA is required>'
-    print '\tEXAMPLE: GGTMStandalone.py -f GetAllAfterNGiveawaysPerUser -w https://www.steamgifts.com/group/AhzO3/giftropolis -s http://steamcommunity.com/groups/Giftropolis/discussions/0/355043117503501545 -n 3'
 
 
 def printBold(text):
