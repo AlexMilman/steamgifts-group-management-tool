@@ -119,8 +119,6 @@ def check_monthly(group_webpage, month, cookies, min_days=0):
                 and group_ga.end_date.tm_mday - group_ga.start_date.tm_mday >= min_days:
             monthly_posters.add(group_ga.creator)
 
-    # users_list = DemoValues.get_demo_users()
-    # monthly_posters = DemoValues.get_demo_posters()
     for user in users:
         if user not in monthly_posters:
             print SteamGiftsConsts.get_user_link(user)
