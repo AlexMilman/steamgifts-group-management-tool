@@ -1,26 +1,78 @@
 # steamgifts-management-tool
 SteamGifts Management Tool (SGMT) is designed to give SteamGifts group admins tools needed to automatically manage their groups
 
+### Current Features 
+The tool currently implements the following features:
+##### Basic Features
+* Print all users in a SteamGifts group
+* Print all giveaways in a SteamGifts group
+* Print Steam profile ID for each user in a SteamGifts group
+* Print a list of all games a user won in a SteamGifts group
+* Print a list of all giveaways a user created in a SteamGifts group
+##### Standard Features
+* Print a list of all after-n giveaways in a SteamGifts group
+    * "after-n giveaways" means that after winning N games in a group, as user is required (by group rules) to create a giveaway.
+    * Requires a Steam discussion where each member writes down the after-n giveaway he created
+    * Does not have additional verifications (that the giveaway is unique, that the user is not entering any giveaways while it's created, etc.)  
+* Print a list of users who did not create enough after-n giveaways in a SteamGifts group
+    * See above.
+* Print a list of users of a SteamGifts group with a negative won/gifted ratio in SteamGifts
+* Print a list of users with a negative won/gifted ratio in a SteamGifts Group
+* Check if a given user complies with some/all of the following rules:
+    * User doesn't have non activated games
+    * User doesn't have multiple wins
+    * User has positive real CV ratio
+    * User has no SteamRep bans and his profile is public
+    * Check user is above certain level on SteamGifts
+##### Advanced Features
+The following features are considered advanced, as they require you to provide a cookies of a user that is a member of the SteamGifts group in question, in order to work.
+* Print for a user, all the giveaways (in a SteamGifts group) he has joined since a given date (used to check if a user joined giveaways when he was not supposed to)
+* Check a user has created a giveaway (in a SteamGifts group) by some/all of the following rules (usually used for new users):
+    * Giveaway that is unique to the SteamGifts group (no other groups can participate)
+    * The giveaway is created within X days from when the user has joined the group
+    * The giveaway has a minimum of X days to exist 
+* Print a list of users in a SteamGifts group that did not post a unique monthly giveaway in a given month
 
-### How to Install and Run
-TBD
+## How to Install and Run
+### Python
+This tool requires [Python 2.7](https://www.python.org/downloads/)
 
-### Usage as CLI
-TBD
+### Installing python dependencies
+Within a command prompt navigate to the steamgifts-management-tool folder and run the command
+```
+pip install -r requirements.txt
+``` 
 
-### Usage as Service
-TBD
+### Running the tool in CLI
+Within a command prompt navigate to the steamgifts-management-tool folder and run the command
+```
+python SGMTStandalone.py -h
+```
+This will show you a full usage explanation
 
-### What it does (purpose)
+### Running the tool as Service
 TBD
 
 ### Why Python was chosen
-TBD (xpath, ease-of-use, speed)
+I chose Python as the programming language to implement this tool, for the following reasons:
+1. I have previous experience with Python
+2. Python is an easy language to learn (for anyone looking to contribute to this project)
+3. It's very easy and fast to write a working code in Python, there is little overhead.  
+4. Python has very good implementation of HTML XPath utilization library, which is easy to use
+5. Python code is lightweight and runs fast.
 
 ### Why no parallelism
-TBD
+I chose to write the tool synchronously at the moment for 2 reasons:
+1. It would take more time to write it to run asynchronously
+2. It may add a significant load to the web servers it uses.
+Steam may not care about a couple of hundred concurrent requests. But for SteamGifts or SGTools this might be a hug of death, which will either crash their server, or get your IP blocked from it.
+So for now this tool will run slowly, but safely.
+
+### Future plans
+For the future, I plan to develop the the tool to be able to run as a service.
+Then I will be able to load and cache the data for any given SteamGifts group, which will obsolete the need for many requests to Steam, SteamGifts, SGTools, etc.
+I will then be able to deploy this tool to a server somewhere, and let anyone use it as an API.
+In the more distant future, I'm also considering using an external (persistent) cache, instead of in-memory (as it's implemented at the moment) 
 
 ### TODO
-
-* Create "Requirements" file for Python dependencies
-* Write documentation
+* Implement Service API
