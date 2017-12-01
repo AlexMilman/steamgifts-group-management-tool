@@ -127,7 +127,8 @@ def main(argv):
     elif feature == 'UserCheckRules':
         SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_level, level, check_steamrep)
     elif feature == 'UserCheckFirstGiveaway':
-        SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user , cookies, addition_date, days, min_time)
+        #TODO: Add min_value, min_steam_reviews, min_steam_score
+        SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user, cookies, addition_date, days, min_time)
     elif feature == 'Test':
         SGMTBusinessLogic.test(group_webpage)
     else:
@@ -202,10 +203,10 @@ def print_usage():
     print ''
     print 'Advanced Features:'
     print 'These features require operations which cannot be performed anonymously, you will be required to provide your personal cookies'
-    print '\t' + printBold('UserEnteredGiveaways') + ' - For a given user, returns all group giveaways the user has entered since a given date.\n' \
+    print '\t' + printBold('UserEnteredGiveaways') + ' - For a given user, returns all group giveaways the user/s has entered since a given date.\n' \
           + '\tThis is helpfull in case of a new user, or a user in probation you want to verify is following the "no entering giveaways" rule.'
-    print '\tSYNTAX: GGTMStandalone.py -f UserEnteredGiveaways -w <steamgifts group webpage> -u <steamgifts username> -a <date from which to start the check: YYYY-MM-DD> -c <your steamgifts cookies>'
-    print '\tEXAMPLE: GGTMStandalone.py -f UserEnteredGiveaways -w https://www.steamgifts.com/group/AhzO3/giftropolis -u Oozyyy -a 2017-11-20 -c "_dm_sync=true; _dm_bid=true; ..."'
+    print '\tSYNTAX: GGTMStandalone.py -f UserEnteredGiveaways -w <steamgifts group webpage> -u <steamgifts username or list of users separated by column> -a <date from which to start the check: YYYY-MM-DD> -c <your steamgifts cookies>'
+    print '\tEXAMPLE: GGTMStandalone.py -f UserEnteredGiveaways -w https://www.steamgifts.com/group/AhzO3/giftropolis -u Oozyyy,7Years -a 2017-11-20 -c "_dm_sync=true; _dm_bid=true; ..."'
     print ''
     print '\t' + printBold('UserCheckFirstGiveaway') + ' - Check if a user complies with first giveaway rules:\n' \
           + '\tCreates a giveaway unique to the group. Creates the giveaway within X days of entering the group. Creates the giveaway for a minimum of X days.'

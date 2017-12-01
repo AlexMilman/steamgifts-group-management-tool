@@ -144,15 +144,20 @@ def get_users_with_negative_group_ratio(group_webpage):
     for user in users_with_negative_ratio:
         print user
 
-def get_user_entered_giveaways(group_webpage, user, cookies, addition_date):
-    load_group_giveaways(group_webpage, cookies)
-    giveaways = SteamGiftsScrapingUtils.get_group_giveaways_user_entered(groups[group_webpage].group_giveaways.values(), user, cookies, addition_date)
-    for giveaway in giveaways:
-        print giveaway
+
+def get_user_entered_giveaways(group_webpage, users, cookies, addition_date):
+    load_group_giveaways(group_webpage, cookies, addition_date)
+    users_list = users.split(',')
+    for group_giveaway in groups[group_webpage].group_giveaways.values():
+        # Go over all giveaways not closed before "addition_date"
+        if not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_date):
+            for user in users_list:
+                if user in group_giveaway.entries:
+                    print 'User ' + user + ' entered giveaway: ' + group_giveaway.link
 
 
 def check_user_first_giveaway(group_webpage, user, cookies, addition_date, days_to_create_ga, min_ga_time):
-    load_group_giveaways(group_webpage, cookies)
+    load_group_giveaways(group_webpage, cookies, addition_date)
     giveaway = SteamGiftsScrapingUtils.check_user_fist_giveaway(groups[group_webpage].group_giveaways.values(), user, addition_date, days_to_create_ga, min_ga_time)
     print 'User\'s first giveaway: ' + str(giveaway)
 
@@ -201,20 +206,21 @@ def load_group_users(group_webpage):
     if group_webpage not in groups:
         group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
         groups[group_webpage] = Group(group_users=group_users)
-    elif groups[group_webpage].group_users:
+    elif groups[group_webpage].group_users is None:
         group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
         groups[group_webpage].group_users = group_users
 
 
-def load_group_giveaways(group_webpage, cookies=None):
+def load_group_giveaways(group_webpage, cookies=None, earliest_date=None):
     if group_webpage not in groups:
-        group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
+        group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, earliest_date)
         groups[group_webpage] = Group(group_giveaways=group_giveaways)
-    elif groups[group_webpage].group_giveaways:
-        group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
+    elif groups[group_webpage].group_giveaways is None:
+        group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, earliest_date)
         groups[group_webpage].group_giveaways = group_giveaways
 
-
+#TODO: Should load both steam_id and global won/sent.
+#TODO: Should be a param on load_group_users
 def load_group_user_steam_ids(group_webpage):
     if group_webpage in groups and groups[group_webpage].group_users:
         for user in groups[group_webpage].group_users.values():

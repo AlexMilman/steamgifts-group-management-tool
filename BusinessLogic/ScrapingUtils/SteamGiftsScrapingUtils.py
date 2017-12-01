@@ -37,10 +37,11 @@ def get_group_users(group_webpage, max_pages=0):
     return group_users
 
 
-def get_group_giveaways(group_webpage, cookies=None, max_pages=0):
+def get_group_giveaways(group_webpage, cookies=None, earliest_date=None):
     group_giveaways=dict()
+    reached_end=False
     page_index = 1
-    while page_index < max_pages or max_pages == 0:
+    while not reached_end:
         html_content = WebUtils.get_html_page(group_webpage + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
@@ -69,7 +70,11 @@ def get_group_giveaways(group_webpage, cookies=None, max_pages=0):
 
             group_giveaways[SteamGiftsConsts.get_giveaway_link(giveaway_link)] = (GroupGiveaway(SteamGiftsConsts.get_giveaway_link(giveaway_link), poster, creation_time, end_time, giveaway_entries, giveaway_groups, winners))
 
-        if not current_page_num:
+            if earliest_date and time.strftime('%Y-%m-%d', end_time) < earliest_date:
+                reached_end = True
+                break
+
+        if not current_page_num or reached_end:
             break
 
         page_index += 1
@@ -89,8 +94,7 @@ def get_monthly_posters(group_webpage, month, max_pages=0):
 
         giveaway_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
         for giveaway_elem in giveaway_elements:
-            post_month = time.localtime(
-                StringUtils.normalize_float(WebUtils.get_item_by_xpath(giveaway_elem, u'.//span/@Data-timestamp'))).tm_mon
+            post_month = time.localtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(giveaway_elem, u'.//span/@Data-timestamp'))).tm_mon
             if post_month == month:
                 giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
                 poster = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__username"]/text()')
@@ -104,17 +108,6 @@ def get_monthly_posters(group_webpage, month, max_pages=0):
         page_index += 1
 
     return posters
-
-
-def get_group_giveaways_user_entered(group_giveaways, user, cookies, user_addition_date=None):
-    giveaways = []
-    for group_giveaway in group_giveaways:
-        # Go over all giveaways not closed before "addition_date"
-        if not user_addition_date or user_addition_date < time.strftime('%Y-%m-%d',group_giveaway.end_date):
-            if user in group_giveaway.entries:
-                giveaways.append(group_giveaway.link)
-
-    return giveaways
 
 
 def check_users_steamgifts_ratio(group_users):
