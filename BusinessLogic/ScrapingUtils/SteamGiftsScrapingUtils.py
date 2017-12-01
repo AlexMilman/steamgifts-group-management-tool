@@ -142,7 +142,7 @@ def check_user_fist_giveaway(group_giveaways, user, addition_date=None, days_to_
                     or (addition_date and days_to_create_ga > 0 and group_giveaway.start_date.tm_mday <= int(addition_date.split('-')[2]) + int(days_to_create_ga)))
                 and
                     (min_ga_time == 0
-                    or (min_ga_time > 0 and group_giveaway.end_date.tm_mday - group_giveaway.start_date.tm_mday >= min_ga_time))):
+                    or (min_ga_time > 0 and group_giveaway.end_date.tm_mday - group_giveaway.start_date.tm_mday >= int(min_ga_time)))):
                 return group_giveaway.link
     return None
 
