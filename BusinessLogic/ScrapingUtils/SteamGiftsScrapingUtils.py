@@ -110,24 +110,6 @@ def get_monthly_posters(group_webpage, month, max_pages=0):
     return posters
 
 
-def check_users_steamgifts_ratio(group_users):
-    users_with_negative_ratio=[]
-    for user in group_users:
-        html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user))
-        all_rows = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="featured__table__row"]')
-        for row_content in all_rows:
-            row_title = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__left"]/text()')
-            if row_title == u'Gifts Won':
-                gifts_won = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__right"]/span/span/a/text()')
-            elif row_title == u'Gifts Sent':
-                gifts_sent = WebUtils.get_item_by_xpath(row_content, u'.//div[@class=" featured__table__row__right"]/span/span/a/text()')
-
-        if gifts_won and gifts_sent and StringUtils.normalize_int(gifts_won) > StringUtils.normalize_int(gifts_sent):
-            users_with_negative_ratio.append(SteamGiftsConsts.get_user_link(user))
-
-    return users_with_negative_ratio
-
-
 def test(cookies):
     WebUtils.get_page_content('https://www.steamgifts.com/giveaway/Rjkdw/sins-of-a-solar-empire-trinity', cookies)
 
