@@ -124,10 +124,6 @@ def check_monthly(group_webpage, month, cookies, min_days=0):
             print SteamGiftsConsts.get_user_link(user)
 
 
-def get_month(datetime):
-    return time.localtime(datetime).tm_mon
-
-
 def get_users_with_negative_steamgifts_ratio(group_webpage):
     load_group_users(group_webpage)
     users_with_negative_ratio = SteamGiftsScrapingUtils.check_users_steamgifts_ratio(groups[group_webpage].group_users.keys())
