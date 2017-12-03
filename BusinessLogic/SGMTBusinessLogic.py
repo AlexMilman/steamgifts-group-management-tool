@@ -110,18 +110,29 @@ def get_all_users_in_group(group_webpage):
 
 
 def check_monthly(group_webpage, month, cookies, min_days=0):
-    load_group(group_webpage, cookies)
+    load_group(group_webpage, cookies, '2017-' + str(month) + '01')
     users = groups[group_webpage].group_users.keys()
     monthly_posters = set()
+    monthly_unfinished = dict()
     for group_ga in groups[group_webpage].group_giveaways.values():
-        if group_ga.creator in users and len(group_ga.groups) == 1 and len(group_ga.winners) > 0\
+        if group_ga.creator in users and len(group_ga.groups) == 1\
                 and group_ga.start_date.tm_mon == month and group_ga.end_date.tm_mon == month\
                 and group_ga.end_date.tm_mday - group_ga.start_date.tm_mday >= min_days:
-            monthly_posters.add(group_ga.creator)
+            if len(group_ga.winners) > 0:
+                monthly_posters.add(group_ga.creator)
+            else:
+                if group_ga.creator not in monthly_unfinished:
+                    monthly_unfinished[group_ga.creator] = set()
+                monthly_unfinished[group_ga.creator].add(group_ga.link)
 
+    print 'Users without monthly giveaways:'
     for user in users:
         if user not in monthly_posters:
             print SteamGiftsConsts.get_user_link(user)
+
+    print '\nUsers with unfinished monthly GAs:'
+    for user,links in monthly_unfinished.iteritems():
+        print 'User ' + SteamGiftsConsts.get_user_link(user) + ' giveaways: ' + parse_list(links)
 
 
 def get_users_with_negative_steamgifts_ratio(group_webpage):
@@ -200,10 +211,10 @@ def test(group_webpage):
 
 
 
-def load_group(group_webpage, cookies=None):
+def load_group(group_webpage, cookies=None, earliest_date=None):
     if group_webpage not in groups:
         group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
-        group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
+        group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, earliest_date)
         groups[group_webpage] = Group(group_users, group_giveaways)
 
 
