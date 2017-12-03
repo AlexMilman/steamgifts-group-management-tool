@@ -137,6 +137,7 @@ def get_user_steam_id(user):
     steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
     return steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
 
+
 def isValidLink(link):
     try:
         request = requests.get(link)

@@ -117,7 +117,7 @@ def check_monthly(group_webpage, month, cookies, min_days=0):
     for group_ga in groups[group_webpage].group_giveaways.values():
         if group_ga.creator in users and len(group_ga.groups) == 1\
                 and group_ga.start_date.tm_mon == month and group_ga.end_date.tm_mon == month\
-                and group_ga.end_date.tm_mday - group_ga.start_date.tm_mday >= min_days:
+                and group_ga.end_date.tm_mday - group_ga.start_date.tm_mday >= int(min_days):
             if len(group_ga.winners) > 0:
                 monthly_posters.add(group_ga.creator)
             else:
@@ -210,7 +210,6 @@ def test(group_webpage):
         user_check_rules(user, check_steamrep=True)
 
 
-
 def load_group(group_webpage, cookies=None, earliest_date=None):
     if group_webpage not in groups:
         group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
@@ -241,7 +240,6 @@ def load_group_user_steam_ids(group_webpage):
     if group_webpage in groups and groups[group_webpage].group_users:
         for user in groups[group_webpage].group_users.values():
             user.steam_id = SteamGiftsScrapingUtils.get_user_steam_id(user.user_name)
-
 
 
 def parse_list(list, prefix=''):
