@@ -156,10 +156,19 @@ def get_user_entered_giveaways(group_webpage, users, cookies, addition_date):
                     print 'User ' + user + ' entered giveaway: ' + group_giveaway.link
 
 
-def check_user_first_giveaway(group_webpage, user, cookies, addition_date, days_to_create_ga, min_ga_time):
+def check_user_first_giveaway(group_webpage, users, cookies, addition_date, days_to_create_ga, min_ga_time):
     load_group_giveaways(group_webpage, cookies, addition_date)
-    giveaway = SteamGiftsScrapingUtils.check_user_fist_giveaway(groups[group_webpage].group_giveaways.values(), user, addition_date, days_to_create_ga, min_ga_time)
-    print 'User\'s first giveaway: ' + str(giveaway)
+    users_list = users.split(',')
+    for group_giveaway in groups[group_webpage].group_giveaways.values():
+        if group_giveaway.creator in users_list and len(group_giveaway.groups) == 1:
+            if (    len(group_giveaway.groups) == 1
+                and
+                    ((not addition_date or days_to_create_ga == 0)
+                    or (addition_date and days_to_create_ga > 0 and group_giveaway.start_date.tm_mday <= int(addition_date.split('-')[2]) + int(days_to_create_ga)))
+                and
+                    (min_ga_time == 0
+                    or (min_ga_time > 0 and group_giveaway.end_date.tm_mday - group_giveaway.start_date.tm_mday >= int(min_ga_time)))):
+                print 'User ' + group_giveaway.creator + ' first giveaway: ' + group_giveaway.link
 
 
 def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, level=0, check_steamrep=False):
