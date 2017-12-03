@@ -82,7 +82,7 @@ def main(argv):
                     check_real_cv_value = True
                 elif option.startswith('l'):
                     check_level = True
-                    level = option.split('+')[1]
+                    level = int(option.split('+')[1])
                 elif option == 's':
                     check_steamrep = True
         elif opt == "-w":
@@ -90,9 +90,9 @@ def main(argv):
         elif opt == "-c" and not arg:
             show_conditions = True
         elif opt == "-d":
-            days = arg
+            days = int(arg)
         elif opt == "-t":
-            min_time = arg
+            min_time = int(arg)
 
     if show_warranty:
         print_warranty()
