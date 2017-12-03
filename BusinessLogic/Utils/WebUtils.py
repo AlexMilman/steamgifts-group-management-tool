@@ -33,7 +33,11 @@ def get_page_content(page_url, cookies=None):
     opener = urllib2.build_opener()
     if cookies:
         opener.addheaders.append(('Cookie', cookies))
-    response = opener.open(page_url)
+    try:
+        response = opener.open(page_url)
+    except:
+        print 'Error downloading page ' + page_url
+        return ''
     while 1:
         try:
             data = response.read()
