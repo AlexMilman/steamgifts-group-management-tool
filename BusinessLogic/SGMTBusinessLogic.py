@@ -108,7 +108,7 @@ def get_all_users_in_group(group_webpage):
     for user in users_list:
         print user
 
-
+#TODO:Add min_price, min_num_of_reviews, min_score
 def check_monthly(group_webpage, year_month, cookies, min_days=0):
     load_group(group_webpage, cookies, year_month + '-01')
     users = groups[group_webpage].group_users.keys()
@@ -145,7 +145,7 @@ def get_users_with_negative_group_ratio(group_webpage):
     users_with_negative_ratio=[]
     load_group_users(group_webpage)
     for user in groups[group_webpage].group_users.values():
-        if user.won_games > user.sent_games:
+        if user.group_won > user.group_sent:
             users_with_negative_ratio.append(user.user_name)
 
     for user in users_with_negative_ratio:
@@ -234,7 +234,6 @@ def load_group_giveaways(group_webpage, cookies=None, earliest_date=None):
         group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, earliest_date)
         groups[group_webpage].group_giveaways = group_giveaways
 
-#TODO: Should load both steam_id and global won/sent.
 #TODO: Should be a param on load_group_users
 def load_group_user_steam_ids(group_webpage):
     if group_webpage in groups and groups[group_webpage].group_users:

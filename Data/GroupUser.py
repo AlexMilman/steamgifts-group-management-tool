@@ -3,11 +3,15 @@
 
 class GroupUser(object):
     user_name=None
-    won_games=0.0
-    sent_games=0.0
+    group_won=0.0
+    group_sent=0.0
+    global_won=0.0
+    global_sent=0.0
     steam_id=None
 
-    def __init__(self, user_name, won_games=0.0, sent_games=0.0):
+    def __init__(self, user_name, group_won=0.0, group_sent=0.0, global_won=0.0, global_sent=0.0):
         self.user_name = user_name
-        self.won_games = won_games
-        self.sent_games = sent_games
+        self.group_won = group_won
+        self.group_sent = group_sent
+        self.global_won = global_won
+        self.global_sent = global_sent
