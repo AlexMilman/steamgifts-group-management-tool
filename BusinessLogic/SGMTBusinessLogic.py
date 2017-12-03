@@ -117,7 +117,7 @@ def check_monthly(group_webpage, month, cookies, min_days=0):
     for group_ga in groups[group_webpage].group_giveaways.values():
         if group_ga.creator in users and len(group_ga.groups) == 1\
                 and group_ga.start_date.tm_mon == month and group_ga.end_date.tm_mon == month\
-                and group_ga.end_date.tm_mday - group_ga.start_date.tm_mday >= int(min_days):
+                and group_ga.end_date.tm_mday - group_ga.start_date.tm_mday >= min_days:
             if len(group_ga.winners) > 0:
                 monthly_posters.add(group_ga.creator)
             else:
@@ -171,10 +171,10 @@ def check_user_first_giveaway(group_webpage, users, cookies, addition_date, days
             if (    len(group_giveaway.groups) == 1
                 and
                     ((not addition_date or days_to_create_ga == 0)
-                    or (addition_date and days_to_create_ga > 0 and group_giveaway.start_date.tm_mday <= int(addition_date.split('-')[2]) + int(days_to_create_ga)))
+                    or (addition_date and days_to_create_ga > 0 and group_giveaway.start_date.tm_mday <= int(addition_date.split('-')[2]) + days_to_create_ga))
                 and
                     (min_ga_time == 0
-                    or (min_ga_time > 0 and group_giveaway.end_date.tm_mday - group_giveaway.start_date.tm_mday >= int(min_ga_time)))):
+                    or (min_ga_time > 0 and group_giveaway.end_date.tm_mday - group_giveaway.start_date.tm_mday >= min_ga_time))):
                 print 'User ' + group_giveaway.creator + ' first giveaway: ' + group_giveaway.link
 
 
