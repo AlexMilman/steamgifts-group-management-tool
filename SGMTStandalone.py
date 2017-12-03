@@ -26,7 +26,7 @@ def main(argv):
     group_webpage = ''
     steam_thread = ''
     n = ''
-    month = ''
+    year_month = ''
     user = ''
     cookies = ''
     addition_date = None
@@ -61,7 +61,7 @@ def main(argv):
         elif opt == "-s":
             steam_thread = arg
         elif opt == "-m":
-            month = int(arg)
+            year_month = arg
         elif opt == "-p":
             max_pages = int(arg)
         elif opt == "-u":
@@ -105,7 +105,7 @@ def main(argv):
     if feature == 'MissingAfterNGiveaway':
         SGMTBusinessLogic.missing_after_n_giveaway(group_webpage, n, steam_thread)
     elif feature == 'CheckMonthly':
-        SGMTBusinessLogic.check_monthly(group_webpage, month, cookies, days)
+        SGMTBusinessLogic.check_monthly(group_webpage, year_month, cookies, days)
     elif feature == 'GetAllUsersInGroup':
         SGMTBusinessLogic.get_all_users_in_group(group_webpage)
     elif feature == 'GetAllGiveawaysInGroup':
@@ -215,8 +215,8 @@ def print_usage():
     print '\tEXAMPLE: GGTMStandalone.py -f UserCheckFirstGiveaway -w https://www.steamgifts.com/group/AhzO3/giftropolis -u Oozyyy -c "_dm_sync=true; _dm_bid=true; ..." -a 2017-11-20 -d 2 -t 7'
     print ''
     print '\t' + printBold('CheckMonthly') + ' - Returns a list of all users who didn\'t create a giveaway in a given month'
-    print '\tSYNTAX: GGTMStandalone.py -f CheckMonthly -w <steamgifts group webpage> -m <Month number> -d <Minimum number of days of a GA>'
-    print '\tEXAMPLE: GGTMStandalone.py -f CheckMonthly -w https://www.steamgifts.com/group/AhzO3/giftropolis -m 11 -d 3'
+    print '\tSYNTAX: GGTMStandalone.py -f CheckMonthly -w <steamgifts group webpage> -m <Year+Month> -d <Minimum number of days of a GA>'
+    print '\tEXAMPLE: GGTMStandalone.py -f CheckMonthly -w https://www.steamgifts.com/group/AhzO3/giftropolis -m 2017-11 -d 3'
     print ''
     print ''
     print 'Basic Features:'

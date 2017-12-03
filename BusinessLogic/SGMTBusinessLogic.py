@@ -109,14 +109,14 @@ def get_all_users_in_group(group_webpage):
         print user
 
 
-def check_monthly(group_webpage, month, cookies, min_days=0):
-    load_group(group_webpage, cookies, '2017-' + str(month) + '01')
+def check_monthly(group_webpage, year_month, cookies, min_days=0):
+    load_group(group_webpage, cookies, year_month + '-01')
     users = groups[group_webpage].group_users.keys()
     monthly_posters = set()
     monthly_unfinished = dict()
     for group_ga in groups[group_webpage].group_giveaways.values():
         if group_ga.creator in users and len(group_ga.groups) == 1\
-                and group_ga.start_date.tm_mon == month and group_ga.end_date.tm_mon == month\
+                and group_ga.start_date.tm_mon == year_month and group_ga.end_date.tm_mon == year_month\
                 and group_ga.end_date.tm_mday - group_ga.start_date.tm_mday >= min_days:
             if len(group_ga.winners) > 0:
                 monthly_posters.add(group_ga.creator)
