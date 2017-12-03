@@ -132,10 +132,23 @@ def test(cookies):
     WebUtils.get_page_content('https://www.steamgifts.com/giveaway/Rjkdw/sins-of-a-solar-empire-trinity', cookies)
 
 
-def get_user_steam_id(user):
-    html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user))
+def get_user_steam_id(user_name):
+    html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user_name))
     steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
     return steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
+
+
+def update_user_additional_data(user):
+    html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user.user_name))
+    steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
+    user.steam_id = steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
+    all_rows = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="featured__table__row"]')
+    for row_content in all_rows:
+        row_title = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__left"]/text()')
+        if row_title == u'Gifts Won':
+            user.global_win = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__right"]/span/span/a/text()'))
+        elif row_title == u'Gifts Sent':
+            user.global_sent = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class=" featured__table__row__right"]/span/span/a/text()'))
 
 
 def isValidLink(link):
