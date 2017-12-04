@@ -6,6 +6,7 @@ from BusinessLogic import SGMTBusinessLogic
 
 # Standalone CLI implementation of the SGMT functionality
 # Copyright (C) 2017  Alex Milman
+from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SteamConsts
 
 PURPLE = '\033[95m'
 CYAN = '\033[96m'
@@ -110,30 +111,49 @@ def main(argv):
 
     if feature == 'MissingAfterNGiveaway':
         response = SGMTBusinessLogic.missing_after_n_giveaway(group_webpage, n, steam_thread)
+        print 'discrepancies per user: ' + str(response)
     elif feature == 'CheckMonthly':
         response = SGMTBusinessLogic.check_monthly(group_webpage, year_month, cookies, days, min_game_value, min_steam_num_of_reviews, min_steam_score)
+        print response
     elif feature == 'GetAllUsersInGroup':
-        response = SGMTBusinessLogic.get_all_users_in_group(group_webpage)
+        users = SGMTBusinessLogic.get_all_users_in_group(group_webpage)
+        print parse_list(users)
     elif feature == 'GetAllGiveawaysInGroup':
-        response = SGMTBusinessLogic.get_all_giveaways_in_group(group_webpage)
+        all_giveaways_in_group = SGMTBusinessLogic.get_all_giveaways_in_group(group_webpage)
+        for giveaway in all_giveaways_in_group:
+            print 'Giveaway: ' + giveaway.link + '.  Created by: ' + SteamGiftsConsts.STEAMGIFTS_USER_LINK + giveaway.creator \
+                        + '.  Won by: ' + parse_list(giveaway.winners, SteamGiftsConsts.STEAMGIFTS_USER_LINK)
     elif feature == 'GetSteamGiftsUserToSteamUserTranslation':
-        response = SGMTBusinessLogic.get_stemagifts_to_steam_user_translation(group_webpage)
+        steam_id_to_user = SGMTBusinessLogic.get_stemagifts_to_steam_user_translation(group_webpage)
+        for steam_profile_id, user in steam_id_to_user.iteritems():
+            print 'Steamgifts User: ' + SteamGiftsConsts.get_user_link(user) + '.  Steam profile: ' + SteamConsts.STEAM_PROFILE_LINK + steam_profile_id
     elif feature == 'GetAllUserWins':
-        response = SGMTBusinessLogic.get_all_user_wins(group_webpage)
+        all_user_wins = SGMTBusinessLogic.get_all_user_wins(group_webpage)
+        for winner, wins in all_user_wins.iteritems():
+            print 'User: ' + winner + ' Won the following giveaways: ' + parse_list(wins)
     elif feature == 'GetAllUserGiveaways':
         response = SGMTBusinessLogic.get_all_user_giveaways(group_webpage)
+        for user, giveaways in response.iteritems():
+            print 'User: ' + user + ' Posted the following giveaways: ' + parse_list(giveaways)
     elif feature == 'GetAllAfterNGiveawaysPerUser':
         response = SGMTBusinessLogic.get_all_after_n_giveaways_per_user(group_webpage, n, steam_thread)
+        for poster, after_n_giveaways in response.iteritems():
+            print 'User: ' + poster + ' Posted the following after-' + n + ' giveaways: ' + parse_list(after_n_giveaways)
     elif feature == 'NegativeSteamgiftsRatio':
-        response = SGMTBusinessLogic.get_users_with_negative_steamgifts_ratio(group_webpage)
+        users = SGMTBusinessLogic.get_users_with_negative_steamgifts_ratio(group_webpage)
+        print parse_list(users)
     elif feature == 'NegativeGroupRatio':
-        response = SGMTBusinessLogic.get_users_with_negative_group_ratio(group_webpage)
+        users = SGMTBusinessLogic.get_users_with_negative_group_ratio(group_webpage)
+        print parse_list(users)
     elif feature == 'UserEnteredGiveaways':
         response = SGMTBusinessLogic.get_user_entered_giveaways(group_webpage, user, cookies, addition_date)
+        print response
     elif feature == 'UserCheckRules':
         response = SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_level, level, check_steamrep)
+        print response
     elif feature == 'UserCheckFirstGiveaway':
         response = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user, cookies, addition_date, days, min_time, min_game_value, min_steam_num_of_reviews, min_steam_score)
+        print response
     #TODO: Add CheckAllGiveaways
     elif feature == 'Test':
         SGMTBusinessLogic.test(group_webpage)
@@ -142,7 +162,6 @@ def main(argv):
         print_usage()
         sys.exit(2)
 
-    print response
 
     #TODO Optional: max_pages - ???
     #TODO Optional: ignore_users
@@ -152,6 +171,14 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv[1:])
+
+
+def parse_list(list, prefix=''):
+    result = ''
+    for item in list:
+        result += prefix + item + ', '
+
+    return result[:-2]
 
 
 def print_warranty():

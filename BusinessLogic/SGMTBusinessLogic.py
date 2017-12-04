@@ -12,8 +12,6 @@ from Data.Group import Group
 
 LRU_CACHE_SIZE = 10
 
-
-
 # LRU cache used to hold data of last LRU_CACHE_SIZE groups. In order to cache the data and not retrieve it every time.
 # Going forward need to consider using an external (persistent) cache server
 groups = pylru.lrucache(LRU_CACHE_SIZE)
@@ -27,7 +25,7 @@ def missing_after_n_giveaway(group_webpage, n, steam_thread):
     after_n_giveaways = SteamScrapingUtils.verify_after_n_giveaways(steam_thread, group_giveaways, group_users.keys())
     wins = get_user_wins(group_data)
     discrepancies = findDiscrepancies(n, wins, after_n_giveaways)
-    return 'discrepancies per user: ' + str(discrepancies)
+    return discrepancies
 
 
 def get_user_wins(group_data):
@@ -53,17 +51,14 @@ def findDiscrepancies(N, wins, after_n_giveaways):
 
 
 def get_all_after_n_giveaways_per_user(group_webpage, n, steam_thread):
-    response = ''
     load_group(group_webpage, load_additional_user_data=True)
     group_giveaways = groups[group_webpage].group_giveaways
     group_users = groups[group_webpage].group_users
     after_n_giveaways = SteamScrapingUtils.verify_after_n_giveaways(steam_thread, group_giveaways, group_users.keys())
-    for poster in after_n_giveaways:
-        response += 'User: ' + SteamGiftsConsts.get_user_link(poster) + ' Posted the following after-' + n + ' giveaways: ' + parse_list(after_n_giveaways[poster]) + '\n'
+    return after_n_giveaways
 
 
 def get_all_user_giveaways(group_webpage):
-    response = ''
     giveaways_per_user=dict()
     load_group(group_webpage)
     group_giveaways = groups[group_webpage].group_giveaways
@@ -75,43 +70,29 @@ def get_all_user_giveaways(group_webpage):
                 giveaways_per_user[poster] = set()
             giveaways_per_user[poster].add(giveaway.link)
 
-    for user in giveaways_per_user.keys():
-        response += 'User: ' + SteamGiftsConsts.get_user_link(user) + ' Posted the following giveaways: ' + parse_list(giveaways_per_user[user]) + '\n'
-    return response
+    return giveaways_per_user
 
 
 def get_all_user_wins(group_webpage):
-    response = ''
     load_group(group_webpage)
     wins = get_user_wins(groups[group_webpage])
-    for winner in wins:
-        response += 'User: ' + SteamGiftsConsts.get_user_link(winner) + ' Won the following giveaways: ' + parse_list(wins[winner])
-    return response
+    return wins
 
 
 def get_stemagifts_to_steam_user_translation(group_webpage):
-    response = ''
     load_group_users(group_webpage)
     steam_id_to_user = SteamScrapingUtils.get_steam_id_to_user_dict(groups[group_webpage].group_users.values())
-    for steam_profile_id, user in steam_id_to_user.iteritems():
-        response += 'Steamgifts User: ' + SteamGiftsConsts.get_user_link(user) + '.  Steam profile: ' + SteamConsts.STEAM_PROFILE_LINK + steam_profile_id + '\n'
-    return response
+    return steam_id_to_user
 
 
 def get_all_giveaways_in_group(group_webpage):
-    response = ''
     load_group_giveaways(group_webpage)
-    for giveaway in groups[group_webpage].group_giveaways.values():
-        response += 'Giveaway: ' + giveaway.link + '.  Created by: ' + SteamGiftsConsts.STEAMGIFTS_USER_LINK + giveaway.creator \
-              + '.  Won by: ' + parse_list(giveaway.winners, SteamGiftsConsts.STEAMGIFTS_USER_LINK) + '\n'
-    return response
+    return groups[group_webpage].group_giveaways.values()
+
 
 def get_all_users_in_group(group_webpage):
-    response = ''
     users_list = SteamGiftsScrapingUtils.get_group_users(group_webpage)
-    for user in users_list:
-        response += user + '\n'
-    return response
+    return users_list.keys()
 
 
 def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value=0.0, min_steam_num_of_reviews=0, min_steam_score=0):
@@ -166,25 +147,21 @@ def check_steam_reviews(giveaway_link, cookies, min_steam_num_of_reviews, min_st
 
 
 def get_users_with_negative_steamgifts_ratio(group_webpage):
-    response = ''
     load_group_users(group_webpage, load_additional_data=True)
+    users_with_negative_sg_ratio = set()
     for group_user in groups[group_webpage].group_users.values():
         if group_user.global_won > group_user.global_sent:
-            response += group_user.user_name + '\n'
-    return response
+            users_with_negative_sg_ratio.add(group_user.user_name)
+    return users_with_negative_sg_ratio
 
 
 def get_users_with_negative_group_ratio(group_webpage):
-    response = ''
     users_with_negative_ratio=[]
     load_group_users(group_webpage)
     for user in groups[group_webpage].group_users.values():
         if user.group_won > user.group_sent:
             users_with_negative_ratio.append(user.user_name)
-
-    for user in users_with_negative_ratio:
-        response += user + '\n'
-    return response
+    return users_with_negative_ratio
 
 
 #TODO: Add giveaway entered time (from entries page)
@@ -223,8 +200,6 @@ def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None,
     return response
 
 def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, level=0, check_steamrep=False):
-    #TODO: Improve printout method
-    response = ''
     broken_rules = []
     if check_nonactivated and SGToolsScrapingUtils.check_nonactivated(user):
         broken_rules.append('Has non-activated games: ' + SGToolsConsts.SGTOOLS_CHECK_NONACTIVATED_LINK + user)
@@ -245,10 +220,7 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
         if user_steam_id and not SteamRepScrapingUtils.check_user_not_public_or_banned(user_steam_id):
             broken_rules.append('User ' + SteamGiftsConsts.get_user_link(user)
                                 + ' is not public or banned: ' + SteamRepConsts.get_steamrep_link(user_steam_id))
-
-    for message in broken_rules:
-        response += message + '\n'
-    return response
+    return broken_rules
 
 
 def test(group_webpage):
@@ -291,5 +263,3 @@ def parse_list(list, prefix=''):
         result += prefix + item + ', '
 
     return result[:-2]
-
-
