@@ -109,31 +109,31 @@ def main(argv):
         sys.exit(0)
 
     if feature == 'MissingAfterNGiveaway':
-        SGMTBusinessLogic.missing_after_n_giveaway(group_webpage, n, steam_thread)
+        response = SGMTBusinessLogic.missing_after_n_giveaway(group_webpage, n, steam_thread)
     elif feature == 'CheckMonthly':
-        SGMTBusinessLogic.check_monthly(group_webpage, year_month, cookies, days, min_game_value, min_steam_num_of_reviews, min_steam_score)
+        response = SGMTBusinessLogic.check_monthly(group_webpage, year_month, cookies, days, min_game_value, min_steam_num_of_reviews, min_steam_score)
     elif feature == 'GetAllUsersInGroup':
-        SGMTBusinessLogic.get_all_users_in_group(group_webpage)
+        response = SGMTBusinessLogic.get_all_users_in_group(group_webpage)
     elif feature == 'GetAllGiveawaysInGroup':
-        SGMTBusinessLogic.get_all_giveaways_in_group(group_webpage)
+        response = SGMTBusinessLogic.get_all_giveaways_in_group(group_webpage)
     elif feature == 'GetSteamGiftsUserToSteamUserTranslation':
-        SGMTBusinessLogic.get_stemagifts_to_steam_user_translation(group_webpage)
+        response = SGMTBusinessLogic.get_stemagifts_to_steam_user_translation(group_webpage)
     elif feature == 'GetAllUserWins':
-        SGMTBusinessLogic.get_all_user_wins(group_webpage)
+        response = SGMTBusinessLogic.get_all_user_wins(group_webpage)
     elif feature == 'GetAllUserGiveaways':
-        SGMTBusinessLogic.get_all_user_giveaways(group_webpage)
+        response = SGMTBusinessLogic.get_all_user_giveaways(group_webpage)
     elif feature == 'GetAllAfterNGiveawaysPerUser':
-        SGMTBusinessLogic.get_all_after_n_giveaways_per_user(group_webpage, n, steam_thread)
+        response = SGMTBusinessLogic.get_all_after_n_giveaways_per_user(group_webpage, n, steam_thread)
     elif feature == 'NegativeSteamgiftsRatio':
-        SGMTBusinessLogic.get_users_with_negative_steamgifts_ratio(group_webpage)
+        response = SGMTBusinessLogic.get_users_with_negative_steamgifts_ratio(group_webpage)
     elif feature == 'NegativeGroupRatio':
-        SGMTBusinessLogic.get_users_with_negative_group_ratio(group_webpage)
+        response = SGMTBusinessLogic.get_users_with_negative_group_ratio(group_webpage)
     elif feature == 'UserEnteredGiveaways':
-        SGMTBusinessLogic.get_user_entered_giveaways(group_webpage, user, cookies, addition_date)
+        response = SGMTBusinessLogic.get_user_entered_giveaways(group_webpage, user, cookies, addition_date)
     elif feature == 'UserCheckRules':
-        SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_level, level, check_steamrep)
+        response = SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_level, level, check_steamrep)
     elif feature == 'UserCheckFirstGiveaway':
-        SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user, cookies, addition_date, days, min_time, min_game_value, min_steam_num_of_reviews, min_steam_score)
+        response = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user, cookies, addition_date, days, min_time, min_game_value, min_steam_num_of_reviews, min_steam_score)
     #TODO: Add CheckAllGiveaways
     elif feature == 'Test':
         SGMTBusinessLogic.test(group_webpage)
@@ -142,7 +142,7 @@ def main(argv):
         print_usage()
         sys.exit(2)
 
-
+    print response
 
     #TODO Optional: max_pages - ???
     #TODO Optional: ignore_users
@@ -182,19 +182,19 @@ def print_usage():
     print '\t' + printBold('MissingAfterNGiveaway') + ' - Some groups require a member to create an exclusive group giveaway, after a number of times he won group giveaways. I call it an After-N giveaway.\n' \
           + '\tThis feature allows to check that all users adhere to this rule, and will printout a list of users that did not create/post enough giveaways, and their details.'
     print '\tSYNTAX: GGTMStandalone.py -f MissingAfterNGiveaway -w <steamgifts group webpage> -s <steam after-n giveaways thread> -n <number of GAs after which an exclusive GA is required>'
-    print '\tEXAMPLE: GGTMStandalone.py -f MissingAfterNGiveaway -w https://www.steamgifts.com/group/AhzO3/giftropolis -s http://steamcommunity.com/groups/Giftropolis/discussions/0/355043117503501545 -n 3'
+    print '\tEXAMPLE: GGTMStandalone.py -f MissingAfterNGiveaway -w https://www.steamgifts.com/group/6HSPr/qgg-group -s http://steamcommunity.com/groups/Giftropolis/discussions/0/355043117503501545 -n 3'
     print ''
     print '\t' + printBold('GetAllAfterNGiveawaysPerUser') + ' - Get for each user, all the After-N giveaways he created'
     print '\tSYNTAX: GGTMStandalone.py -f GetAllAfterNGiveawaysPerUser -w <steamgifts group webpage> -s <steam after-n giveaways thread> -n <number of GAs after which an exclusive GA is required>'
-    print '\tEXAMPLE: GGTMStandalone.py -f GetAllAfterNGiveawaysPerUser -w https://www.steamgifts.com/group/AhzO3/giftropolis -s http://steamcommunity.com/groups/Giftropolis/discussions/0/355043117503501545 -n 3'
+    print '\tEXAMPLE: GGTMStandalone.py -f GetAllAfterNGiveawaysPerUser -w https://www.steamgifts.com/group/6HSPr/qgg-group -s http://steamcommunity.com/groups/Giftropolis/discussions/0/355043117503501545 -n 3'
     print ''
     print '\t' + printBold('NegativeSteamgiftsRatio') + ' - Returns a list of all users who have a negative won/gifted ratio in SteamGifts'
     print '\tSYNTAX: GGTMStandalone.py -f NegativeSteamgiftsRatio -w <steamgifts group webpage>'
-    print '\tEXAMPLE: GGTMStandalone.py -f NegativeSteamgiftsRatio -w https://www.steamgifts.com/group/AhzO3/giftropolis'
+    print '\tEXAMPLE: GGTMStandalone.py -f NegativeSteamgiftsRatio -w https://www.steamgifts.com/group/6HSPr/qgg-group'
     print ''
     print '\t' + printBold('NegativeGroupRatio') + ' - Returns a list of all users who have a negative won/gifted ratio in the Group'
     print '\tSYNTAX: GGTMStandalone.py -f NegativeGroupRatio -w <steamgifts group webpage>'
-    print '\tEXAMPLE: GGTMStandalone.py -f NegativeGroupRatio -w https://www.steamgifts.com/group/AhzO3/giftropolis'
+    print '\tEXAMPLE: GGTMStandalone.py -f NegativeGroupRatio -w https://www.steamgifts.com/group/6HSPr/qgg-group'
     print ''
     print '\t' + printBold('UserCheckRules') + ' - Check if a user complies to group rules'
     print '\tSYNTAX: GGTMStandalone.py -f UserCheckRules -u <user name> -o <options seperated by :>'
@@ -212,41 +212,41 @@ def print_usage():
     print '\t' + printBold('UserEnteredGiveaways') + ' - For a given user, returns all group giveaways the user/s has entered since a given date.'
     print '\tThis is helpfull in case of a new user, or a user in probation you want to verify is following the "no entering giveaways" rule.'
     print '\tSYNTAX: GGTMStandalone.py -f UserEnteredGiveaways -w <steamgifts group webpage> -u <steamgifts username or list of users separated by column> -a <date from which to start the check: YYYY-MM-DD> -c <your steamgifts cookies>'
-    print '\tEXAMPLE: GGTMStandalone.py -f UserEnteredGiveaways -w https://www.steamgifts.com/group/AhzO3/giftropolis -u Oozyyy,7Years -a 2017-11-20 -c "_dm_sync=true; _dm_bid=true; ..."'
+    print '\tEXAMPLE: GGTMStandalone.py -f UserEnteredGiveaways -w https://www.steamgifts.com/group/6HSPr/qgg-group -u Oozyyy,7Years -a 2017-11-20 -c "_dm_sync=true; _dm_bid=true; ..."'
     print ''
     print '\t' + printBold('UserCheckFirstGiveaway') + ' - Check if a user complies with first giveaway rules:\n'
     print '\tCreates a giveaway unique to the group. Creates the giveaway within X days of entering the group. Creates the giveaway for a minimum of X days.'
     print '\tSYNTAX: GGTMStandalone.py -f UserCheckFirstGiveaway -w <steamgifts group webpage> -u <steamgifts username> -c <your steamgifts cookies> '
     print '\t(Optional:) -a <date from which the user entered the group: YYYY-MM-DD> -d <within how many days since entering the group should the GA be created (in days)> -t <min GA running time (in days)>'
     print '\t -v <Minimal game value (in $) allowed> -r <Minimal number of Steam reviews allowed for a game> -p <Minimal Steam score allowed for a game>'
-    print '\tEXAMPLE: GGTMStandalone.py -f UserCheckFirstGiveaway -w https://www.steamgifts.com/group/AhzO3/giftropolis -u Oozyyy -c "_dm_sync=true; _dm_bid=true; ..." -a 2017-11-20 -d 2 -t 7 -v 9.95 -r 100 -p 80'
+    print '\tEXAMPLE: GGTMStandalone.py -f UserCheckFirstGiveaway -w https://www.steamgifts.com/group/6HSPr/qgg-group -u Oozyyy -c "_dm_sync=true; _dm_bid=true; ..." -a 2017-11-20 -d 2 -t 7 -v 9.95 -r 100 -p 80'
     print ''
     print '\t' + printBold('CheckMonthly') + ' - Returns a list of all users who didn\'t create a giveaway in a given month'
     print '\tSYNTAX: GGTMStandalone.py -f CheckMonthly -w <steamgifts group webpage> -c <your steamgifts cookies> -m <Year+Month: YYYY-MM> '
     print '\t(Optional:) -d <Minimum number of days of a GA>  -v <Minimal game value (in $) allowed> -r <Minimal number of Steam reviews allowed for a game> -p <Minimal Steam score allowed for a game>'
-    print '\tEXAMPLE: GGTMStandalone.py -f CheckMonthly -w https://www.steamgifts.com/group/AhzO3/giftropolis -c "_dm_sync=true; _dm_bid=true; ..." -m 2017-11 -d 3 -v 9.95 -r 100 -p 80'
+    print '\tEXAMPLE: GGTMStandalone.py -f CheckMonthly -w https://www.steamgifts.com/group/6HSPr/qgg-group -c "_dm_sync=true; _dm_bid=true; ..." -m 2017-11 -d 3 -v 9.95 -r 100 -p 80'
     print ''
     print ''
     print 'Basic Features:'
     print '\t' + printBold('GetAllUsersInGroup') + ' - Returns a list of all users in a given group'
     print '\tSYNTAX: GGTMStandalone.py -f GetAllUsersInGroup -w <steamgifts group webpage> '
-    print '\tEXAMPLE: GGTMStandalone.py -f GetAllUsersInGroup -w https://www.steamgifts.com/group/AhzO3/giftropolis'
+    print '\tEXAMPLE: GGTMStandalone.py -f GetAllUsersInGroup -w https://www.steamgifts.com/group/6HSPr/qgg-group'
     print ''
     print '\t' + printBold('GetAllGiveawaysInGroup') + ' - Returns a list of all giveaways created in the group. Who created them, and who won them.'
     print '\tSYNTAX: GGTMStandalone.py -f GetAllGiveawaysInGroup -w <steamgifts group webpage> '
-    print '\tEXAMPLE: GGTMStandalone.py -f GetAllGiveawaysInGroup -w https://www.steamgifts.com/group/AhzO3/giftropolis'
+    print '\tEXAMPLE: GGTMStandalone.py -f GetAllGiveawaysInGroup -w https://www.steamgifts.com/group/6HSPr/qgg-group'
     print ''
     print '\t' + printBold('GetSteamGiftsUserToSteamUserTranslation') + ' - Returns a list of users in a given group, with a link to the Steam profile of each user'
     print '\tSYNTAX: GGTMStandalone.py -f GetSteamGiftsUserToSteamUserTranslation -w <steamgifts group webpage> '
-    print '\tEXAMPLE: GGTMStandalone.py -f GetSteamGiftsUserToSteamUserTranslation -w https://www.steamgifts.com/group/AhzO3/giftropolis'
+    print '\tEXAMPLE: GGTMStandalone.py -f GetSteamGiftsUserToSteamUserTranslation -w https://www.steamgifts.com/group/6HSPr/qgg-group'
     print ''
     print '\t' + printBold('GetAllUserWins') + ' - Get for each user, all the giveaways he won in the group'
     print '\tSYNTAX: GGTMStandalone.py -f GetAllUserWins -w <steamgifts group webpage> '
-    print '\tEXAMPLE: GGTMStandalone.py -f GetAllUserWins -w https://www.steamgifts.com/group/AhzO3/giftropolis'
+    print '\tEXAMPLE: GGTMStandalone.py -f GetAllUserWins -w https://www.steamgifts.com/group/6HSPr/qgg-group'
     print ''
     print '\t' + printBold('GetAllUserGiveaways') + ' - Get for each user, all the giveaways he created in the group'
     print '\tSYNTAX: GGTMStandalone.py -f GetAllUserGiveaways -w <steamgifts group webpage> '
-    print '\tEXAMPLE: GGTMStandalone.py -f GetAllUserGiveaways -w https://www.steamgifts.com/group/AhzO3/giftropolis'
+    print '\tEXAMPLE: GGTMStandalone.py -f GetAllUserGiveaways -w https://www.steamgifts.com/group/6HSPr/qgg-group'
 
 
 def printBold(text):

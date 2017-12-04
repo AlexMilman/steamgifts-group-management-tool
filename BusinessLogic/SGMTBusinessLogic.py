@@ -24,13 +24,10 @@ def missing_after_n_giveaway(group_webpage, n, steam_thread):
     group_data = groups[group_webpage]
     group_giveaways = group_data.group_giveaways
     group_users = group_data.group_users
-    print 'group giveaways: ' + str(group_giveaways)
-    print 'group users: ' + str(group_users)
     after_n_giveaways = SteamScrapingUtils.verify_after_n_giveaways(steam_thread, group_giveaways, group_users.keys())
-    print 'after-n giveaways per user: ' + str(after_n_giveaways)
     wins = get_user_wins(group_data)
     discrepancies = findDiscrepancies(n, wins, after_n_giveaways)
-    print 'discrepancies per user: ' + str(discrepancies)
+    return 'discrepancies per user: ' + str(discrepancies)
 
 
 def get_user_wins(group_data):
@@ -56,16 +53,17 @@ def findDiscrepancies(N, wins, after_n_giveaways):
 
 
 def get_all_after_n_giveaways_per_user(group_webpage, n, steam_thread):
+    response = ''
     load_group(group_webpage, load_additional_user_data=True)
     group_giveaways = groups[group_webpage].group_giveaways
     group_users = groups[group_webpage].group_users
     after_n_giveaways = SteamScrapingUtils.verify_after_n_giveaways(steam_thread, group_giveaways, group_users.keys())
-    print 'after-n giveaways per user: ' + str(after_n_giveaways)
     for poster in after_n_giveaways:
-        print 'User: ' + SteamGiftsConsts.get_user_link(poster) + ' Posted the following after-' + n + ' giveaways: ' + parse_list(after_n_giveaways[poster])
+        response += 'User: ' + SteamGiftsConsts.get_user_link(poster) + ' Posted the following after-' + n + ' giveaways: ' + parse_list(after_n_giveaways[poster]) + '\n'
 
 
 def get_all_user_giveaways(group_webpage):
+    response = ''
     giveaways_per_user=dict()
     load_group(group_webpage)
     group_giveaways = groups[group_webpage].group_giveaways
@@ -78,37 +76,46 @@ def get_all_user_giveaways(group_webpage):
             giveaways_per_user[poster].add(giveaway.link)
 
     for user in giveaways_per_user.keys():
-        print 'User: ' + SteamGiftsConsts.get_user_link(user) + ' Posted the following giveaways: ' + parse_list(giveaways_per_user[user])
+        response += 'User: ' + SteamGiftsConsts.get_user_link(user) + ' Posted the following giveaways: ' + parse_list(giveaways_per_user[user]) + '\n'
+    return response
 
 
 def get_all_user_wins(group_webpage):
+    response = ''
     load_group(group_webpage)
     wins = get_user_wins(groups[group_webpage])
     for winner in wins:
-        print 'User: ' + SteamGiftsConsts.get_user_link(winner) + ' Won the following giveaways: ' + parse_list(wins[winner])
+        response += 'User: ' + SteamGiftsConsts.get_user_link(winner) + ' Won the following giveaways: ' + parse_list(wins[winner])
+    return response
 
 
 def get_stemagifts_to_steam_user_translation(group_webpage):
+    response = ''
     load_group_users(group_webpage)
     steam_id_to_user = SteamScrapingUtils.get_steam_id_to_user_dict(groups[group_webpage].group_users.values())
     for steam_profile_id, user in steam_id_to_user.iteritems():
-        print 'Steamgifts User: ' + SteamGiftsConsts.get_user_link(user) + '.  Steam profile: ' + SteamConsts.STEAM_PROFILE_LINK + steam_profile_id
+        response += 'Steamgifts User: ' + SteamGiftsConsts.get_user_link(user) + '.  Steam profile: ' + SteamConsts.STEAM_PROFILE_LINK + steam_profile_id + '\n'
+    return response
 
 
 def get_all_giveaways_in_group(group_webpage):
+    response = ''
     load_group_giveaways(group_webpage)
     for giveaway in groups[group_webpage].group_giveaways.values():
-        print 'Giveaway: ' + giveaway.link + '.  Created by: ' + SteamGiftsConsts.STEAMGIFTS_USER_LINK + giveaway.creator \
-              + '.  Won by: ' + parse_list(giveaway.winners, SteamGiftsConsts.STEAMGIFTS_USER_LINK)
-
+        response += 'Giveaway: ' + giveaway.link + '.  Created by: ' + SteamGiftsConsts.STEAMGIFTS_USER_LINK + giveaway.creator \
+              + '.  Won by: ' + parse_list(giveaway.winners, SteamGiftsConsts.STEAMGIFTS_USER_LINK) + '\n'
+    return response
 
 def get_all_users_in_group(group_webpage):
+    response = ''
     users_list = SteamGiftsScrapingUtils.get_group_users(group_webpage)
     for user in users_list:
-        print user
+        response += user + '\n'
+    return response
 
 
 def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value=0.0, min_steam_num_of_reviews=0, min_steam_score=0):
+    response = ''
     load_group(group_webpage, cookies, earliest_date=year_month + '-01')
     users = groups[group_webpage].group_users.keys()
     monthly_posters = set()
@@ -136,14 +143,15 @@ def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value
                         monthly_unfinished[group_giveaway.creator] = set()
                     monthly_unfinished[group_giveaway.creator].add(group_giveaway.link)
 
-    print '\nUsers with unfinished monthly GAs:'
+    response += '\n\nUsers with unfinished monthly GAs:\n'
     for user,links in monthly_unfinished.iteritems():
-        print 'User ' + SteamGiftsConsts.get_user_link(user) + ' giveaways: ' + parse_list(links)
+        response += 'User ' + SteamGiftsConsts.get_user_link(user) + ' giveaways: ' + parse_list(links) + '\n'
 
-    print '\nUsers without monthly giveaways:'
+    response += '\n\nUsers without monthly giveaways:\n'
     for user in users:
         if user not in monthly_posters and user not in monthly_unfinished.keys():
-            print SteamGiftsConsts.get_user_link(user)
+            response += SteamGiftsConsts.get_user_link(user) + '\n'
+    return response
 
 
 def check_steam_reviews(giveaway_link, cookies, min_steam_num_of_reviews, min_steam_score):
@@ -158,13 +166,16 @@ def check_steam_reviews(giveaway_link, cookies, min_steam_num_of_reviews, min_st
 
 
 def get_users_with_negative_steamgifts_ratio(group_webpage):
+    response = ''
     load_group_users(group_webpage, load_additional_data=True)
     for group_user in groups[group_webpage].group_users.values():
         if group_user.global_won > group_user.global_sent:
-            print group_user.user_name
+            response += group_user.user_name + '\n'
+    return response
 
 
 def get_users_with_negative_group_ratio(group_webpage):
+    response = ''
     users_with_negative_ratio=[]
     load_group_users(group_webpage)
     for user in groups[group_webpage].group_users.values():
@@ -172,10 +183,13 @@ def get_users_with_negative_group_ratio(group_webpage):
             users_with_negative_ratio.append(user.user_name)
 
     for user in users_with_negative_ratio:
-        print user
+        response += user + '\n'
+    return response
+
 
 #TODO: Add giveaway entered time (from entries page)
 def get_user_entered_giveaways(group_webpage, users, cookies, addition_date):
+    response = ''
     load_group_giveaways(group_webpage, cookies, addition_date)
     users_list = users.split(',')
     for group_giveaway in groups[group_webpage].group_giveaways.values():
@@ -183,11 +197,13 @@ def get_user_entered_giveaways(group_webpage, users, cookies, addition_date):
         if not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_date):
             for user in users_list:
                 if user in group_giveaway.entries:
-                    print 'User ' + user + ' entered giveaway: ' + group_giveaway.link
+                    response += 'User ' + user + ' entered giveaway: ' + group_giveaway.link + '\n'
+    return response
 
 #TODO: Add checking user didn't enter any giveaways
 def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None, days_to_create_ga=0, min_ga_time=0,
                               min_game_value=0.0, min_steam_num_of_reviews=0, min_steam_score=0):
+    response = ''
     load_group_giveaways(group_webpage, cookies, earliest_date=addition_date)
     users_list = users.split(',')
     for group_giveaway in groups[group_webpage].group_giveaways.values():
@@ -203,10 +219,12 @@ def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None,
             and
                 (min_game_value == 0 or group_giveaway.value > min_game_value)):
             if check_steam_reviews(group_giveaway.link, cookies, min_steam_num_of_reviews, min_steam_score):
-                print 'User ' + group_giveaway.creator + ' first giveaway: ' + group_giveaway.link
-
+                response += 'User ' + group_giveaway.creator + ' first giveaway: ' + group_giveaway.link + '\n'
+    return response
 
 def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, level=0, check_steamrep=False):
+    #TODO: Improve printout method
+    response = ''
     broken_rules = []
     if check_nonactivated and SGToolsScrapingUtils.check_nonactivated(user):
         broken_rules.append('Has non-activated games: ' + SGToolsConsts.SGTOOLS_CHECK_NONACTIVATED_LINK + user)
@@ -229,11 +247,12 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
                                 + ' is not public or banned: ' + SteamRepConsts.get_steamrep_link(user_steam_id))
 
     for message in broken_rules:
-        print message
+        response += message + '\n'
+    return response
 
 
 def test(group_webpage):
-    WebUtils.get_page_content('https://www.steamgifts.com/giveaway/McKde/strider-sutoraida-fei-long', '_ga=GA1.2.1681724704.1509967278; _gid=GA1.2.1634724628.1512244833')
+    WebUtils.get_page_content('https://www.steamgifts.com/giveaway/McKde/strider-sutoraida-fei-long', '_ga=GA1.2.1681724704.1509967278; _gid=GA1.2.1634724628.1512244833; __gads=ID=c26b05b1c17dcc47:T=1509967278:S=ALNI_MZcAVBaLEJu-dKXracuRFaSq15iyg;')
     pass
 
 
