@@ -78,6 +78,7 @@ So for now this tool will run slowly, but safely.
 * For the future, I plan to develop the the tool to be able to run as a service.
 * Then I will be able to load and cache the data for any given SteamGifts group, which will obsolete the need for many requests to Steam, SteamGifts, SGTools, etc.
 * I will then be able to deploy this tool to a server somewhere, and let anyone use it as an API.
+* I'm also consideting creating a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies
 * In the more distant future, I'm also considering using an external (persistent) cache, instead of in-memory (as it's implemented at the moment) 
 
 ### TODO
