@@ -29,9 +29,15 @@ The following features are considered advanced, as they require you to provide a
 * Print for a user, all the giveaways (in a SteamGifts group) he has joined since a given date (used to check if a user joined giveaways when he was not supposed to)
 * Check a user has created a giveaway (in a SteamGifts group) by some/all of the following rules (usually used for new users):
     * Giveaway that is unique to the SteamGifts group (no other groups can participate)
-    * The giveaway is created within X days from when the user has joined the group
-    * The giveaway has a minimum of X days to exist 
-* Print a list of users in a SteamGifts group that did not post a unique monthly giveaway in a given month
+    * Optional: The giveaway is created within X days from when the user has joined the group
+    * Optional: The giveaway has a minimum of X days to exist 
+    * Optional: The giveaway game has a value of at least X
+    * Optional: The giveaway game has at least X reviews on Steam
+    * Optional: The giveaway game has at least X score on Steam
+* Print a list of users in a SteamGifts group that did not post a unique monthly giveaway in a given month/year
+    * Optional: The giveaway game has a value of at least X
+    * Optional: The giveaway game has at least X reviews on Steam
+    * Optional: The giveaway game has at least X score on Steam
 
 ## How to Install and Run
 ### Python
