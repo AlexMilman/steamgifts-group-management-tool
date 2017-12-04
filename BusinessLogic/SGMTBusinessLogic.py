@@ -3,6 +3,7 @@ import pylru
 
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
     SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts, SteamConsts
+from BusinessLogic.Utils import WebUtils
 from Data.Group import Group
 
 # Internal business logic of different SGMT commands
@@ -106,31 +107,54 @@ def get_all_users_in_group(group_webpage):
     for user in users_list:
         print user
 
-#TODO: Add min_price, min_num_of_reviews, min_score
-def check_monthly(group_webpage, year_month, cookies, min_days=0):
+
+def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value=0.0, min_steam_num_of_reviews=0, min_steam_score=0):
     load_group(group_webpage, cookies, earliest_date=year_month + '-01')
     users = groups[group_webpage].group_users.keys()
     monthly_posters = set()
     monthly_unfinished = dict()
-    for group_ga in groups[group_webpage].group_giveaways.values():
-        if group_ga.creator in users and len(group_ga.groups) == 1\
-            and group_ga.start_date.tm_mon == year_month and group_ga.end_date.tm_mon == year_month\
-            and group_ga.end_date.tm_mday - group_ga.start_date.tm_mday >= min_days:
-            if len(group_ga.winners) > 0:
-                monthly_posters.add(group_ga.creator)
-            else:
-                if group_ga.creator not in monthly_unfinished:
-                    monthly_unfinished[group_ga.creator] = set()
-                monthly_unfinished[group_ga.creator].add(group_ga.link)
-
-    print 'Users without monthly giveaways:'
-    for user in users:
-        if user not in monthly_posters:
-            print SteamGiftsConsts.get_user_link(user)
+    month = int(year_month.split('-')[1])
+    for group_giveaway in groups[group_webpage].group_giveaways.values():
+        end_month = group_giveaway.end_date.tm_mon
+        start_month = group_giveaway.start_date.tm_mon
+        # If GA started in previous month, mark it as started on the 1th of the month
+        if start_month == month - 1 and end_month == month:
+            start_day = 1
+            start_month = month
+        else:
+            start_day = group_giveaway.start_date.tm_mday
+        end_day = group_giveaway.end_date.tm_mday
+        if group_giveaway.creator in users and len(group_giveaway.groups) == 1\
+                and start_month == month and end_month == month\
+                and end_day - start_day >= min_days\
+                and (min_game_value == 0 or group_giveaway.value >= min_game_value):
+            if check_steam_reviews(group_giveaway.link, cookies, min_steam_num_of_reviews, min_steam_score):
+                if len(group_giveaway.winners) > 0:
+                    monthly_posters.add(group_giveaway.creator)
+                else:
+                    if group_giveaway.creator not in monthly_unfinished:
+                        monthly_unfinished[group_giveaway.creator] = set()
+                    monthly_unfinished[group_giveaway.creator].add(group_giveaway.link)
 
     print '\nUsers with unfinished monthly GAs:'
     for user,links in monthly_unfinished.iteritems():
         print 'User ' + SteamGiftsConsts.get_user_link(user) + ' giveaways: ' + parse_list(links)
+
+    print '\nUsers without monthly giveaways:'
+    for user in users:
+        if user not in monthly_posters and user not in monthly_unfinished.keys():
+            print SteamGiftsConsts.get_user_link(user)
+
+
+def check_steam_reviews(giveaway_link, cookies, min_steam_num_of_reviews, min_steam_score):
+    num_of_reviews = 0
+    steam_score = 0
+    if min_steam_num_of_reviews != 0 or min_steam_score != 0:
+        steam_game_link = SteamGiftsScrapingUtils.get_steam_game_link(giveaway_link, cookies)
+        if steam_game_link:
+            num_of_reviews, steam_score = SteamScrapingUtils.get_steam_game_data(steam_game_link)
+    return (min_steam_num_of_reviews == 0 or (num_of_reviews != 0 and min_steam_num_of_reviews <= num_of_reviews)) \
+           and (min_steam_score == 0 or (steam_score != 0 and min_steam_score <= steam_score))
 
 
 def get_users_with_negative_steamgifts_ratio(group_webpage):
@@ -138,6 +162,7 @@ def get_users_with_negative_steamgifts_ratio(group_webpage):
     for group_user in groups[group_webpage].group_users.values():
         if group_user.global_won > group_user.global_sent:
             print group_user.user_name
+
 
 def get_users_with_negative_group_ratio(group_webpage):
     users_with_negative_ratio=[]
@@ -177,14 +202,7 @@ def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None,
                 or (min_ga_time > 0 and group_giveaway.end_date.tm_mday - group_giveaway.start_date.tm_mday >= min_ga_time))
             and
                 (min_game_value == 0 or group_giveaway.value > min_game_value)):
-            num_of_reviews = 0
-            steam_score = 0
-            if min_steam_num_of_reviews != 0 or min_steam_score != 0:
-                steam_game_link = SteamGiftsScrapingUtils.get_steam_game_link(group_giveaway.link, cookies)
-                num_of_reviews, steam_score = SteamScrapingUtils.get_steam_game_data(steam_game_link)
-            if ((min_steam_num_of_reviews == 0 or (num_of_reviews != 0 and min_steam_num_of_reviews <= num_of_reviews))
-                and
-                (min_steam_score == 0 or (steam_score != 0 and min_steam_score <= steam_score))):
+            if check_steam_reviews(group_giveaway.link, cookies, min_steam_num_of_reviews, min_steam_score):
                 print 'User ' + group_giveaway.creator + ' first giveaway: ' + group_giveaway.link
 
 
@@ -215,7 +233,7 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
 
 
 def test(group_webpage):
-    #TODO: GetGroupWishlist
+    WebUtils.get_page_content('https://www.steamgifts.com/giveaway/McKde/strider-sutoraida-fei-long', '_ga=GA1.2.1681724704.1509967278; _gid=GA1.2.1634724628.1512244833')
     pass
 
 
