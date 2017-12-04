@@ -21,7 +21,8 @@ def index():
     min_steam_score = get_optional_int_param('min_steam_score')
 
     if not group_webpage or not year_month or not cookies:
-        return 'Missing params: group_webpage and/or year_month and/or cookies<BR><BR>'\
+        return 'Missing params: group_webpage and/or year_month and/or cookies<BR><BR>' \
+               'CheckMonthly - Returns a list of all users who didn\'t create a giveaway in a given month<BR>' \
                'Usage: /SGMT/CheckMonthly?group_webpage=[steamgifts group webpage]&cookies=[your steamgifts cookies]&year_month=[Year+Month: YYYY-MM] ' \
                '(Optional: &min_days=[Minimum number of days of a GA]&min_game_value=[Minimal game value (in $) allowed]&min_steam_num_of_reviews=[Minimal number of Steam reviews allowed for a game]&min_steam_score=[Minimal Steam score allowed for a game])<BR><BR>' \
                'Example: /SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&cookies="PHPSESSID=..."&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80'
@@ -55,7 +56,21 @@ def index():
     return response.replace('\n','<BT>')
 
 
+@app.route('/SGMT/UserEnteredGiveaways', methods=['GET'])
+def index():
+    group_webpage = request.args.get('group_webpage')
+    user = request.args.get('user')
+    cookies = request.args.get('cookies')
+    addition_date = request.args.get('addition_date')
 
+    if not group_webpage or not user or not cookies:
+        return 'Missing params: group_webpage and/or user and/or cookies<BR><BR>'\
+               'UserEnteredGiveaways  - For a given user, returns all group giveaways the user/s has entered since a given date.<BT>' \
+               'Usage: /SGMT/UserEnteredGiveaways?group_webpage=[steamgifts group webpage]&user=[steamgifts username]&cookies=[your steamgifts cookies]&addition_date=[date from which the user entered the group: YYYY-MM-DD] ' \
+               'Example: /SGMT/UserEnteredGiveaways?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&user=Mdk25&cookies="PHPSESSID=..."&addition_date=2017-12-01'
+
+    response = SGMTBusinessLogic.get_user_entered_giveaways(group_webpage, user, cookies, addition_date)
+    return response.replace('\n','<BT>')
 
 
 @app.route('/SGMT/warranty', methods=['GET'])
@@ -72,6 +87,7 @@ def index():
            'it under the terms of the GNU General Public License as published by<BR>' \
            'the Free Software Foundation, either version 3 of the License, or<BR>' \
            '(at your option) any later version.'
+
 
 def get_optional_int_param(param_name):
     param_value = request.args.get(param_name)
