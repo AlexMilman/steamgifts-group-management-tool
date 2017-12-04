@@ -170,7 +170,7 @@ def print_conditions():
 
 def print_usage():
     print 'SteamGifts Group Management Tool (SGMT)  Copyright (C) 2017  Alex Milman'
-    print 'This program comes with ABSOLUTELY NO WARRANTY; for details type \'GGTMStandalone.py -w\'.'
+    print 'This program comes with ABSOLUTELY NO WARRANTY; for details type \'SGTMStandalone.py -w\'.'
     print 'This is free software, and you are welcome to redistribute it'
     print 'under certain conditions; type \'GGTMStandalone.py -c\' for details.'
     print ''
