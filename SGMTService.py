@@ -55,6 +55,24 @@ def index():
     return response.replace('\n','<BT>')
 
 
+
+
+
+@app.route('/SGMT/warranty', methods=['GET'])
+def index():
+    return 'This program is distributed in the hope that it will be useful,<BR>' \
+           'but WITHOUT ANY WARRANTY; without even the implied warranty of<BR>' \
+           'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<BR>' \
+           'GNU General Public License for more details.'
+
+
+@app.route('/SGMT/conditions', methods=['GET'])
+def index():
+    return 'This program is free software: you can redistribute it and/or modify<BR>' \
+           'it under the terms of the GNU General Public License as published by<BR>' \
+           'the Free Software Foundation, either version 3 of the License, or<BR>' \
+           '(at your option) any later version.'
+
 def get_optional_int_param(param_name):
     param_value = request.args.get(param_name)
     if param_value:
