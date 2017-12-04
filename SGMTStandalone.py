@@ -174,7 +174,7 @@ def print_usage():
     print 'This is free software, and you are welcome to redistribute it'
     print 'under certain conditions; type \'GGTMStandalone.py -c\' for details.'
     print ''
-    print '\t\t ' + printBold('Giftropolis Group Management Tool (GGMT) usage instructions')
+    print '\t\t ' + printBold('SteamGifts Group Management Tool (SGMT) usage instructions')
     print 'GGTMStandalone.py -h - Show this screen'
     print 'GGTMStandalone.py -f <Feature Name> - Run one of the features below'
     print ''
