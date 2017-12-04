@@ -16,18 +16,10 @@ def index():
     year_month = request.args.get('year_month')
     cookies = request.args.get('cookies')
     min_days = request.args.get('min_days')
-    min_game_value = 0.0
-    min_steam_num_of_reviews = 0
-    min_steam_score = 0
-    min_game_value_param = request.args.get('min_game_value')
-    if min_game_value_param:
-        min_game_value = float(min_game_value_param)
-    min_steam_num_of_reviews_param = request.args.get('min_steam_num_of_reviews')
-    if min_steam_num_of_reviews_param:
-        min_steam_num_of_reviews = int(min_steam_num_of_reviews_param)
-    min_steam_score_param = request.args.get('min_steam_score')
-    if min_steam_score_param:
-        min_steam_score = int(min_steam_score_param)
+    min_game_value = get_optional_float_param('min_game_value')
+    min_steam_num_of_reviews = get_optional_int_param('min_steam_num_of_reviews')
+    min_steam_score = get_optional_int_param('min_steam_score')
+
     if not group_webpage or not year_month or not cookies:
         return 'Missing params: group_webpage and/or year_month and/or cookies<BR><BR>'\
                'Usage: /SGMT/CheckMonthly?group_webpage=[steamgifts group webpage]&cookies=[your steamgifts cookies]&year_month=[Year+Month: YYYY-MM] ' \
@@ -37,6 +29,44 @@ def index():
     response = SGMTBusinessLogic.check_monthly(group_webpage, year_month, cookies, min_days, min_game_value, min_steam_num_of_reviews, min_steam_score)
     return response.replace('\n','<BT>')
 
+
+@app.route('/SGMT/UserCheckFirstGiveaway', methods=['GET'])
+def index():
+    group_webpage = request.args.get('group_webpage')
+    user = request.args.get('user')
+    cookies = request.args.get('cookies')
+    addition_date = request.args.get('addition_date')
+    days_to_create_ga = get_optional_int_param('days_to_create_ga')
+    min_ga_time = get_optional_int_param('min_ga_time')
+    min_game_value = get_optional_float_param('min_game_value')
+    min_steam_num_of_reviews = get_optional_int_param('min_steam_num_of_reviews')
+    min_steam_score = get_optional_int_param('min_steam_score')
+
+    if not group_webpage or not user or not cookies:
+        return 'Missing params: group_webpage and/or user and/or cookies<BR><BR>'\
+               'UserCheckFirstGiveaway  - Check if a user complies with first giveaway rules:<BT>' \
+               'Creates a giveaway unique to the group. Creates the giveaway within X days of entering the group. Creates the giveaway for a minimum of X days.' \
+               'Usage: /SGMT/UserCheckFirstGiveaway?group_webpage=[steamgifts group webpage]&user=[steamgifts username]&cookies=[your steamgifts cookies] ' \
+               '(Optional: &addition_date=[date from which the user entered the group: YYYY-MM-DD]&days_to_create_ga=[within how many days since entering the group should the GA be created]&min_ga_time=[min GA running time (in days)]' \
+               '&min_days=[Minimum number of days of a GA]&min_game_value=[Minimal game value (in $) allowed]&min_steam_num_of_reviews=[Minimal number of Steam reviews allowed for a game]&min_steam_score=[Minimal Steam score allowed for a game])<BR><BR>' \
+               'Example: /SGMT/UserCheckFirstGiveaway?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&user=Mdk25&cookies="PHPSESSID=..."&addition_date=2017-12-01&days_to_create_ga=2&min_ga_time=3&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80'
+
+    response = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user, cookies, addition_date, days_to_create_ga, min_ga_time, min_game_value, min_steam_num_of_reviews, min_steam_score)
+    return response.replace('\n','<BT>')
+
+
+def get_optional_int_param(param_name):
+    param_value = request.args.get(param_name)
+    if param_value:
+        return int(param_value)
+    return 0
+
+
+def get_optional_float_param(param_name):
+    param_value = request.args.get(param_name)
+    if param_value:
+        return float(param_value)
+    return 0.0
 
 
 if __name__ == '__main__':
