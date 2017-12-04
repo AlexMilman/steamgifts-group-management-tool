@@ -41,8 +41,11 @@ def main(argv):
     check_steamrep=False
     days=0
     min_time=0
+    min_game_value=0.0
+    min_steam_num_of_reviews=0
+    min_steam_score=0
     try:
-        opts, args = getopt.getopt(argv, "whf:g:s:n:m:p:u:c:a:o:d:t:", [])
+        opts, args = getopt.getopt(argv, "whf:g:s:n:m:p:u:c:a:o:d:t:v:r:", [])
     except getopt.GetoptError:
         print 'INVALID COMMAND: GGTMStandalone.py ' +  argv + '\n'
         print_usage()
@@ -64,6 +67,7 @@ def main(argv):
             year_month = arg
         elif opt == "-p":
             max_pages = int(arg)
+            min_steam_score = int(arg)
         elif opt == "-u":
             user = arg
         elif opt == "-n":
@@ -91,8 +95,10 @@ def main(argv):
             show_conditions = True
         elif opt == "-d":
             days = int(arg)
-        elif opt == "-t":
-            min_time = int(arg)
+        elif opt == "-v":
+            min_game_value = float(arg)
+        elif opt == "-r":
+            min_steam_num_of_reviews = int(arg)
 
     if show_warranty:
         print_warranty()
@@ -127,8 +133,7 @@ def main(argv):
     elif feature == 'UserCheckRules':
         SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_level, level, check_steamrep)
     elif feature == 'UserCheckFirstGiveaway':
-        #TODO: Add min_value, min_steam_reviews, min_steam_score
-        SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user, cookies, addition_date, days, min_time)
+        SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user, cookies, addition_date, days, min_time, min_game_value, min_steam_num_of_reviews, min_steam_score)
     elif feature == 'Test':
         SGMTBusinessLogic.test(group_webpage)
     else:
@@ -211,8 +216,9 @@ def print_usage():
     print '\t' + printBold('UserCheckFirstGiveaway') + ' - Check if a user complies with first giveaway rules:\n' \
           + '\tCreates a giveaway unique to the group. Creates the giveaway within X days of entering the group. Creates the giveaway for a minimum of X days.'
     print '\tSYNTAX: GGTMStandalone.py -f UserCheckFirstGiveaway -w <steamgifts group webpage> -u <steamgifts username> -c <your steamgifts cookies> \n'\
-          + '\t(Optional:) -a <date from which the user entered the group: YYYY-MM-DD> -d <within how many days since entering the group should the GA be created (in days)> -t <min GA running time (in days)>'
-    print '\tEXAMPLE: GGTMStandalone.py -f UserCheckFirstGiveaway -w https://www.steamgifts.com/group/AhzO3/giftropolis -u Oozyyy -c "_dm_sync=true; _dm_bid=true; ..." -a 2017-11-20 -d 2 -t 7'
+          + '\t(Optional:) -a <date from which the user entered the group: YYYY-MM-DD> -d <within how many days since entering the group should the GA be created (in days)> -t <min GA running time (in days)>'\
+          + '\t -v <Minimal game value (in $) allowed> -r <Minimal number of Steam reviews allowed for a game> -p <Minimal Steam score allowed for a game>'
+    print '\tEXAMPLE: GGTMStandalone.py -f UserCheckFirstGiveaway -w https://www.steamgifts.com/group/AhzO3/giftropolis -u Oozyyy -c "_dm_sync=true; _dm_bid=true; ..." -a 2017-11-20 -d 2 -t 7 -v 9.95 -r 100 -p 80'
     print ''
     print '\t' + printBold('CheckMonthly') + ' - Returns a list of all users who didn\'t create a giveaway in a given month'
     print '\tSYNTAX: GGTMStandalone.py -f CheckMonthly -w <steamgifts group webpage> -m <Year+Month> -d <Minimum number of days of a GA>'

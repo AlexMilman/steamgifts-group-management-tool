@@ -149,7 +149,7 @@ def get_users_with_negative_group_ratio(group_webpage):
     for user in users_with_negative_ratio:
         print user
 
-
+#TODO: Add giveaway entered time (from entries page)
 def get_user_entered_giveaways(group_webpage, users, cookies, addition_date):
     load_group_giveaways(group_webpage, cookies, addition_date)
     users_list = users.split(',')
@@ -160,19 +160,31 @@ def get_user_entered_giveaways(group_webpage, users, cookies, addition_date):
                 if user in group_giveaway.entries:
                     print 'User ' + user + ' entered giveaway: ' + group_giveaway.link
 
-
-def check_user_first_giveaway(group_webpage, users, cookies, addition_date, days_to_create_ga, min_ga_time):
-    load_group_giveaways(group_webpage, cookies, addition_date)
+#TODO: Add checking user didn't enter any giveaways
+def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None, days_to_create_ga=0, min_ga_time=0,
+                              min_game_value=0.0, min_steam_num_of_reviews=0, min_steam_score=0):
+    load_group_giveaways(group_webpage, cookies, earliest_date=addition_date)
     users_list = users.split(',')
     for group_giveaway in groups[group_webpage].group_giveaways.values():
-        if group_giveaway.creator in users_list and len(group_giveaway.groups) == 1:
-            if (    len(group_giveaway.groups) == 1
+        if (  group_giveaway.creator in users_list
+            and
+                len(group_giveaway.groups) == 1
+            and
+                ((not addition_date or days_to_create_ga == 0)
+                or (addition_date and days_to_create_ga > 0 and group_giveaway.start_date.tm_mday <= int(addition_date.split('-')[2]) + days_to_create_ga))
+            and
+                (min_ga_time == 0
+                or (min_ga_time > 0 and group_giveaway.end_date.tm_mday - group_giveaway.start_date.tm_mday >= min_ga_time))
+            and
+                (min_game_value == 0 or group_giveaway.value > min_game_value)):
+            num_of_reviews = 0
+            steam_score = 0
+            if min_steam_num_of_reviews != 0 or min_steam_score != 0:
+                steam_game_link = SteamGiftsScrapingUtils.get_steam_game_link(group_giveaway.link, cookies)
+                num_of_reviews, steam_score = SteamScrapingUtils.get_steam_game_data(steam_game_link)
+            if ((min_steam_num_of_reviews == 0 or (num_of_reviews != 0 and min_steam_num_of_reviews <= num_of_reviews))
                 and
-                    ((not addition_date or days_to_create_ga == 0)
-                    or (addition_date and days_to_create_ga > 0 and group_giveaway.start_date.tm_mday <= int(addition_date.split('-')[2]) + days_to_create_ga))
-                and
-                    (min_ga_time == 0
-                    or (min_ga_time > 0 and group_giveaway.end_date.tm_mday - group_giveaway.start_date.tm_mday >= min_ga_time))):
+                (min_steam_score == 0 or (steam_score != 0 and min_steam_score <= steam_score))):
                 print 'User ' + group_giveaway.creator + ' first giveaway: ' + group_giveaway.link
 
 
@@ -203,9 +215,8 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
 
 
 def test(group_webpage):
-    load_group_users(group_webpage)
-    for user in groups[group_webpage].group_users.keys():
-        user_check_rules(user, check_steamrep=True)
+    #TODO: GetGroupWishlist
+    pass
 
 
 def load_group(group_webpage, cookies=None, earliest_date=None, load_additional_user_data=False):
