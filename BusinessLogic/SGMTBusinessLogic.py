@@ -224,7 +224,6 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
 
 
 def test(group_webpage):
-    WebUtils.get_page_content('https://www.steamgifts.com/giveaway/McKde/strider-sutoraida-fei-long', '_ga=GA1.2.1681724704.1509967278; _gid=GA1.2.1634724628.1512244833; __gads=ID=c26b05b1c17dcc47:T=1509967278:S=ALNI_MZcAVBaLEJu-dKXracuRFaSq15iyg;')
     pass
 
 
