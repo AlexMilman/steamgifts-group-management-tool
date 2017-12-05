@@ -81,5 +81,11 @@ So for now this tool will run slowly, but safely.
 * I'm also consideting creating a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies
 * In the more distant future, I'm also considering using an external (persistent) cache, instead of in-memory (as it's implemented at the moment) 
 
+#### Planned DB Schema
+* Groups: GroupID (hash of group link) -> (Users:{UserName, GroupSent, GroupWon}, Giveaways:{GiveawayID, StartTime, EndTime})
+* Users: UserName -> {UserName, SteamId, GlobalWon, GlobalSent}
+* Giveaways: GiveawayID (hash of giveaway link) -> {GiveawayLink, GiveawayCreator, StartDate, EndDate, GameName, Entries:{UserName, EntryDate}, Groups:{GroupName}, Winners:{UserName}}
+* Games: GameName -> {GameValue, GameScore, GameNumOfReviews}
+
 ### TODO
 * Implement Service API
