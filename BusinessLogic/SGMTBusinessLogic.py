@@ -1,9 +1,10 @@
 import time
+
 import pylru
 
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
-    SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts, SteamConsts
-from BusinessLogic.Utils import WebUtils
+    SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts
+from Data.GameData import GameData
 from Data.Group import Group
 
 # Internal business logic of different SGMT commands
@@ -15,7 +16,7 @@ LRU_CACHE_SIZE = 10
 # LRU cache used to hold data of last LRU_CACHE_SIZE groups. In order to cache the data and not retrieve it every time.
 # Going forward need to consider using an external (persistent) cache server
 groups = pylru.lrucache(LRU_CACHE_SIZE)
-
+game_data = dict()
 
 def missing_after_n_giveaway(group_webpage, n, steam_thread):
     load_group(group_webpage, load_additional_user_data=True)
@@ -134,14 +135,19 @@ def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value
             response += SteamGiftsConsts.get_user_link(user) + '\n'
     return response
 
-
+# TODO: Load steam game link on giveaways load
 def check_steam_reviews(giveaway_link, cookies, min_steam_num_of_reviews, min_steam_score):
     num_of_reviews = 0
     steam_score = 0
     if min_steam_num_of_reviews != 0 or min_steam_score != 0:
         steam_game_link = SteamGiftsScrapingUtils.get_steam_game_link(giveaway_link, cookies)
         if steam_game_link:
-            num_of_reviews, steam_score = SteamScrapingUtils.get_steam_game_data(steam_game_link)
+            if steam_game_link in game_data:
+                num_of_reviews = game_data[steam_game_link].num_of_reviews
+                steam_score = game_data[steam_game_link].steam_score
+            else:
+                num_of_reviews, steam_score = SteamScrapingUtils.get_steam_game_data(steam_game_link)
+                game_data[steam_game_link] = GameData(num_of_reviews, steam_score)
     return (min_steam_num_of_reviews == 0 or (num_of_reviews != 0 and min_steam_num_of_reviews <= num_of_reviews)) \
            and (min_steam_score == 0 or (steam_score != 0 and min_steam_score <= steam_score))
 
@@ -177,7 +183,7 @@ def get_user_entered_giveaways(group_webpage, users, cookies, addition_date):
                     response += 'User ' + user + ' entered giveaway: ' + group_giveaway.link + '\n'
     return response
 
-#TODO: Add checking user didn't enter any giveaways
+#TODO: Add feature flog for get_entered_giveaways
 def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None, days_to_create_ga=0, min_ga_time=0,
                               min_game_value=0.0, min_steam_num_of_reviews=0, min_steam_score=0):
     response = ''
@@ -194,10 +200,18 @@ def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None,
                 (min_ga_time == 0
                 or (min_ga_time > 0 and group_giveaway.end_date.tm_mday - group_giveaway.start_date.tm_mday >= min_ga_time))
             and
-                (min_game_value == 0 or group_giveaway.value > min_game_value)):
+                (min_game_value == 0 or group_giveaway.value >= min_game_value)):
             if check_steam_reviews(group_giveaway.link, cookies, min_steam_num_of_reviews, min_steam_score):
                 response += 'User ' + group_giveaway.creator + ' first giveaway: ' + group_giveaway.link + '\n'
+
+        # TODO: Add giveaway entered time (from entries page)
+        if not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_date):
+            for user in users_list:
+                if user in group_giveaway.entries:
+                    response += 'User ' + user + ' entered giveaway: ' + group_giveaway.link + '\n'
+
     return response
+
 
 def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, level=0, check_steamrep=False):
     broken_rules = []
@@ -211,7 +225,7 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
         broken_rules.append(
             'Won more than Sent. Won: ' + SGToolsConsts.SGTOOLS_CHECK_WON_LINK + user + ', '
                                'Sent: ' + SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user)
-
+    # TODO: Add user level to user data loading
     if check_level and level > 0 and SGToolsScrapingUtils.check_level(user, level):
         broken_rules.append('User level is less than ' + str(level) + ': ' + SteamGiftsConsts.get_user_link(user))
 
@@ -224,7 +238,13 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
 
 
 def test(group_webpage):
-    pass
+    load_group_users(group_webpage, True)
+    for group_user in groups[group_webpage].group_users.values():
+        print '\nUser: ' + group_user.user_name
+        for message in user_check_rules(group_user.user_name, check_real_cv_value=True):
+            print message
+        if group_user.global_won > group_user.global_sent:
+            print 'User ' + group_user.user_name + ' has negative global gifts ratio'
 
 
 def load_group(group_webpage, cookies=None, earliest_date=None, load_additional_user_data=False):
@@ -239,7 +259,7 @@ def load_group_users(group_webpage, load_additional_data=False):
         group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
         # Additional Data = Steam ID, SG total won, SG total sent
         if load_additional_data:
-            for group_user in group_users:
+            for group_user in group_users.values():
                 SteamGiftsScrapingUtils.update_user_additional_data(group_user)
         if group_webpage not in groups:
             groups[group_webpage] = Group(group_users=group_users)
