@@ -69,7 +69,7 @@ def get_group_giveaways(group_webpage, cookies=None, earliest_date=None):
                 giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(giveaway_link), cookies=cookies)
                 giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
 
-            group_giveaways[SteamGiftsConsts.get_giveaway_link(giveaway_link)] = (GroupGiveaway(SteamGiftsConsts.get_giveaway_link(giveaway_link), poster, game_value, creation_time, end_time, giveaway_entries, giveaway_groups, winners))
+            group_giveaways[SteamGiftsConsts.get_giveaway_link(giveaway_link)] = GroupGiveaway(SteamGiftsConsts.get_giveaway_link(giveaway_link), poster, game_value, creation_time, end_time, giveaway_entries, giveaway_groups, winners)
 
             if earliest_date and time.strftime('%Y-%m-%d', end_time) < earliest_date:
                 reached_end = True

@@ -1,6 +1,7 @@
 # GroupUser object used to all group users data
 # Copyright (C) 2017  Alex Milman
 
+
 class GroupUser(object):
     user_name=None
     group_won=0.0

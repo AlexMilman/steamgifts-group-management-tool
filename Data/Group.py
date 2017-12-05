@@ -1,6 +1,7 @@
 # Group object used to hold all group data
 # Copyright (C) 2017  Alex Milman
 
+
 class Group(object):
     group_users=dict()
     group_giveaways=dict()

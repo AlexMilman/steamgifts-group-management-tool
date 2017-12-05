@@ -1,12 +1,14 @@
 # GroupGiveaway object used to hold all group giveaways data
 # Copyright (C) 2017  Alex Milman
 
+
 class GroupGiveaway(object):
     link=None
     creator=''
     value=0.0
     start_date=None
     end_date=None
+    game_name=''
     entries=[]
     groups=[]
     winners=[]
