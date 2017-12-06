@@ -44,20 +44,32 @@ The following features are considered advanced, as they require you to provide a
 This tool requires [Python 2.7](https://www.python.org/downloads/)
 
 ### Installing python dependencies
-Within a command prompt navigate to the steamgifts-management-tool folder and run the command
+Within a command prompt navigate to the steamgifts-group-management-tool folder and run the command
 ```
 pip install -r requirements.txt
 ``` 
 
 ### Running the tool in CLI
-Within a command prompt navigate to the steamgifts-management-tool folder and run the command
+Within a command prompt navigate to the steamgifts-group-management-tool folder and run the command
 ```
 python SGMTStandalone.py -h
 ```
 This will show you a full usage explanation
 
 ### Running the tool as Service
-TBD
+Within a command prompt navigate to the steamgifts-group-management-tool folder and run the command
+```
+python SGMTService.py
+```
+This will bring up the service on localhost on port 5000
+
+#### DB Schema
+GroupID = hash of Group link
+GiveawayID = hash of Giveaway link
+* Groups: GroupID -> (Users:{UserName, GroupSent, GroupWon}, Giveaways:{GiveawayID, StartTime, EndTime})
+* Users: UserName -> {SteamId, GlobalWon, GlobalSent}
+* Giveaways: GiveawayID -> {GiveawayLink, GiveawayCreator, GameName, Entries:{UserName, EntryTime, Winner}, Groups:{GroupID}}
+* Games: GameName -> {GameValue, GameScore, GameNumOfReviews}
 
 ### Why Python was chosen
 I chose Python as the programming language to implement this tool, for the following reasons:
@@ -75,17 +87,12 @@ Steam may not care about a couple of hundred concurrent requests. But for SteamG
 So for now this tool will run slowly, but safely.
 
 ### Future plans
-* For the future, I plan to develop the the tool to be able to run as a service.
-* Then I will be able to load and cache the data for any given SteamGifts group, which will obsolete the need for many requests to Steam, SteamGifts, SGTools, etc.
-* I will then be able to deploy this tool to a server somewhere, and let anyone use it as an API.
+* Add a DB to be able to cache the data for any given SteamGifts group, which will obsolete the need for many requests to Steam, SteamGifts, SGTools, etc.
+* Deploy this tool to a server somewhere, and let anyone use it as an API.
 * I'm also consideting creating a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies
-* In the more distant future, I'm also considering using an external (persistent) cache, instead of in-memory (as it's implemented at the moment) 
-
-#### Planned DB Schema
-* Groups: GroupID (hash of group link) -> (Users:{UserName, GroupSent, GroupWon}, Giveaways:{GiveawayID, StartTime, EndTime})
-* Users: UserName -> {UserName, SteamId, GlobalWon, GlobalSent}
-* Giveaways: GiveawayID (hash of giveaway link) -> {GiveawayLink, GiveawayCreator, StartDate, EndDate, GameName, Entries:{UserName, EntryDate}, Groups:{GroupName}, Winners:{UserName}}
-* Games: GameName -> {GameValue, GameScore, GameNumOfReviews}
 
 ### TODO
-* Implement Service API
+* Add MySql support
+* Handle TODO leftovers
+* Add all remaining commands to service API
+* Add index.html page with usage instructions and links to service API
