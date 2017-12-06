@@ -4,6 +4,7 @@ import requests
 
 from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SteamConsts
 from BusinessLogic.Utils import StringUtils, WebUtils
+from Data.GiveawayEntry import GiveawayEntry
 from Data.GroupGiveaway import GroupGiveaway
 from Data.GroupUser import GroupUser
 
@@ -60,16 +61,22 @@ def get_group_giveaways(group_webpage, cookies=None, earliest_date=None):
                 end_time = time.localtime(StringUtils.normalize_float(timestamps[0]))
                 creation_time = time.localtime(StringUtils.normalize_float(timestamps[1]))
 
-            giveaway_entries=[]
+            giveaway_entries=dict()
             giveaway_groups=[]
             if cookies:
                 giveaway_entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(giveaway_link), cookies=cookies)
-                giveaway_entries = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//a[@class="table__column__heading"]/text()')
+                giveaway_users = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//a[@class="table__column__heading"]/text()')
+                #TODO: Add entry time
+                for user_name in giveaway_users:
+                    winner = False
+                    if user_name in winners:
+                        winner = True
+                    giveaway_entries[user_name] = GiveawayEntry(user_name, winner=winner)
 
                 giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(giveaway_link), cookies=cookies)
                 giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
 
-            group_giveaways[SteamGiftsConsts.get_giveaway_link(giveaway_link)] = GroupGiveaway(SteamGiftsConsts.get_giveaway_link(giveaway_link), poster, game_value, creation_time, end_time, giveaway_entries, giveaway_groups, winners)
+            group_giveaways[SteamGiftsConsts.get_giveaway_link(giveaway_link)] = GroupGiveaway(SteamGiftsConsts.get_giveaway_link(giveaway_link), poster, game_value, creation_time, end_time, giveaway_entries, giveaway_groups)
 
             if earliest_date and time.strftime('%Y-%m-%d', end_time) < earliest_date:
                 reached_end = True

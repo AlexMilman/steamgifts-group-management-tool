@@ -9,11 +9,10 @@ class GroupGiveaway(object):
     start_date=None
     end_date=None
     game_name=''
-    entries=[]
+    entries=dict()
     groups=[]
-    winners=[]
 
-    def __init__(self, link, creator, value, start_date=None, end_date=None, entries=[], groups=[], winners=[]):
+    def __init__(self, link, creator, value, start_date=None, end_date=None, entries=dict(), groups=[]):
         self.link = link
         self.creator = creator
         self.value = value
@@ -21,4 +20,16 @@ class GroupGiveaway(object):
         self.end_date = end_date
         self.entries = entries
         self.groups = groups
-        self.winners = winners
+
+    def has_winners(self):
+        for entry in self.entries.values():
+            if entry.winner:
+                return True
+        return False
+
+    def get_winners(self):
+        winners=[]
+        for entry in self.entries.values():
+            if entry.winner:
+                winners.append(entry)
+        return winners

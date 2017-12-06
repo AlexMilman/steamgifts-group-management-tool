@@ -122,7 +122,7 @@ def main(argv):
         all_giveaways_in_group = SGMTBusinessLogic.get_all_giveaways_in_group(group_webpage)
         for giveaway in all_giveaways_in_group:
             print 'Giveaway: ' + giveaway.link + '.  Created by: ' + SteamGiftsConsts.STEAMGIFTS_USER_LINK + giveaway.creator \
-                        + '.  Won by: ' + parse_list(giveaway.winners, SteamGiftsConsts.STEAMGIFTS_USER_LINK)
+                        + '.  Won by: ' + parse_list(giveaway.get_winners(), SteamGiftsConsts.STEAMGIFTS_USER_LINK)
     elif feature == 'GetSteamGiftsUserToSteamUserTranslation':
         steam_id_to_user = SGMTBusinessLogic.get_stemagifts_to_steam_user_translation(group_webpage)
         for steam_profile_id, user in steam_id_to_user.iteritems():

@@ -32,11 +32,12 @@ def missing_after_n_giveaway(group_webpage, n, steam_thread):
 def get_user_wins(group_data):
     user_wins=dict()
     for giveaway in group_data.group_giveaways.values():
-        for winner in giveaway.winners:
-            if winner in group_data.group_users.keys():
-                if winner not in user_wins:
-                    user_wins[winner] = set()
-                user_wins[winner].add(giveaway.link)
+        for entry in giveaway.entries.values():
+            user_name = entry.user_name
+            if entry.winner and user_name in group_data.group_users.keys():
+                if user_name not in user_wins:
+                    user_wins[user_name] = set()
+                user_wins[user_name].add(giveaway.link)
     return user_wins
 
 
@@ -118,7 +119,7 @@ def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value
                 and end_day - start_day >= min_days\
                 and (min_game_value == 0 or group_giveaway.value >= min_game_value):
             if check_steam_reviews(group_giveaway.link, cookies, min_steam_num_of_reviews, min_steam_score):
-                if len(group_giveaway.winners) > 0:
+                if group_giveaway.has_winners():
                     monthly_posters.add(group_giveaway.creator)
                 else:
                     if group_giveaway.creator not in monthly_unfinished:
