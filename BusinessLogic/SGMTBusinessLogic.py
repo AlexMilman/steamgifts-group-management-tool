@@ -235,7 +235,7 @@ def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None,
     return response
 
 
-def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, level=0, check_steamrep=False):
+def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, min_level=0, check_steamrep=False):
     broken_rules = []
     if check_nonactivated and SGToolsScrapingUtils.check_nonactivated(user):
         broken_rules.append('Has non-activated games: ' + SGToolsConsts.SGTOOLS_CHECK_NONACTIVATED_LINK + user)
@@ -247,9 +247,9 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
         broken_rules.append(
             'Won more than Sent. Won: ' + SGToolsConsts.SGTOOLS_CHECK_WON_LINK + user + ', '
                                'Sent: ' + SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user)
-    # TODO: Add user level to user data loading
-    if check_level and level > 0 and SGToolsScrapingUtils.check_level(user, level):
-        broken_rules.append('User level is less than ' + str(level) + ': ' + SteamGiftsConsts.get_user_link(user))
+
+    if check_level and min_level > 0 and SteamGiftsScrapingUtils.check_level(user, min_level):
+        broken_rules.append('User level is less than ' + str(min_level) + ': ' + SteamGiftsConsts.get_user_link(user))
 
     if check_steamrep:
         user_steam_id = SteamGiftsScrapingUtils.get_user_steam_id(user)
@@ -260,9 +260,9 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
 
 
 def test(group_webpage):
-    # group = load_group(group_webpage, load_additional_user_data=True)
+    group = add_new_group(group_webpage)
     # MySqlConnector.save_group(group_webpage, group)
-    group = MySqlConnector.load_group(group_webpage)
+    # group = MySqlConnector.load_group(group_webpage)
 
     # for group_user in group.group_users.values():
     #     print '\nUser: ' + group_user.user_name
@@ -280,9 +280,9 @@ def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, lim
     return group
 
 
-def add_new_group(group_webpage, cookies=None, earliest_date=None, load_additional_user_data=False):
+def add_new_group(group_webpage, cookies):
     group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
-    group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, earliest_date)
+    group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
     MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways))
 
 

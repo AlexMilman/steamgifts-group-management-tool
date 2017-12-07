@@ -49,9 +49,19 @@ def update_user_additional_data(user):
             user.global_won = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__right"]/span/span/a/text()'))
         elif row_title == u'Gifts Sent':
             user.global_sent = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class=" featured__table__row__right"]/span/span/a/text()'))
+        elif row_title == u'Contributor Level':
+            user_level_item = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__right"]/span/@data-ui-tooltip')
+            user.level = user_level_item.split('name" : "')[2].split('", "color')[0]
 
 
-def get_group_giveaways(group_webpage, cookies=None, earliest_date=None):
+def check_level(user, level):
+    user_html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user))
+    user_level_item = WebUtils.get_item_by_xpath(user_html_content, u'.//div[@class="featured__table__row__right"]/span/@data-ui-tooltip')
+    user_level = user_level_item.split('name" : "')[2].split('", "color')[0]
+    return  StringUtils.normalize_float(user_level) < float(level)
+
+
+def get_group_giveaways(group_webpage, cookies):
     group_giveaways=dict()
     reached_end=False
     page_index = 1
@@ -75,25 +85,23 @@ def get_group_giveaways(group_webpage, cookies=None, earliest_date=None):
                 creation_time = time.gmtime(StringUtils.normalize_float(timestamps[1]))
 
             giveaway_entries=dict()
-            giveaway_groups=[]
-            if cookies:
-                giveaway_entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(giveaway_link), cookies=cookies)
-                giveaway_users = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//a[@class="table__column__heading"]/text()')
-                #TODO: Add entry time
-                for user_name in giveaway_users:
-                    winner = False
-                    if user_name in winners:
-                        winner = True
-                    giveaway_entries[user_name] = GiveawayEntry(user_name, winner=winner)
+            giveaway_entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(giveaway_link), cookies=cookies)
+            giveaway_users = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//a[@class="table__column__heading"]/text()')
+            #TODO: Add entry time
+            for user_name in giveaway_users:
+                winner = False
+                if user_name in winners:
+                    winner = True
+                giveaway_entries[user_name] = GiveawayEntry(user_name, winner=winner)
 
-                giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(giveaway_link), cookies=cookies)
-                giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
+            giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(giveaway_link), cookies=cookies)
+            giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
 
             group_giveaways[SteamGiftsConsts.get_giveaway_link(giveaway_link)] = GroupGiveaway(SteamGiftsConsts.get_giveaway_link(giveaway_link), poster, game_value, creation_time, end_time, giveaway_entries, giveaway_groups)
 
-            if earliest_date and time.strftime('%Y-%m-%d', end_time) < earliest_date:
-                reached_end = True
-                break
+            # if earliest_date and time.strftime('%Y-%m-%d', end_time) < earliest_date:
+            #     reached_end = True
+            #     break
 
         if not current_page_num or reached_end:
             break

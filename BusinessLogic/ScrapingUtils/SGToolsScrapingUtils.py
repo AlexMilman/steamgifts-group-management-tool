@@ -5,14 +5,6 @@ from BusinessLogic.Utils import StringUtils, WebUtils
 # Copyright (C) 2017  Alex Milman
 
 
-
-def check_level(user, level):
-    user_html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user))
-    user_level_item = WebUtils.get_item_by_xpath(user_html_content, u'.//div[@class="featured__table__row__right"]/span/@data-ui-tooltip')
-    user_level = user_level_item.split('name" : "')[2].split('", "color')[0]
-    return StringUtils.normalize_float(user_level) < float(level)
-
-
 def check_real_cv_value(user):
     sent_html_content = WebUtils.get_html_page(SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user)
     sent_value = WebUtils.get_item_by_xpath(sent_html_content, u'.//div[@class="total"]/h1/text()').replace('$', '')
