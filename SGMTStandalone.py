@@ -146,7 +146,7 @@ def main(argv):
         users = SGMTBusinessLogic.get_users_with_negative_group_ratio(group_webpage)
         print parse_list(users)
     elif feature == 'UserEnteredGiveaways':
-        response = SGMTBusinessLogic.get_user_entered_giveaways(group_webpage, user, cookies, addition_date)
+        response = SGMTBusinessLogic.get_user_entered_giveaways(group_webpage, user, addition_date)
         print response
     elif feature == 'UserCheckRules':
         response = SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_level, level, check_steamrep)
@@ -154,7 +154,7 @@ def main(argv):
     elif feature == 'UserCheckFirstGiveaway':
         response = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user, cookies, addition_date, days, min_time, min_game_value, min_steam_num_of_reviews, min_steam_score)
         print response
-    #TODO: Add CheckAllGiveaways
+    #TODO: Add CheckAllGiveawaysAccordingToRules
     elif feature == 'Test':
         SGMTBusinessLogic.test(group_webpage)
     else:
@@ -238,8 +238,8 @@ def print_usage():
     print 'These features require operations which cannot be performed anonymously, you will be required to provide your personal cookies'
     print '\t' + printBold('UserEnteredGiveaways') + ' - For a given user, returns all group giveaways the user/s has entered since a given date.'
     print '\tThis is helpfull in case of a new user, or a user in probation you want to verify is following the "no entering giveaways" rule.'
-    print '\tSYNTAX: GGTMStandalone.py -f UserEnteredGiveaways -w <steamgifts group webpage> -u <steamgifts username or list of users separated by column> -a <date from which to start the check: YYYY-MM-DD> -c <your steamgifts cookies>'
-    print '\tEXAMPLE: GGTMStandalone.py -f UserEnteredGiveaways -w https://www.steamgifts.com/group/6HSPr/qgg-group -u Oozyyy,7Years -a 2017-11-20 -c "_dm_sync=true; _dm_bid=true; ..."'
+    print '\tSYNTAX: GGTMStandalone.py -f UserEnteredGiveaways -w <steamgifts group webpage> -u <steamgifts username or list of users separated by column> -a <date from which to start the check: YYYY-MM-DD>'
+    print '\tEXAMPLE: GGTMStandalone.py -f UserEnteredGiveaways -w https://www.steamgifts.com/group/6HSPr/qgg-group -u Oozyyy,7Years -a 2017-11-20'
     print ''
     print '\t' + printBold('UserCheckFirstGiveaway') + ' - Check if a user complies with first giveaway rules:\n'
     print '\tCreates a giveaway unique to the group. Creates the giveaway within X days of entering the group. Creates the giveaway for a minimum of X days.'
