@@ -35,10 +35,10 @@ def save_group(group_website, group):
         entries_data = []
         for entry in group_giveaway.entries.values():
             entries_data.append((entry.user_name, calendar.timegm(entry.entry_time), entry.winner))
-        giveaways_data.append((giveaway_id, group_giveaway.link, group_giveaway.creator, group_giveaway.game_name, json.dumps(entries_data), json.dumps(group_giveaway.groups)))
+        giveaways_data.append((giveaway_id, group_giveaway.link, group_giveaway.creator, group_giveaway.value, group_giveaway.game_name, json.dumps(entries_data), json.dumps(group_giveaway.groups)))
         group_giveaways_data.append((giveaway_id, calendar.timegm(group_giveaway.start_time), calendar.timegm(group_giveaway.end_time)))
 
-    cursor.executemany("INSERT IGNORE INTO `Giveaways`(`GiveawayID`,`LinkURL`,`Creator`,`GameName`,`Entries`,`Groups`) VALUES (%s, %s, %s, %s, %s, %s)", giveaways_data)
+    cursor.executemany("INSERT IGNORE INTO Giveaways (GiveawayID,LinkURL,Creator,Value,GameName,Entries,Groups) VALUES (%s,%s,%s,%s,%s,%s,%s)", giveaways_data)
 
     # Insert Users
     users_data = []
@@ -47,11 +47,11 @@ def save_group(group_website, group):
         users_data.append((group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent))
         group_users_data.append((group_user.user_name, group_user.group_won, group_user.group_sent))
 
-    cursor.executemany("INSERT IGNORE INTO `Users`(`UserName`,`SteamId`,`GlobalWon`,`GlobalSent`) VALUES (%s, %s, %s, %s)", users_data)
+    cursor.executemany("INSERT IGNORE INTO Users (UserName,SteamId,GlobalWon,GlobalSent) VALUES (%s, %s, %s, %s)", users_data)
 
     # Insert Group
     group_id = get_hashed_id(group_website)
-    cursor.execute("INSERT IGNORE INTO `Groups`(`GroupID`,`Users`,`Giveaways`) VALUES (\"" + group_id + "\",\"" + json.dumps(group_users_data).replace('"','\\"') + "\",\"" + json.dumps(group_giveaways_data).replace('"','\\"') + "\")")
+    cursor.execute("INSERT IGNORE INTO Groups (GroupID,Users,Giveaways) VALUES (\"" + group_id + "\",\"" + json.dumps(group_users_data).replace('"','\\"') + "\",\"" + json.dumps(group_giveaways_data).replace('"','\\"') + "\")")
 
     conn.commit()  # you need to call commit() method to save your changes to the database
 
@@ -100,17 +100,18 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
     cursor.execute('SELECT * FROM Giveaways WHERE GiveawayID in (' + parse_list(group_giveaways.keys()) + ')')
     data = cursor.fetchall()
     for row in data:
-        # (giveaway_id, group_giveaway.link, group_giveaway.creator, group_giveaway.game_name, json.dumps(entries_data), json.dumps(group_giveaway.groups))
+        # (giveaway_id, group_giveaway.link, group_giveaway.creator, group_giveaway.value, group_giveaway.game_name, json.dumps(entries_data), json.dumps(group_giveaway.groups))
         giveaway_id = row[0]
         group_giveaways[giveaway_id].link = row[1]
         group_giveaways[giveaway_id].creator = row[2]
-        group_giveaways[giveaway_id].game_name = row[3]
+        group_giveaways[giveaway_id].value = row[3]
+        group_giveaways[giveaway_id].game_name = row[4]
         group_giveaways[giveaway_id].entries = dict()
-        for ent_row in json.loads(row[4]):
+        for ent_row in json.loads(row[5]):
             # (entry.user_name, entry.entry_time, entry.winner)
             user_name = ent_row[0]
             group_giveaways[giveaway_id].entries[user_name] = GiveawayEntry(user_name, entry_time=time.gmtime(ent_row[1]), winner=ent_row[2])
-        group_giveaways[giveaway_id].groups = json.loads(row[5])
+        group_giveaways[giveaway_id].groups = json.loads(row[6])
 
     cursor.close()
     conn.close()
