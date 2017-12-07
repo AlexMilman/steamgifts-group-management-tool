@@ -65,6 +65,7 @@ This will bring up the service on localhost on port 5000
 
 #### DB Schema
 GroupID = hash of Group link
+
 GiveawayID = hash of Giveaway link
 * Groups: GroupID -> (Users:{UserName, GroupSent, GroupWon}, Giveaways:{GiveawayID, StartTime, EndTime})
 * Users: UserName -> {SteamId, GlobalWon, GlobalSent}
