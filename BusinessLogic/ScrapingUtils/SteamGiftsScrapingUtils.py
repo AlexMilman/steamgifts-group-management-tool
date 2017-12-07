@@ -28,7 +28,6 @@ def get_group_users(group_webpage, max_pages=0):
             user_sent = StringUtils.normalize_float(user_data_elements[0][0:user_data_elements[0].find('(')])
             user_received = StringUtils.normalize_float(user_data_elements[1][0:user_data_elements[1].find('(')])
             group_users[user] = GroupUser(user, user_received, user_sent)
-            update_user_additional_data(group_users[user])
 
         if not current_page_num:
             break
@@ -51,7 +50,7 @@ def update_user_additional_data(user):
             user.global_sent = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class=" featured__table__row__right"]/span/span/a/text()'))
         elif row_title == u'Contributor Level':
             user_level_item = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__right"]/span/@data-ui-tooltip')
-            user.level = user_level_item.split('name" : "')[2].split('", "color')[0]
+            user.level = StringUtils.normalize_float(user_level_item.split('name" : "')[2].split('", "color')[0])
 
 
 def check_level(user, level):

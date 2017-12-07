@@ -24,8 +24,8 @@ db_schema = config.get('MySql', 'DBSchema')
 
 def save_group(group_website, group):
     start_time = time.time()
-    conn = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
-    cursor = conn.cursor()
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
 
     # Insert Giveaways
     giveaways_data = []
@@ -34,9 +34,9 @@ def save_group(group_website, group):
         giveaway_id = get_hashed_id(group_giveaway.link)
         entries_data = []
         for entry in group_giveaway.entries.values():
-            entries_data.append((entry.user_name, calendar.timegm(entry.entry_time), entry.winner))
+            entries_data.append((entry.user_name, to_epoch(entry.entry_time), entry.winner))
         giveaways_data.append((giveaway_id, group_giveaway.link, group_giveaway.creator, group_giveaway.value, group_giveaway.game_name, json.dumps(entries_data), json.dumps(group_giveaway.groups)))
-        group_giveaways_data.append((giveaway_id, calendar.timegm(group_giveaway.start_time), calendar.timegm(group_giveaway.end_time)))
+        group_giveaways_data.append((giveaway_id, to_epoch(group_giveaway.start_time), to_epoch(group_giveaway.end_time)))
 
     cursor.executemany("INSERT IGNORE INTO Giveaways (GiveawayID,LinkURL,Creator,Value,GameName,Entries,Groups) VALUES (%s,%s,%s,%s,%s,%s,%s)", giveaways_data)
 
@@ -53,19 +53,18 @@ def save_group(group_website, group):
     group_id = get_hashed_id(group_website)
     cursor.execute("INSERT IGNORE INTO Groups (GroupID,Users,Giveaways) VALUES (\"" + group_id + "\",\"" + json.dumps(group_users_data).replace('"','\\"') + "\",\"" + json.dumps(group_giveaways_data).replace('"','\\"') + "\")")
 
-    conn.commit()  # you need to call commit() method to save your changes to the database
+    connection.commit()  # you need to call commit() method to save your changes to the database
 
     cursor.close()
-    conn.close()
+    connection.close()
     print "--- %s seconds ---" % (time.time() - start_time)
-
 
 
 #TODO Implement optional params
 def load_group(group_website, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time=None, end_time=None):
     start_time = time.time()
-    conn = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
-    cursor = conn.cursor()
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
 
     # Load Group
     group_id = get_hashed_id(group_website)
@@ -95,7 +94,7 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
     for row in group_giveaways_data:
         # (giveaway_id, calendar.timegm(group_giveaway.start_time), calendar.timegm(group_giveaway.end_time))
         giveaway_id = row[0]
-        group_giveaways[giveaway_id] = GroupGiveaway(giveaway_id, start_time=time.gmtime(row[1]), end_time=time.gmtime(row[2]))
+        group_giveaways[giveaway_id] = GroupGiveaway(giveaway_id, start_time=from_epoch(row[1]), end_time=from_epoch(row[2]))
 
     cursor.execute('SELECT * FROM Giveaways WHERE GiveawayID in (' + parse_list(group_giveaways.keys()) + ')')
     data = cursor.fetchall()
@@ -110,13 +109,55 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
         for ent_row in json.loads(row[5]):
             # (entry.user_name, entry.entry_time, entry.winner)
             user_name = ent_row[0]
-            group_giveaways[giveaway_id].entries[user_name] = GiveawayEntry(user_name, entry_time=time.gmtime(ent_row[1]), winner=ent_row[2])
+            group_giveaways[giveaway_id].entries[user_name] = GiveawayEntry(user_name, entry_time=from_epoch(ent_row[1]), winner=ent_row[2])
         group_giveaways[giveaway_id].groups = json.loads(row[6])
 
     cursor.close()
-    conn.close()
+    connection.close()
     print "--- %s seconds ---" % (time.time() - start_time)
     return Group(group_users, group_giveaways)
+
+
+def check_existing_users(users_list):
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    existing_users = []
+    cursor.execute("SELECT UserName FROM Users WHERE UserName IN (" + parse_list(users_list) + ")")
+    data = cursor.fetchall()
+    for row in data:
+        existing_users.append(row[0])
+
+    cursor.close()
+    connection.close()
+    return existing_users
+
+
+def get_user_data(user_name):
+    group_user = None
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    cursor.execute('SELECT * FROM Users WHERE UserName = "' + user_name + '"')
+    data = cursor.fetchone()
+    if data:
+        # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent)
+        group_user = GroupUser(user_name, steam_id=data[1], global_won=data[2], global_sent=data[3])
+
+    cursor.close()
+    connection.close()
+    return group_user
+
+
+def save_user(group_user):
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    cursor.execute('INSERT INTO Users (UserName,SteamId,GlobalWon,GlobalSent) '
+                   'VALUES ("' + group_user.user_name + '","' + group_user.steam_id + '",' + group_user.global_won + ',' + group_user.global_sent + ')')
+
+    cursor.close()
+    connection.close()
 
 
 def get_hashed_id(group_website):
@@ -129,3 +170,15 @@ def parse_list(list, prefix=''):
         result += '"' + prefix + item + '",'
 
     return result[:-1]
+
+
+def to_epoch(time_object):
+    if time_object:
+        return calendar.timegm(time_object)
+    return None
+
+
+def from_epoch(time_in_epoch):
+    if time_in_epoch:
+        return time.gmtime(time_in_epoch)
+    return None

@@ -73,6 +73,13 @@ def user_entered_giveaway():
     return response.replace('\n','<BR>')
 
 
+@app.route('/SGMT-Admin/AddNewGroup', methods=['GET'])
+def add_new_group():
+    group_webpage = request.args.get('group_webpage')
+    cookies = request.args.get('cookies')
+    SGMTBusinessLogic.add_new_group(group_webpage, cookies)
+
+
 @app.route('/SGMT/warranty', methods=['GET'])
 def warranty():
     return 'This program is distributed in the hope that it will be useful,<BR>' \

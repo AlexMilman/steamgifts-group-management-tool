@@ -4,11 +4,13 @@ import pylru
 
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
     SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts
+from BusinessLogic.Utils import StringUtils
 from Data.GameData import GameData
 from Data.Group import Group
 
 # Internal business logic of different SGMT commands
 # Copyright (C) 2017  Alex Milman
+from Data.GroupUser import GroupUser
 from Database import MySqlConnector
 
 GROUP_LRU_CACHE_SIZE = 100
@@ -235,32 +237,38 @@ def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None,
     return response
 
 
-def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, min_level=0, check_steamrep=False):
+def user_check_rules(user_name, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, min_level=0, check_steamrep=False):
     broken_rules = []
-    if check_nonactivated and SGToolsScrapingUtils.check_nonactivated(user):
-        broken_rules.append('Has non-activated games: ' + SGToolsConsts.SGTOOLS_CHECK_NONACTIVATED_LINK + user)
+    if check_nonactivated and SGToolsScrapingUtils.check_nonactivated(user_name):
+        broken_rules.append('Has non-activated games: ' + SGToolsConsts.SGTOOLS_CHECK_NONACTIVATED_LINK + user_name)
 
-    if check_multiple_wins and SGToolsScrapingUtils.check_multiple_wins(user):
-        broken_rules.append('Has multiple wins: ' + SGToolsConsts.SGTOOLS_CHECK_MULTIPLE_WINS_LINK + user)
+    if check_multiple_wins and SGToolsScrapingUtils.check_multiple_wins(user_name):
+        broken_rules.append('Has multiple wins: ' + SGToolsConsts.SGTOOLS_CHECK_MULTIPLE_WINS_LINK + user_name)
 
-    if check_real_cv_value and SGToolsScrapingUtils.check_real_cv_value(user):
+    if check_real_cv_value and SGToolsScrapingUtils.check_real_cv_value(user_name):
         broken_rules.append(
-            'Won more than Sent. Won: ' + SGToolsConsts.SGTOOLS_CHECK_WON_LINK + user + ', '
-                               'Sent: ' + SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user)
+            'Won more than Sent. Won: ' + SGToolsConsts.SGTOOLS_CHECK_WON_LINK + user_name + ', '
+                               'Sent: ' + SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user_name)
 
-    if check_level and min_level > 0 and SteamGiftsScrapingUtils.check_level(user, min_level):
-        broken_rules.append('User level is less than ' + str(min_level) + ': ' + SteamGiftsConsts.get_user_link(user))
+    if check_level and min_level > 0:
+        group_user = MySqlConnector.get_user_data(user_name)
+        if not group_user:
+            group_user = GroupUser(user_name)
+            SteamGiftsScrapingUtils.update_user_additional_data(group_user)
+            MySqlConnector.save_user(group_user)
+        if group_user.level < float(min_level):
+            broken_rules.append('User level is less than ' + str(min_level) + ': ' + SteamGiftsConsts.get_user_link(user_name))
 
     if check_steamrep:
-        user_steam_id = SteamGiftsScrapingUtils.get_user_steam_id(user)
+        user_steam_id = SteamGiftsScrapingUtils.get_user_steam_id(user_name)
         if user_steam_id and not SteamRepScrapingUtils.check_user_not_public_or_banned(user_steam_id):
-            broken_rules.append('User ' + SteamGiftsConsts.get_user_link(user)
+            broken_rules.append('User ' + SteamGiftsConsts.get_user_link(user_name)
                                 + ' is not public or banned: ' + SteamRepConsts.get_steamrep_link(user_steam_id))
     return broken_rules
 
 
 def test(group_webpage):
-    group = add_new_group(group_webpage)
+    group = add_new_group(group_webpage, '')
     # MySqlConnector.save_group(group_webpage, group)
     # group = MySqlConnector.load_group(group_webpage)
 
@@ -283,6 +291,10 @@ def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, lim
 
 def add_new_group(group_webpage, cookies):
     group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
+    existing_users = MySqlConnector.check_existing_users(group_users.keys())
+    for group_user in group_users.values():
+        if group_user.user_name not in existing_users:
+            SteamGiftsScrapingUtils.update_user_additional_data(group_user)
     group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
     MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways))
 
