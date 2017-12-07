@@ -70,7 +70,7 @@ GiveawayID = hash of Giveaway link
 * Groups: GroupID -> (Users:{UserName, GroupSent, GroupWon}, Giveaways:{GiveawayID, StartTime, EndTime})
 * Users: UserName -> {SteamId, GlobalWon, GlobalSent}
 * Giveaways: GiveawayID -> {GiveawayLink, GiveawayCreator, GameName, Entries:{UserName, EntryTime, Winner}, Groups:{GroupID}}
-* Games: GameName -> {GameValue, GameScore, GameNumOfReviews}
+* Games: GameName -> {GameLink, GameValue, GameScore, GameNumOfReviews}
 
 ### Why Python was chosen
 I chose Python as the programming language to implement this tool, for the following reasons:

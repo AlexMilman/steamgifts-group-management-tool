@@ -11,20 +11,23 @@ from Data.Group import Group
 # Copyright (C) 2017  Alex Milman
 from Database import MySqlConnector
 
-LRU_CACHE_SIZE = 10
+GROUP_LRU_CACHE_SIZE = 100
+GAME_LRU_CACHE_SIZE = 1000
 
 # LRU cache used to hold data of last LRU_CACHE_SIZE groups. In order to cache the data and not retrieve it every time.
 # Going forward need to consider using an external (persistent) cache server
-groups = pylru.lrucache(LRU_CACHE_SIZE)
-game_data = dict()
+groups = pylru.lrucache(GROUP_LRU_CACHE_SIZE)
+game_data = pylru.lrucache(GAME_LRU_CACHE_SIZE)
+
 
 def missing_after_n_giveaway(group_webpage, n, steam_thread):
-    load_group(group_webpage, load_additional_user_data=True)
-    group_data = groups[group_webpage]
-    group_giveaways = group_data.group_giveaways
-    group_users = group_data.group_users
+    group = load_group(group_webpage)
+    if not group:
+        return None
+    group_giveaways = group.group_giveaways
+    group_users = group.group_users
     after_n_giveaways = SteamScrapingUtils.verify_after_n_giveaways(steam_thread, group_giveaways, group_users.keys())
-    wins = get_user_wins(group_data)
+    wins = get_user_wins(group)
     discrepancies = findDiscrepancies(n, wins, after_n_giveaways)
     return discrepancies
 
@@ -53,21 +56,21 @@ def findDiscrepancies(N, wins, after_n_giveaways):
 
 
 def get_all_after_n_giveaways_per_user(group_webpage, n, steam_thread):
-    load_group(group_webpage, load_additional_user_data=True)
-    group_giveaways = groups[group_webpage].group_giveaways
-    group_users = groups[group_webpage].group_users
-    after_n_giveaways = SteamScrapingUtils.verify_after_n_giveaways(steam_thread, group_giveaways, group_users.keys())
+    group = load_group(group_webpage)
+    if not group:
+        return None
+    after_n_giveaways = SteamScrapingUtils.verify_after_n_giveaways(steam_thread, group.group_giveaways, group.group_users.keys())
     return after_n_giveaways
 
 
 def get_all_user_giveaways(group_webpage):
+    group = load_group(group_webpage)
+    if not group:
+        return None
     giveaways_per_user=dict()
-    load_group(group_webpage)
-    group_giveaways = groups[group_webpage].group_giveaways
-    users = groups[group_webpage].group_users.keys()
-    for giveaway in group_giveaways.values():
+    for giveaway in group.group_giveaways.values():
         poster = giveaway.creator
-        if poster in users:
+        if poster in group.group_users.keys():
             if poster not in giveaways_per_user:
                 giveaways_per_user[poster] = set()
             giveaways_per_user[poster].add(giveaway.link)
@@ -76,35 +79,45 @@ def get_all_user_giveaways(group_webpage):
 
 
 def get_all_user_wins(group_webpage):
-    load_group(group_webpage)
-    wins = get_user_wins(groups[group_webpage])
+    group = load_group(group_webpage)
+    if not group:
+        return None
+    wins = get_user_wins(group)
     return wins
 
 
 def get_stemagifts_to_steam_user_translation(group_webpage):
-    load_group_users(group_webpage)
-    steam_id_to_user = SteamScrapingUtils.get_steam_id_to_user_dict(groups[group_webpage].group_users.values())
+    group = load_group(group_webpage)
+    if not group:
+        return None
+    steam_id_to_user = SteamScrapingUtils.get_steam_id_to_user_dict(group.group_users.values())
     return steam_id_to_user
 
 
 def get_all_giveaways_in_group(group_webpage):
-    load_group_giveaways(group_webpage)
-    return groups[group_webpage].group_giveaways.values()
+    group = load_group(group_webpage, load_users_data=False)
+    if not group:
+        return None
+    return group.group_giveaways.values()
 
 
 def get_all_users_in_group(group_webpage):
-    users_list = SteamGiftsScrapingUtils.get_group_users(group_webpage)
-    return users_list.keys()
+    group = load_group(group_webpage, load_giveaway_data=False)
+    if not group:
+        return None
+    return group.group_users.keys()
 
 
 def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value=0.0, min_steam_num_of_reviews=0, min_steam_score=0):
     response = ''
-    load_group(group_webpage, cookies, earliest_date=year_month + '-01')
-    users = groups[group_webpage].group_users.keys()
+    group = load_group(group_webpage, limit_by_time=True, start_time=year_month + '-01', end_time=year_month + '-31')
+    if not group:
+        return None
+    users = group.group_users.keys()
     monthly_posters = set()
     monthly_unfinished = dict()
     month = int(year_month.split('-')[1])
-    for group_giveaway in groups[group_webpage].group_giveaways.values():
+    for group_giveaway in group.group_giveaways.values():
         end_month = group_giveaway.end_time.tm_mon
         start_month = group_giveaway.start_time.tm_mon
         # If GA started in previous month, mark it as started on the 1th of the month
@@ -118,7 +131,7 @@ def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value
                 and start_month == month and end_month == month\
                 and end_day - start_day >= min_days\
                 and (min_game_value == 0 or group_giveaway.value >= min_game_value):
-            if check_steam_reviews(group_giveaway.link, cookies, min_steam_num_of_reviews, min_steam_score):
+            if check_steam_reviews(group_giveaway, cookies, min_steam_num_of_reviews, min_steam_score):
                 if group_giveaway.has_winners():
                     monthly_posters.add(group_giveaway.creator)
                 else:
@@ -137,46 +150,52 @@ def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value
     return response
 
 # TODO: Load steam game link on giveaways load
-def check_steam_reviews(giveaway_link, cookies, min_steam_num_of_reviews, min_steam_score):
+def check_steam_reviews(giveaway, cookies, min_steam_num_of_reviews, min_steam_score):
     num_of_reviews = 0
     steam_score = 0
     if min_steam_num_of_reviews != 0 or min_steam_score != 0:
-        steam_game_link = SteamGiftsScrapingUtils.get_steam_game_link(giveaway_link, cookies)
+        steam_game_link = SteamGiftsScrapingUtils.get_steam_game_link(giveaway.link, cookies)
         if steam_game_link:
             if steam_game_link in game_data:
                 num_of_reviews = game_data[steam_game_link].num_of_reviews
                 steam_score = game_data[steam_game_link].steam_score
             else:
                 num_of_reviews, steam_score = SteamScrapingUtils.get_steam_game_data(steam_game_link)
-                game_data[steam_game_link] = GameData(num_of_reviews, steam_score)
+                game_data[steam_game_link] = GameData(giveaway.game_name, steam_game_link, num_of_reviews=num_of_reviews, steam_score=steam_score)
     return (min_steam_num_of_reviews == 0 or (num_of_reviews != 0 and min_steam_num_of_reviews <= num_of_reviews)) \
            and (min_steam_score == 0 or (steam_score != 0 and min_steam_score <= steam_score))
 
 
 def get_users_with_negative_steamgifts_ratio(group_webpage):
-    load_group_users(group_webpage, load_additional_data=True)
+    group = load_group(group_webpage, load_giveaway_data=False)
+    if not group:
+        return None
     users_with_negative_sg_ratio = set()
-    for group_user in groups[group_webpage].group_users.values():
+    for group_user in group.group_users.values():
         if group_user.global_won > group_user.global_sent:
             users_with_negative_sg_ratio.add(group_user.user_name)
     return users_with_negative_sg_ratio
 
 
 def get_users_with_negative_group_ratio(group_webpage):
+    group = load_group(group_webpage, load_giveaway_data=False)
+    if not group:
+        return None
     users_with_negative_ratio=[]
-    load_group_users(group_webpage)
-    for user in groups[group_webpage].group_users.values():
+    for user in group.group_users.values():
         if user.group_won > user.group_sent:
             users_with_negative_ratio.append(user.user_name)
     return users_with_negative_ratio
 
 
 #TODO: Add giveaway entered time (from entries page)
-def get_user_entered_giveaways(group_webpage, users, cookies, addition_date):
+def get_user_entered_giveaways(group_webpage, users, addition_date):
+    group = load_group(group_webpage, load_users_data=False)
+    if not group:
+        return None
     response = ''
-    load_group_giveaways(group_webpage, cookies, addition_date)
     users_list = users.split(',')
-    for group_giveaway in groups[group_webpage].group_giveaways.values():
+    for group_giveaway in group.group_giveaways.values():
         # Go over all giveaways not closed before "addition_date"
         if not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time):
             for user in users_list:
@@ -187,10 +206,12 @@ def get_user_entered_giveaways(group_webpage, users, cookies, addition_date):
 #TODO: Add feature flog for get_entered_giveaways
 def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None, days_to_create_ga=0, min_ga_time=0,
                               min_game_value=0.0, min_steam_num_of_reviews=0, min_steam_score=0):
+    group = load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, start_time=addition_date)
+    if not group:
+        return None
     response = ''
-    load_group_giveaways(group_webpage, cookies, earliest_date=addition_date)
     users_list = users.split(',')
-    for group_giveaway in groups[group_webpage].group_giveaways.values():
+    for group_giveaway in group.group_giveaways.values():
         if (  group_giveaway.creator in users_list
             and
                 len(group_giveaway.groups) == 1
@@ -202,7 +223,7 @@ def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None,
                 or (min_ga_time > 0 and group_giveaway.end_time.tm_mday - group_giveaway.start_time.tm_mday >= min_ga_time))
             and
                 (min_game_value == 0 or group_giveaway.value >= min_game_value)):
-            if check_steam_reviews(group_giveaway.link, cookies, min_steam_num_of_reviews, min_steam_score):
+            if check_steam_reviews(group_giveaway, cookies, min_steam_num_of_reviews, min_steam_score):
                 response += 'User ' + group_giveaway.creator + ' first giveaway: ' + group_giveaway.link + '\n'
 
         # TODO: Add giveaway entered time (from entries page)
@@ -239,11 +260,11 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
 
 
 def test(group_webpage):
-    # load_group(group_webpage, load_additional_user_data=True)
-    # MySqlConnector.save_group(group_webpage, groups[group_webpage])
-    MySqlConnector.load_group(group_webpage)
+    # group = load_group(group_webpage, load_additional_user_data=True)
+    # MySqlConnector.save_group(group_webpage, group)
+    group = MySqlConnector.load_group(group_webpage)
 
-    # for group_user in groups[group_webpage].group_users.values():
+    # for group_user in group.group_users.values():
     #     print '\nUser: ' + group_user.user_name
     #     for message in user_check_rules(group_user.user_name, check_real_cv_value=True):
     #         print message
@@ -251,30 +272,18 @@ def test(group_webpage):
     #         print 'User ' + group_user.user_name + ' has negative global gifts ratio'
 
 
-def load_group(group_webpage, cookies=None, earliest_date=None, load_additional_user_data=False):
-    load_group_users(group_webpage, load_additional_data=load_additional_user_data)
-    load_group_giveaways(group_webpage, cookies=cookies, earliest_date=earliest_date)
-
-def load_group_users(group_webpage, load_additional_data=False):
-    if group_webpage not in groups or not groups[group_webpage].group_users:
-        group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
-        # Additional Data = Steam ID, SG total won, SG total sent
-        if load_additional_data:
-            for group_user in group_users.values():
-                SteamGiftsScrapingUtils.update_user_additional_data(group_user)
-        if group_webpage not in groups:
-            groups[group_webpage] = Group(group_users=group_users)
-        else:
-            groups[group_webpage].group_users = group_users
+def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time=None, end_time=None):
+    group = groups[group_webpage]
+    if not group:
+        group = MySqlConnector.load_group(group_webpage, load_users_data, load_giveaway_data, limit_by_time, start_time, end_time)
+        groups[group_webpage] = group
+    return group
 
 
-def load_group_giveaways(group_webpage, cookies=None, earliest_date=None):
-    if group_webpage not in groups:
-        group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, earliest_date)
-        groups[group_webpage] = Group(group_giveaways=group_giveaways)
-    elif not groups[group_webpage].group_giveaways:
-        group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, earliest_date)
-        groups[group_webpage].group_giveaways = group_giveaways
+def add_new_group(group_webpage, cookies=None, earliest_date=None, load_additional_user_data=False):
+    group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
+    group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, earliest_date)
+    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways))
 
 
 def parse_list(list, prefix=''):

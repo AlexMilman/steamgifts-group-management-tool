@@ -12,7 +12,6 @@ from Data.GroupUser import GroupUser
 # Copyright (C) 2017  Alex Milman
 
 
-
 def get_group_users(group_webpage, max_pages=0):
     group_users = dict()
     page_index = 1
@@ -29,6 +28,7 @@ def get_group_users(group_webpage, max_pages=0):
             user_sent = StringUtils.normalize_float(user_data_elements[0][0:user_data_elements[0].find('(')])
             user_received = StringUtils.normalize_float(user_data_elements[1][0:user_data_elements[1].find('(')])
             group_users[user] = GroupUser(user, user_received, user_sent)
+            update_user_additional_data(group_users[user])
 
         if not current_page_num:
             break
@@ -36,6 +36,19 @@ def get_group_users(group_webpage, max_pages=0):
         page_index += 1
 
     return group_users
+
+
+def update_user_additional_data(user):
+    html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user.user_name))
+    steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
+    user.steam_id = steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
+    all_rows = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="featured__table__row"]')
+    for row_content in all_rows:
+        row_title = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__left"]/text()')
+        if row_title == u'Gifts Won':
+            user.global_won = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__right"]/span/span/a/text()'))
+        elif row_title == u'Gifts Sent':
+            user.global_sent = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class=" featured__table__row__right"]/span/span/a/text()'))
 
 
 def get_group_giveaways(group_webpage, cookies=None, earliest_date=None):
@@ -126,19 +139,6 @@ def get_user_steam_id(user_name):
     html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user_name))
     steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
     return steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
-
-
-def update_user_additional_data(user):
-    html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user.user_name))
-    steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
-    user.steam_id = steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
-    all_rows = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="featured__table__row"]')
-    for row_content in all_rows:
-        row_title = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__left"]/text()')
-        if row_title == u'Gifts Won':
-            user.global_won = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__right"]/span/span/a/text()'))
-        elif row_title == u'Gifts Sent':
-            user.global_sent = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class=" featured__table__row__right"]/span/span/a/text()'))
 
 
 def get_steam_game_link(steamgifts_link, cookies):
