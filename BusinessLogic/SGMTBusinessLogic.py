@@ -273,8 +273,9 @@ def test(group_webpage):
 
 
 def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time=None, end_time=None):
-    group = groups[group_webpage]
-    if not group:
+    if group_webpage in groups:
+        group = groups[group_webpage]
+    else:
         group = MySqlConnector.load_group(group_webpage, load_users_data, load_giveaway_data, limit_by_time, start_time, end_time)
         groups[group_webpage] = group
     return group
