@@ -6,18 +6,18 @@ class GroupGiveaway(object):
     link=None
     creator=''
     value=0.0
-    start_date=None
-    end_date=None
+    start_time=None
+    end_time=None
     game_name=''
     entries=dict()
     groups=[]
 
-    def __init__(self, link, creator, value, start_date=None, end_date=None, entries=dict(), groups=[]):
+    def __init__(self, link, creator='', value=0.0, start_time=None, end_time=None, entries=dict(), groups=[]):
         self.link = link
         self.creator = creator
         self.value = value
-        self.start_date = start_date
-        self.end_date = end_date
+        self.start_time = start_time
+        self.end_time = end_time
         self.entries = entries
         self.groups = groups
 

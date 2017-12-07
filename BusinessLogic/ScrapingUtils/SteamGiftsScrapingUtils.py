@@ -58,8 +58,8 @@ def get_group_giveaways(group_webpage, cookies=None, earliest_date=None):
             creation_time=None
             end_time=None
             if len(timestamps) >= 2:
-                end_time = time.localtime(StringUtils.normalize_float(timestamps[0]))
-                creation_time = time.localtime(StringUtils.normalize_float(timestamps[1]))
+                end_time = time.gmtime(StringUtils.normalize_float(timestamps[0]))
+                creation_time = time.gmtime(StringUtils.normalize_float(timestamps[1]))
 
             giveaway_entries=dict()
             giveaway_groups=[]
@@ -102,7 +102,7 @@ def get_monthly_posters(group_webpage, month, max_pages=0):
 
         giveaway_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
         for giveaway_elem in giveaway_elements:
-            post_month = time.localtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(giveaway_elem, u'.//span/@Data-timestamp'))).tm_mon
+            post_month = time.gmtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(giveaway_elem, u'.//span/@Data-timestamp'))).tm_mon
             if post_month == month:
                 giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
                 poster = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__username"]/text()')

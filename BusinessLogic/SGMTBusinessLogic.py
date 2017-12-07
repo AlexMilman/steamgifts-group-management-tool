@@ -9,7 +9,7 @@ from Data.Group import Group
 
 # Internal business logic of different SGMT commands
 # Copyright (C) 2017  Alex Milman
-
+from Database import MySqlConnector
 
 LRU_CACHE_SIZE = 10
 
@@ -105,15 +105,15 @@ def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value
     monthly_unfinished = dict()
     month = int(year_month.split('-')[1])
     for group_giveaway in groups[group_webpage].group_giveaways.values():
-        end_month = group_giveaway.end_date.tm_mon
-        start_month = group_giveaway.start_date.tm_mon
+        end_month = group_giveaway.end_time.tm_mon
+        start_month = group_giveaway.start_time.tm_mon
         # If GA started in previous month, mark it as started on the 1th of the month
         if start_month == month - 1 and end_month == month:
             start_day = 1
             start_month = month
         else:
-            start_day = group_giveaway.start_date.tm_mday
-        end_day = group_giveaway.end_date.tm_mday
+            start_day = group_giveaway.start_time.tm_mday
+        end_day = group_giveaway.end_time.tm_mday
         if group_giveaway.creator in users and len(group_giveaway.groups) == 1\
                 and start_month == month and end_month == month\
                 and end_day - start_day >= min_days\
@@ -178,7 +178,7 @@ def get_user_entered_giveaways(group_webpage, users, cookies, addition_date):
     users_list = users.split(',')
     for group_giveaway in groups[group_webpage].group_giveaways.values():
         # Go over all giveaways not closed before "addition_date"
-        if not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_date):
+        if not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time):
             for user in users_list:
                 if user in group_giveaway.entries:
                     response += 'User ' + user + ' entered giveaway: ' + group_giveaway.link + '\n'
@@ -196,17 +196,17 @@ def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None,
                 len(group_giveaway.groups) == 1
             and
                 ((not addition_date or days_to_create_ga == 0)
-                or (addition_date and days_to_create_ga > 0 and group_giveaway.start_date.tm_mday <= int(addition_date.split('-')[2]) + days_to_create_ga))
+                or (addition_date and days_to_create_ga > 0 and group_giveaway.start_time.tm_mday <= int(addition_date.split('-')[2]) + days_to_create_ga))
             and
                 (min_ga_time == 0
-                or (min_ga_time > 0 and group_giveaway.end_date.tm_mday - group_giveaway.start_date.tm_mday >= min_ga_time))
+                or (min_ga_time > 0 and group_giveaway.end_time.tm_mday - group_giveaway.start_time.tm_mday >= min_ga_time))
             and
                 (min_game_value == 0 or group_giveaway.value >= min_game_value)):
             if check_steam_reviews(group_giveaway.link, cookies, min_steam_num_of_reviews, min_steam_score):
                 response += 'User ' + group_giveaway.creator + ' first giveaway: ' + group_giveaway.link + '\n'
 
         # TODO: Add giveaway entered time (from entries page)
-        if not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_date):
+        if not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time):
             for user in users_list:
                 if user in group_giveaway.entries:
                     response += 'User ' + user + ' entered giveaway: ' + group_giveaway.link + '\n'
@@ -239,24 +239,24 @@ def user_check_rules(user, check_nonactivated=False, check_multiple_wins=False, 
 
 
 def test(group_webpage):
-    load_group_users(group_webpage, True)
-    for group_user in groups[group_webpage].group_users.values():
-        print '\nUser: ' + group_user.user_name
-        for message in user_check_rules(group_user.user_name, check_real_cv_value=True):
-            print message
-        if group_user.global_won > group_user.global_sent:
-            print 'User ' + group_user.user_name + ' has negative global gifts ratio'
+    # load_group(group_webpage, load_additional_user_data=True)
+    # MySqlConnector.save_group(group_webpage, groups[group_webpage])
+    MySqlConnector.load_group(group_webpage)
+
+    # for group_user in groups[group_webpage].group_users.values():
+    #     print '\nUser: ' + group_user.user_name
+    #     for message in user_check_rules(group_user.user_name, check_real_cv_value=True):
+    #         print message
+    #     if group_user.global_won > group_user.global_sent:
+    #         print 'User ' + group_user.user_name + ' has negative global gifts ratio'
 
 
 def load_group(group_webpage, cookies=None, earliest_date=None, load_additional_user_data=False):
-    if group_webpage not in groups:
-        group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage, load_additional_user_data)
-        group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, earliest_date)
-        groups[group_webpage] = Group(group_users, group_giveaways)
-
+    load_group_users(group_webpage, load_additional_data=load_additional_user_data)
+    load_group_giveaways(group_webpage, cookies=cookies, earliest_date=earliest_date)
 
 def load_group_users(group_webpage, load_additional_data=False):
-    if group_webpage not in groups or groups[group_webpage].group_users is None:
+    if group_webpage not in groups or not groups[group_webpage].group_users:
         group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
         # Additional Data = Steam ID, SG total won, SG total sent
         if load_additional_data:
@@ -272,7 +272,7 @@ def load_group_giveaways(group_webpage, cookies=None, earliest_date=None):
     if group_webpage not in groups:
         group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, earliest_date)
         groups[group_webpage] = Group(group_giveaways=group_giveaways)
-    elif groups[group_webpage].group_giveaways is None:
+    elif not groups[group_webpage].group_giveaways:
         group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, earliest_date)
         groups[group_webpage].group_giveaways = group_giveaways
 
