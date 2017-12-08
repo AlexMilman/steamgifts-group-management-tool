@@ -163,7 +163,7 @@ def check_steam_reviews(giveaway, cookies, min_steam_num_of_reviews, min_steam_s
                 steam_score = game_data[steam_game_link].steam_score
             else:
                 num_of_reviews, steam_score = SteamScrapingUtils.get_steam_game_data(steam_game_link)
-                game_data[steam_game_link] = GameData(giveaway.game_name, steam_game_link, num_of_reviews=num_of_reviews, steam_score=steam_score)
+                game_data[steam_game_link] = GameData(giveaway.game_name, steam_game_link, giveaway.value, num_of_reviews=num_of_reviews, steam_score=steam_score)
     return (min_steam_num_of_reviews == 0 or (num_of_reviews != 0 and min_steam_num_of_reviews <= num_of_reviews)) \
            and (min_steam_score == 0 or (steam_score != 0 and min_steam_score <= steam_score))
 
@@ -205,7 +205,7 @@ def get_user_entered_giveaways(group_webpage, users, addition_date):
                     response += 'User ' + user + ' entered giveaway: ' + group_giveaway.link + '\n'
     return response
 
-#TODO: Add feature flog for get_entered_giveaways
+#TODO: Add feature flag for get_entered_giveaways
 def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None, days_to_create_ga=0, min_ga_time=0,
                               min_game_value=0.0, min_steam_num_of_reviews=0, min_steam_score=0):
     group = load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, start_time=addition_date)
@@ -296,7 +296,7 @@ def add_new_group(group_webpage, cookies):
         if group_user.user_name not in existing_users:
             SteamGiftsScrapingUtils.update_user_additional_data(group_user)
     group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
-    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways))
+    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways), existing_users)
 
 
 def parse_list(list, prefix=''):

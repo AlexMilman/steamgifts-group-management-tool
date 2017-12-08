@@ -22,7 +22,7 @@ password = config.get('MySql', 'Password')
 db_schema = config.get('MySql', 'DBSchema')
 
 
-def save_group(group_website, group):
+def save_group(group_website, group, existing_users):
     start_time = time.time()
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
     cursor = connection.cursor()
@@ -44,7 +44,8 @@ def save_group(group_website, group):
     users_data = []
     group_users_data = []
     for group_user in group.group_users.values():
-        users_data.append((group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent))
+        if group_user.user_name not in existing_users:
+            users_data.append((group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent))
         group_users_data.append((group_user.user_name, group_user.group_won, group_user.group_sent))
 
     cursor.executemany("INSERT IGNORE INTO Users (UserName,SteamId,GlobalWon,GlobalSent) VALUES (%s, %s, %s, %s)", users_data)
@@ -57,7 +58,7 @@ def save_group(group_website, group):
 
     cursor.close()
     connection.close()
-    print "--- %s seconds ---" % (time.time() - start_time)
+    print 'Save Group ' + group_website + ' took ' + str(time.time() - start_time) +  ' seconds'
 
 
 #TODO Implement optional params
@@ -114,7 +115,7 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
 
     cursor.close()
     connection.close()
-    print "--- %s seconds ---" % (time.time() - start_time)
+    print 'Load Group ' + group_website + ' took ' + str(time.time() - start_time) +  ' seconds'
     return Group(group_users, group_giveaways)
 
 
