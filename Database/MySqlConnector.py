@@ -8,6 +8,7 @@ import ConfigParser
 import time
 
 from BusinessLogic.Utils import StringUtils
+from Data.GameData import GameData
 from Data.GiveawayEntry import GiveawayEntry
 from Data.Group import Group
 from Data.GroupGiveaway import GroupGiveaway
@@ -56,9 +57,9 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
         group_users_data.append((group_user.user_name, group_user.group_won, group_user.group_sent))
 
         if group_user.user_name not in users_to_ignore:
-            users_data.append((group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent))
+            users_data.append((group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level))
 
-    cursor.executemany("INSERT IGNORE INTO Users (UserName,SteamId,GlobalWon,GlobalSent) VALUES (%s, %s, %s, %s)", users_data)
+    cursor.executemany("INSERT IGNORE INTO Users (UserName,SteamId,GlobalWon,GlobalSent,Level) VALUES (%s, %s, %s, %s, %s)", users_data)
 
     # Merge with existing group data (in case of update/merge)
     if existing_group_data and existing_group_data.group_users:
@@ -104,11 +105,12 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
         cursor.execute('SELECT * FROM Users WHERE UserName in (' + parse_list(group_users.keys()) + ')')
         data = cursor.fetchall()
         for row in data:
-            # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent)
+            # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level)
             user_name = row[0]
             group_users[user_name].steam_id=row[1]
-            group_users[user_name].global_won=row[2]
-            group_users[user_name].global_sent=row[3]
+            group_users[user_name].global_won=int(row[2])
+            group_users[user_name].global_sent=int(row[3])
+            group_users[user_name].level=int(row[4])
 
     # Load Giveaways Data
     group_giveaways = dict()
@@ -128,7 +130,7 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
             group_giveaways[giveaway_link] = giveaways_by_id[giveaway_id]
             group_giveaways[giveaway_link].link = giveaway_link
             group_giveaways[giveaway_link].creator = row[2]
-            group_giveaways[giveaway_link].value = row[3]
+            group_giveaways[giveaway_link].value = float(row[3])
             group_giveaways[giveaway_link].game_name = row[4]
             group_giveaways[giveaway_link].entries = dict()
             for ent_row in json.loads(row[5]):
@@ -158,6 +160,21 @@ def check_existing_users(users_list):
     return existing_users
 
 
+def check_existing_games(games_list):
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    existing_games = []
+    cursor.execute("SELECT Name FROM Games WHERE Name IN (" + parse_list(games_list) + ")")
+    data = cursor.fetchall()
+    for row in data:
+        existing_games.append(row[0])
+
+    cursor.close()
+    connection.close()
+    return existing_games
+
+
 def get_user_data(user_name):
     group_user = None
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
@@ -166,8 +183,8 @@ def get_user_data(user_name):
     cursor.execute('SELECT * FROM Users WHERE UserName = "' + user_name + '"')
     data = cursor.fetchone()
     if data:
-        # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent)
-        group_user = GroupUser(user_name, steam_id=data[1], global_won=data[2], global_sent=data[3])
+        # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level)
+        group_user = GroupUser(user_name, steam_id=data[1], global_won=data[2], global_sent=data[3], level=data[4])
 
     cursor.close()
     connection.close()
@@ -181,8 +198,44 @@ def save_user(group_user):
     cursor.execute('INSERT INTO Users (UserName,SteamId,GlobalWon,GlobalSent) '
                    'VALUES ("' + group_user.user_name + '","' + group_user.steam_id + '",' + str(group_user.global_won) + ',' + str(group_user.global_sent) + ')')
 
+    connection.commit()  # you need to call commit() method to save your changes to the database
+
     cursor.close()
     connection.close()
+
+
+def save_games(games, existing_games):
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    games_data = []
+    for game in games.values():
+        if game.game_name not in existing_games:
+            games_data.append((game.game_name, game.game_link, game.value, game.steam_score, game.num_of_reviews))
+
+    cursor.executemany("INSERT INTO Games (Name,LinkURL,Value,Score,NumOfReviews) VALUES (%s, %s, %s, %s, %s)", games_data)
+
+    connection.commit()  # you need to call commit() method to save your changes to the database
+
+    cursor.close()
+    connection.close()
+
+
+def get_game_data(game_name):
+    game_data = None
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    cursor.execute('SELECT * FROM Games WHERE Name = "' + game_name + '"')
+    data = cursor.fetchone()
+    if data:
+        # (game.game_name, game.game_link, game.value, game.steam_score, game.num_of_reviews)
+        game_data = GameData(game_name, data[1], data[2], steam_score=data[3], num_of_reviews=data[4])
+
+    cursor.close()
+    connection.close()
+    return game_data
+
 
 
 def parse_list(list, prefix=''):
@@ -203,3 +256,5 @@ def from_epoch(time_in_epoch):
     if time_in_epoch:
         return time.gmtime(time_in_epoch)
     return None
+
+

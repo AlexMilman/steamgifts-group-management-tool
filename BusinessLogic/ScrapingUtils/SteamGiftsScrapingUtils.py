@@ -4,6 +4,7 @@ import requests
 
 from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SteamConsts
 from BusinessLogic.Utils import StringUtils, WebUtils
+from Data.GameData import GameData
 from Data.GiveawayEntry import GiveawayEntry
 from Data.GroupGiveaway import GroupGiveaway
 from Data.GroupUser import GroupUser
@@ -55,6 +56,7 @@ def update_user_additional_data(user):
 
 def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict()):
     group_giveaways=dict()
+    games=dict()
     reached_end=False
     giveaways_changed = True
     page_index = 1
@@ -68,7 +70,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict()):
         giveaway_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
         for giveaway_elem in giveaway_elements:
             partial_giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
-            game_value = float(WebUtils.get_items_by_xpath(giveaway_elem, u'.//span[@class="giveaway__heading__thin"]/text()')[-1][1:-2])
+            game_name = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/Text()')
             winners = WebUtils.get_items_by_xpath(giveaway_elem, u'.//div[@class="giveaway__column--positive"]/a/text()')
             poster = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__username"]/text()')
             timestamps = WebUtils.get_items_by_xpath(giveaway_elem, u'.//span/@data-timestamp')
@@ -92,7 +94,11 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict()):
             giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
 
             giveaway_link = SteamGiftsConsts.get_giveaway_link(partial_giveaway_link)
-            group_giveaway = GroupGiveaway(giveaway_link, poster, game_value, creation_time, end_time, giveaway_entries, giveaway_groups)
+            group_giveaway = GroupGiveaway(giveaway_link, game_name, poster, creation_time, end_time, giveaway_entries, giveaway_groups)
+
+            steam_game_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__icon"]/@href')
+            game_value = float(WebUtils.get_items_by_xpath(giveaway_elem, u'.//span[@class="giveaway__heading__thin"]/text()')[-1][1:-2])
+            games[game_name] = GameData(game_name, steam_game_link, game_value)
 
             if giveaway_link not in existing_giveaways.keys() or not group_giveaway.equals(existing_giveaways[giveaway_link]):
                 giveaways_changed = True
@@ -107,7 +113,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict()):
 
         page_index += 1
 
-    return group_giveaways
+    return group_giveaways, games
 
 
 def get_monthly_posters(group_webpage, month, max_pages=0):

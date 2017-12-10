@@ -1,10 +1,10 @@
 import time
 
 import pylru
+import sys
 
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
     SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts
-from BusinessLogic.Utils import StringUtils
 from Data.GameData import GameData
 from Data.Group import Group
 
@@ -18,8 +18,8 @@ GAME_LRU_CACHE_SIZE = 1000
 
 # LRU cache used to hold data of last LRU_CACHE_SIZE groups. In order to cache the data and not retrieve it every time.
 # Going forward need to consider using an external (persistent) cache server
-groups = pylru.lrucache(GROUP_LRU_CACHE_SIZE)
-game_data = pylru.lrucache(GAME_LRU_CACHE_SIZE)
+groups_cache = pylru.lrucache(GROUP_LRU_CACHE_SIZE)
+games_cache = pylru.lrucache(GAME_LRU_CACHE_SIZE)
 
 
 def missing_after_n_giveaway(group_webpage, n, steam_thread):
@@ -133,7 +133,7 @@ def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value
                 and start_month == month and end_month == month\
                 and end_day - start_day >= min_days\
                 and (min_game_value == 0 or group_giveaway.value >= min_game_value):
-            if check_steam_reviews(group_giveaway, cookies, min_steam_num_of_reviews, min_steam_score):
+            if check_steam_reviews(group_giveaway, min_steam_num_of_reviews, min_steam_score):
                 if group_giveaway.has_winners():
                     monthly_posters.add(group_giveaway.creator)
                 else:
@@ -151,22 +151,19 @@ def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value
             response += SteamGiftsConsts.get_user_link(user) + '\n'
     return response
 
-# TODO: Load steam game link on giveaways load
-def check_steam_reviews(giveaway, cookies, min_steam_num_of_reviews, min_steam_score):
-    num_of_reviews = 0
-    steam_score = 0
+
+def check_steam_reviews(giveaway, min_steam_num_of_reviews, min_steam_score):
+    game_data = None
     if min_steam_num_of_reviews != 0 or min_steam_score != 0:
-        steam_game_link = SteamGiftsScrapingUtils.get_steam_game_link(giveaway.link, cookies)
-        if steam_game_link:
-            if steam_game_link in game_data:
-                num_of_reviews = game_data[steam_game_link].num_of_reviews
-                steam_score = game_data[steam_game_link].steam_score
-            else:
-                num_of_reviews, steam_score = SteamScrapingUtils.get_steam_game_data(steam_game_link)
-                # TODO: Add fallback from SteamDB
-                game_data[steam_game_link] = GameData(giveaway.game_name, steam_game_link, giveaway.value, num_of_reviews=num_of_reviews, steam_score=steam_score)
-    return (min_steam_num_of_reviews == 0 or (num_of_reviews != 0 and min_steam_num_of_reviews <= num_of_reviews)) \
-           and (min_steam_score == 0 or (steam_score != 0 and min_steam_score <= steam_score))
+        game_name = giveaway.game_name
+        if game_name in games_cache:
+            game_data = games_cache[game_name]
+        if not game_data:
+            game_data = MySqlConnector.get_game_data(game_name)
+            games_cache[game_name] = game_data
+    return game_data and \
+           (min_steam_num_of_reviews == 0 or (game_data.num_of_reviews != 0 and min_steam_num_of_reviews <= game_data.num_of_reviews)) \
+           and (min_steam_score == 0 or (game_data.steam_score != 0 and min_steam_score <= game_data.steam_score))
 
 
 def get_users_with_negative_steamgifts_ratio(group_webpage):
@@ -207,7 +204,7 @@ def get_user_entered_giveaways(group_webpage, users, addition_date):
     return response
 
 #TODO: Add feature flag for get_entered_giveaways
-def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None, days_to_create_ga=0, min_ga_time=0,
+def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_create_ga=0, min_ga_time=0,
                               min_game_value=0.0, min_steam_num_of_reviews=0, min_steam_score=0):
     group = load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, start_time=addition_date)
     if not group:
@@ -226,7 +223,7 @@ def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None,
                 or (min_ga_time > 0 and group_giveaway.end_time.tm_mday - group_giveaway.start_time.tm_mday >= min_ga_time))
             and
                 (min_game_value == 0 or group_giveaway.value >= min_game_value)):
-            if check_steam_reviews(group_giveaway, cookies, min_steam_num_of_reviews, min_steam_score):
+            if check_steam_reviews(group_giveaway, min_steam_num_of_reviews, min_steam_score):
                 response += 'User ' + group_giveaway.creator + ' first giveaway: ' + group_giveaway.link + '\n'
 
         # TODO: Add giveaway entered time (from entries page)
@@ -238,34 +235,48 @@ def check_user_first_giveaway(group_webpage, users, cookies, addition_date=None,
     return response
 
 
-def user_check_rules(user_name, check_nonactivated=False, check_multiple_wins=False, check_real_cv_value=False, check_level=False, min_level=0, check_steamrep=False):
-    broken_rules = []
+def user_check_rules(user_name, check_nonactivated=False, check_multiple_wins=False, check_real_cv_ratio=False, check_steamgifts_ratio=False, check_level=False, min_level=0, check_steamrep=False):
+    broken_rules = dict()
+    group_user=None
     if check_nonactivated and SGToolsScrapingUtils.check_nonactivated(user_name):
-        broken_rules.append('Has non-activated games: ' + SGToolsConsts.SGTOOLS_CHECK_NONACTIVATED_LINK + user_name)
+        append_map_list(broken_rules, user_name, 'Has non-activated games: ' + SGToolsConsts.SGTOOLS_CHECK_NONACTIVATED_LINK + user_name)
 
     if check_multiple_wins and SGToolsScrapingUtils.check_multiple_wins(user_name):
-        broken_rules.append('Has multiple wins: ' + SGToolsConsts.SGTOOLS_CHECK_MULTIPLE_WINS_LINK + user_name)
+        append_map_list(broken_rules, user_name, 'Has multiple wins: ' + SGToolsConsts.SGTOOLS_CHECK_MULTIPLE_WINS_LINK + user_name)
 
-    if check_real_cv_value and SGToolsScrapingUtils.check_real_cv_value(user_name):
-        broken_rules.append(
-            'Won more than Sent. Won: ' + SGToolsConsts.SGTOOLS_CHECK_WON_LINK + user_name + ', '
-                               'Sent: ' + SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user_name)
+    if check_real_cv_ratio and SGToolsScrapingUtils.check_real_cv_RATIO(user_name):
+        append_map_list(broken_rules, user_name, 'Won more than Sent (Real CV value).\n'
+                                                + 'Real CV Won: ' + SGToolsConsts.SGTOOLS_CHECK_WON_LINK + user_name + '\n'
+                                                + 'Real CV Sent: ' + SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user_name)
+
+    if check_steamgifts_ratio:
+        group_user = load_user(group_user, user_name)
+        if group_user.global_won > group_user.global_sent:
+            append_map_list(broken_rules, user_name, 'Won more than Sent.\n'
+                            + 'Won: ' + str(group_user.global_won) + '\n'
+                            + 'Sent: ' + str(group_user.global_sent))
 
     if check_level and min_level > 0:
-        group_user = MySqlConnector.get_user_data(user_name)
-        if not group_user:
-            group_user = GroupUser(user_name)
-            SteamGiftsScrapingUtils.update_user_additional_data(group_user)
-            MySqlConnector.save_user(group_user)
+        group_user = load_user(group_user, user_name)
         if group_user.level < float(min_level):
-            broken_rules.append('User level is less than ' + str(min_level) + ': ' + SteamGiftsConsts.get_user_link(user_name))
+            append_map_list(broken_rules, user_name, 'User level is less than ' + str(min_level))
 
     if check_steamrep:
         user_steam_id = SteamGiftsScrapingUtils.get_user_steam_id(user_name)
         if user_steam_id and not SteamRepScrapingUtils.check_user_not_public_or_banned(user_steam_id):
-            broken_rules.append('User ' + SteamGiftsConsts.get_user_link(user_name)
-                                + ' is not public or banned: ' + SteamRepConsts.get_steamrep_link(user_steam_id))
+            append_map_list(broken_rules, user_name, 'User is not public or banned: ' + SteamRepConsts.get_steamrep_link(user_steam_id))
+
     return broken_rules
+
+
+def load_user(group_user, user_name):
+    if not group_user:
+        group_user = MySqlConnector.get_user_data(user_name)
+    if not group_user:
+        group_user = GroupUser(user_name)
+        SteamGiftsScrapingUtils.update_user_additional_data(group_user)
+        MySqlConnector.save_user(group_user)
+    return group_user
 
 
 def test(group_webpage):
@@ -282,11 +293,11 @@ def test(group_webpage):
 
 
 def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time=None, end_time=None):
-    if group_webpage in groups:
-        group = groups[group_webpage]
+    if group_webpage in groups_cache:
+        group = groups_cache[group_webpage]
     else:
         group = MySqlConnector.load_group(group_webpage, load_users_data, load_giveaway_data, limit_by_time, start_time, end_time)
-        groups[group_webpage] = group
+        groups_cache[group_webpage] = group
     return group
 
 
@@ -296,8 +307,20 @@ def add_new_group(group_webpage, cookies):
     for group_user in group_users.values():
         if group_user.user_name not in existing_users:
             SteamGiftsScrapingUtils.update_user_additional_data(group_user)
-    group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
+
+    group_giveaways,games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
+
     MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways), existing_users)
+
+    existing_games = MySqlConnector.check_existing_games(games.keys())
+    for game in games.values():
+        if game.game_name not in existing_games:
+            # TODO: Add fallback from SteamDB
+            try:
+                SteamScrapingUtils.update_game_additional_data(game)
+            except:
+                print "Unexpected error:", sys.exc_info()[0]
+    MySqlConnector.save_games(games, existing_games)
 
 
 def update_group_data(group_webpage, cookies):
@@ -309,10 +332,18 @@ def update_group_data(group_webpage, cookies):
     for group_user in group_users.values():
         if group_user.user_name not in existing_users:
             SteamGiftsScrapingUtils.update_user_additional_data(group_user)
-    group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways)
+
+    group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways)
     MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways), existing_users, group)
 
+    existing_games = MySqlConnector.check_existing_games(games.keys())
+    for game in games.values():
+        if game.game_name not in existing_games:
+            SteamScrapingUtils.update_game_additional_data(game)
+    MySqlConnector.save_games(games, existing_games)
 
+
+#TODO: Implement with scheduler
 def update_all_groups(cookies):
     #Load list of all groups from DB
     #For each group, run: update_group_data
@@ -335,3 +366,9 @@ def parse_list(list, prefix=''):
         result += prefix + item + ', '
 
     return result[:-2]
+
+
+def append_map_list(map_list, user, message):
+    if user not in map_list:
+        map_list[user] = []
+    map_list[user].append(message)

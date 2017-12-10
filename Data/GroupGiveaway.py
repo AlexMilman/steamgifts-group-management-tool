@@ -4,18 +4,19 @@
 
 class GroupGiveaway(object):
     link=None
+    game_name=''
     creator=''
     value=0.0
     start_time=None
     end_time=None
-    game_name=''
     entries=dict()
     groups=[]
 
-    def __init__(self, link, creator='', value=0.0, start_time=None, end_time=None, entries=dict(), groups=[]):
+    def __init__(self, link, game_name, creator='', value=0.0, start_time=None, end_time=None, entries=dict(), groups=[]):
         self.link = link
+        self.game_name = game_name
         self.creator = creator
-        self.value = value
+        self.value = float(value)
         self.start_time = start_time
         self.end_time = end_time
         self.entries = entries
@@ -36,6 +37,7 @@ class GroupGiveaway(object):
 
     def equals(self, giveaway):
         return self.link == giveaway.link\
+        and self.game_name == giveaway.game_name\
         and self.creator == giveaway.creator\
         and self.value == giveaway.value\
         and self.start_time == giveaway.start_time\

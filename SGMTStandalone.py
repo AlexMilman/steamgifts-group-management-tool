@@ -152,7 +152,7 @@ def main(argv):
         response = SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_level, level, check_steamrep)
         print response
     elif feature == 'UserCheckFirstGiveaway':
-        response = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user, cookies, addition_date, days, min_time, min_game_value, min_steam_num_of_reviews, min_steam_score)
+        response = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user, addition_date, days, min_time, min_game_value, min_steam_num_of_reviews, min_steam_score)
         print response
     #TODO: Add CheckAllGiveawaysAccordingToRules
     elif feature == 'Test':

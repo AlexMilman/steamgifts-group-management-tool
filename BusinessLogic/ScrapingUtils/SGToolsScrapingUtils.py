@@ -5,7 +5,7 @@ from BusinessLogic.Utils import StringUtils, WebUtils
 # Copyright (C) 2017  Alex Milman
 
 
-def check_real_cv_value(user):
+def check_real_cv_RATIO(user):
     sent_html_content = WebUtils.get_html_page(SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user)
     sent_value = WebUtils.get_item_by_xpath(sent_html_content, u'.//div[@class="total"]/h1/text()').replace('$', '')
     won_html_content = WebUtils.get_html_page(SGToolsConsts.SGTOOLS_CHECK_WON_LINK + user)
