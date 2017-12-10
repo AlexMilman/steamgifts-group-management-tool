@@ -163,6 +163,7 @@ def check_steam_reviews(giveaway, cookies, min_steam_num_of_reviews, min_steam_s
                 steam_score = game_data[steam_game_link].steam_score
             else:
                 num_of_reviews, steam_score = SteamScrapingUtils.get_steam_game_data(steam_game_link)
+                # TODO: Add fallback from SteamDB
                 game_data[steam_game_link] = GameData(giveaway.game_name, steam_game_link, giveaway.value, num_of_reviews=num_of_reviews, steam_score=steam_score)
     return (min_steam_num_of_reviews == 0 or (num_of_reviews != 0 and min_steam_num_of_reviews <= num_of_reviews)) \
            and (min_steam_score == 0 or (steam_score != 0 and min_steam_score <= steam_score))
@@ -297,6 +298,35 @@ def add_new_group(group_webpage, cookies):
             SteamGiftsScrapingUtils.update_user_additional_data(group_user)
     group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
     MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways), existing_users)
+
+
+def update_group_data(group_webpage, cookies):
+    group = load_group(group_webpage)
+    if not group:
+        return None
+    group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
+    existing_users = MySqlConnector.check_existing_users(group_users.keys())
+    for group_user in group_users.values():
+        if group_user.user_name not in existing_users:
+            SteamGiftsScrapingUtils.update_user_additional_data(group_user)
+    group_giveaways = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways)
+    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways), existing_users, group)
+
+
+def update_all_groups(cookies):
+    #Load list of all groups from DB
+    #For each group, run: update_group_data
+    pass
+
+
+def update_users_data():
+    #Go over all DB users, and update their data
+    pass
+
+
+def update_games_data():
+    #Go over all DB games, and update their data
+    pass
 
 
 def parse_list(list, prefix=''):

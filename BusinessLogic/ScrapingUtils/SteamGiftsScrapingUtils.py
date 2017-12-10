@@ -53,18 +53,13 @@ def update_user_additional_data(user):
             user.level = StringUtils.normalize_float(user_level_item.split('name" : "')[2].split('", "color')[0])
 
 
-def check_level(user, level):
-    user_html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user))
-    user_level_item = WebUtils.get_item_by_xpath(user_html_content, u'.//div[@class="featured__table__row__right"]/span/@data-ui-tooltip')
-    user_level = user_level_item.split('name" : "')[2].split('", "color')[0]
-    return  StringUtils.normalize_float(user_level) < float(level)
-
-
-def get_group_giveaways(group_webpage, cookies):
+def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict()):
     group_giveaways=dict()
     reached_end=False
+    giveaways_changed = True
     page_index = 1
-    while not reached_end:
+    while not reached_end and giveaways_changed:
+        giveaways_changed = False
         html_content = WebUtils.get_html_page(group_webpage + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
@@ -72,7 +67,7 @@ def get_group_giveaways(group_webpage, cookies):
 
         giveaway_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
         for giveaway_elem in giveaway_elements:
-            giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
+            partial_giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
             game_value = float(WebUtils.get_items_by_xpath(giveaway_elem, u'.//span[@class="giveaway__heading__thin"]/text()')[-1][1:-2])
             winners = WebUtils.get_items_by_xpath(giveaway_elem, u'.//div[@class="giveaway__column--positive"]/a/text()')
             poster = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__username"]/text()')
@@ -84,7 +79,7 @@ def get_group_giveaways(group_webpage, cookies):
                 creation_time = time.gmtime(StringUtils.normalize_float(timestamps[1]))
 
             giveaway_entries=dict()
-            giveaway_entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(giveaway_link), cookies=cookies)
+            giveaway_entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(partial_giveaway_link), cookies=cookies)
             giveaway_users = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//a[@class="table__column__heading"]/text()')
             #TODO: Add entry time
             for user_name in giveaway_users:
@@ -93,10 +88,15 @@ def get_group_giveaways(group_webpage, cookies):
                     winner = True
                 giveaway_entries[user_name] = GiveawayEntry(user_name, winner=winner)
 
-            giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(giveaway_link), cookies=cookies)
+            giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(partial_giveaway_link), cookies=cookies)
             giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
 
-            group_giveaways[SteamGiftsConsts.get_giveaway_link(giveaway_link)] = GroupGiveaway(SteamGiftsConsts.get_giveaway_link(giveaway_link), poster, game_value, creation_time, end_time, giveaway_entries, giveaway_groups)
+            giveaway_link = SteamGiftsConsts.get_giveaway_link(partial_giveaway_link)
+            group_giveaway = GroupGiveaway(giveaway_link, poster, game_value, creation_time, end_time, giveaway_entries, giveaway_groups)
+
+            if giveaway_link not in existing_giveaways.keys() or not group_giveaway.equals(existing_giveaways[giveaway_link]):
+                giveaways_changed = True
+                group_giveaways[giveaway_link] = group_giveaway
 
             # if earliest_date and time.strftime('%Y-%m-%d', end_time) < earliest_date:
             #     reached_end = True

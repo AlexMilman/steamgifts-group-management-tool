@@ -1,4 +1,6 @@
 #!flask/bin/python
+import json
+
 from flask import Flask
 from flask import request
 
@@ -71,13 +73,22 @@ def user_entered_giveaway():
 
     response = SGMTBusinessLogic.get_user_entered_giveaways(group_webpage, user, cookies, addition_date)
     return response.replace('\n','<BR>')
-
+#TODO: Add UserCheckRules
 
 @app.route('/SGMT-Admin/AddNewGroup', methods=['GET'])
 def add_new_group():
     group_webpage = request.args.get('group_webpage')
     cookies = request.args.get('cookies')
     SGMTBusinessLogic.add_new_group(group_webpage, cookies)
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+
+
+@app.route('/SGMT-Admin/UpdateGroupData', methods=['GET'])
+def update_group_data():
+    group_webpage = request.args.get('group_webpage')
+    cookies = request.args.get('cookies')
+    SGMTBusinessLogic.update_group_data(group_webpage, cookies)
+    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 
 @app.route('/SGMT/warranty', methods=['GET'])

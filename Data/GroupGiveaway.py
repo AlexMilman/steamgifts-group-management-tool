@@ -33,3 +33,23 @@ class GroupGiveaway(object):
             if entry.winner:
                 winners.append(entry)
         return winners
+
+    def equals(self, giveaway):
+        return self.link == giveaway.link\
+        and self.creator == giveaway.creator\
+        and self.value == giveaway.value\
+        and self.start_time == giveaway.start_time\
+        and self.end_time == giveaway.end_time\
+        and self.entries_equals(giveaway.entries)\
+        and set(self.groups) == set(giveaway.groups)
+
+    def entries_equals(self, entries):
+        if len(entries) != len(self.entries):
+            return False
+        for foreign_entry in entries.values():
+            if foreign_entry.user_name not in self.entries.keys():
+                return False
+            local_entry = self.entries[foreign_entry.user_name]
+            if local_entry.entry_time != foreign_entry.entry_time or local_entry.winner != foreign_entry.winner:
+                return False
+        return True
