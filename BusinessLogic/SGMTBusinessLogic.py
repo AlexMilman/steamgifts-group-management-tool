@@ -226,7 +226,7 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
     for group_giveaway in group.group_giveaways.values():
         if check_entered_giveaways and (not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time)):
             for user in users_list:
-                if user in group_giveaway.entries and group_giveaway.entries[user].entry_time.tm_mday > int(addition_date.split('-')[2]) and group_giveaway.entries[user].entry_time < user_to_end_time[user]:
+                if user in group_giveaway.entries and group_giveaway.entries[user].entry_time.tm_mday >= int(addition_date.split('-')[2]) and group_giveaway.entries[user].entry_time < user_to_end_time[user]:
                     response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> ' \
                                 'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A>\n'
 
