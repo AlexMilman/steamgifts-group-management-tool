@@ -113,7 +113,7 @@ def main(argv):
         response = SGMTBusinessLogic.missing_after_n_giveaway(group_webpage, n, steam_thread)
         print 'discrepancies per user: ' + str(response)
     elif feature == 'CheckMonthly':
-        response = SGMTBusinessLogic.check_monthly(group_webpage, year_month, cookies, days, min_game_value, min_steam_num_of_reviews, min_steam_score)
+        response = SGMTBusinessLogic.check_monthly(group_webpage, year_month, days, min_game_value, min_steam_num_of_reviews, min_steam_score)
         print response
     elif feature == 'GetAllUsersInGroup':
         users = SGMTBusinessLogic.get_all_users_in_group(group_webpage)

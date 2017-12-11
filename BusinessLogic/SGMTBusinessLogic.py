@@ -110,7 +110,8 @@ def get_all_users_in_group(group_webpage):
     return group.group_users.keys()
 
 
-def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value=0.0, min_steam_num_of_reviews=0, min_steam_score=0):
+def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_of_reviews=0, min_score=0,
+                  alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0):
     response = ''
     group = load_group(group_webpage, limit_by_time=True, start_time=year_month + '-01', end_time=year_month + '-31')
     if not group:
@@ -132,14 +133,10 @@ def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value
         if group_giveaway.creator in users and len(group_giveaway.groups) == 1\
                 and start_month == month and end_month == month\
                 and end_day - start_day >= min_days:
-            game_data = load_game(group_giveaway.game_name)
-            if not game_data:
-                print 'Could not load game data: ' + group_giveaway.game_name
-            if not game_data \
-                or (game_data
-                and (min_game_value == 0 or (game_data.value != 0 and game_data.value >= min_game_value))
-                and (min_steam_num_of_reviews == 0 or (game_data.num_of_reviews != 0 and min_steam_num_of_reviews <= game_data.num_of_reviews))
-                and (min_steam_score == 0 or (game_data.steam_score != 0 and min_steam_score <= game_data.steam_score))):
+            game_name = group_giveaway.game_name
+            game_data = load_game(game_name)
+            check_game_data(game_data, game_name)
+            if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score):
                 if group_giveaway.has_winners():
                     monthly_posters.add(group_giveaway.creator)
                 else:
@@ -195,15 +192,17 @@ def get_user_entered_giveaways(group_webpage, users, addition_date):
                     response += 'User ' + user + ' entered giveaway: ' + group_giveaway.link + '\n'
     return response
 
-#TODO: Add feature flag for get_entered_giveaways
+
 def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_create_ga=0, min_ga_time=0,
-                              min_game_value=0.0, min_steam_num_of_reviews=0, min_steam_score=0):
+                              min_value=0.0, min_num_of_reviews=0, min_score=0, alt_min_value=0.0,
+                              alt_min_num_of_reviews=0, alt_min_score=0, check_entered_giveaways=False):
     group = load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, start_time=addition_date)
     if not group:
         return None
     response = ''
     users_list = users.split(',')
     for group_giveaway in group.group_giveaways.values():
+        game_name = group_giveaway.game_name
         if (  group_giveaway.creator in users_list
             and
                 len(group_giveaway.groups) == 1
@@ -213,26 +212,44 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
             and
                 (min_ga_time == 0
                 or (min_ga_time > 0 and group_giveaway.end_time.tm_mday - group_giveaway.start_time.tm_mday >= min_ga_time))):
-            game_data = load_game(group_giveaway.game_name)
-            if not game_data or game_data.value == 0 or game_data.num_of_reviews == 0 or game_data.steam_score == 0:
-                print 'Could not load game data: ' + group_giveaway.game_name
-            if not game_data \
-                or (game_data
-                and (min_game_value == 0 or (game_data.value == 0 or game_data.value >= min_game_value))
-                and (min_steam_num_of_reviews == 0 or (game_data.num_of_reviews == 0 or min_steam_num_of_reviews <= game_data.num_of_reviews))
-                and (min_steam_score == 0 or (game_data.steam_score == 0 or min_steam_score <= game_data.steam_score))):
+            game_data = load_game(game_name)
+            check_game_data(game_data, game_name)
+            if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value,alt_min_num_of_reviews, alt_min_score):
                 response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(group_giveaway.creator) + '">' + group_giveaway.creator + '</A> ' \
-                            'first giveaway: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A> ' \
+                            'first giveaway: <A HREF="' + group_giveaway.link + '">' + game_name + '</A> ' \
                           ' (Steam Value: ' + str(game_data.value) + ', Steam Score: ' + str(game_data.steam_score) + ', Num Of Reviews: ' + str(game_data.num_of_reviews) +')\n'
 
         # TODO: Add giveaway entered time (from entries page)
-        if not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time):
+        # TODO: Fix this to check according to first user GA end time
+        if check_entered_giveaways and (not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time)):
             for user in users_list:
                 if user in group_giveaway.entries:
                     response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> ' \
-                                'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A>\n'
+                                'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + game_name + '</A>\n'
 
     return response
+
+
+def check_game_data(game_data, game_name):
+    #TODO: Change to logger.error
+    if not game_data:
+        print 'Could not load game data: ' + game_name
+    elif game_data.value == -1 or game_data.num_of_reviews == -1 or game_data.steam_score == -1:
+        print 'Could not load full game data: ' + game_name
+
+
+def game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score):
+    if not game_data:
+        return True
+    if ((min_value == 0 or (game_data.value == 0 or game_data.value >= min_value))
+         and (min_num_of_reviews == 0 or (game_data.num_of_reviews == 0 or min_num_of_reviews <= game_data.num_of_reviews))
+         and (min_score == 0 or (game_data.steam_score == 0 or min_score <= game_data.steam_score))):
+        return True
+    if ((alt_min_value == 0 or (game_data.value == 0 or game_data.value >= alt_min_value))
+         and (alt_min_num_of_reviews == 0 or (game_data.num_of_reviews == 0 or alt_min_num_of_reviews <= game_data.num_of_reviews))
+         and (alt_min_score == 0 or (game_data.steam_score == 0 or alt_min_score <= game_data.steam_score))):
+        return True
+    return False
 
 
 def user_check_rules(user_name, check_nonactivated=False, check_multiple_wins=False, check_real_cv_ratio=False, check_steamgifts_ratio=False, check_level=False, min_level=0, check_steamrep=False):
