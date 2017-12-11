@@ -4,7 +4,7 @@ import pylru
 import sys
 
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
-    SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts
+    SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts, SteamConsts, SteamDBScrapingUtils
 from Data.GameData import GameData
 from Data.Group import Group
 
@@ -214,20 +214,23 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
                 (min_ga_time == 0
                 or (min_ga_time > 0 and group_giveaway.end_time.tm_mday - group_giveaway.start_time.tm_mday >= min_ga_time))):
             game_data = load_game(group_giveaway.game_name)
-            if not game_data:
+            if not game_data or game_data.value == 0 or game_data.num_of_reviews == 0 or game_data.steam_score == 0:
                 print 'Could not load game data: ' + group_giveaway.game_name
             if not game_data \
                 or (game_data
-                and (min_game_value == 0 or (game_data.value != 0 and game_data.value >= min_game_value))
-                and (min_steam_num_of_reviews == 0 or (game_data.num_of_reviews != 0 and min_steam_num_of_reviews <= game_data.num_of_reviews))
-                and (min_steam_score == 0 or (game_data.steam_score != 0 and min_steam_score <= game_data.steam_score))):
-                response += 'User ' + group_giveaway.creator + ' first giveaway: ' + group_giveaway.link + '\n'
+                and (min_game_value == 0 or (game_data.value == 0 or game_data.value >= min_game_value))
+                and (min_steam_num_of_reviews == 0 or (game_data.num_of_reviews == 0 or min_steam_num_of_reviews <= game_data.num_of_reviews))
+                and (min_steam_score == 0 or (game_data.steam_score == 0 or min_steam_score <= game_data.steam_score))):
+                response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(group_giveaway.creator) + '">' + group_giveaway.creator + '</A> ' \
+                            'first giveaway: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A> ' \
+                          ' (Steam Value: ' + str(game_data.value) + ', Steam Score: ' + str(game_data.steam_score) + ', Num Of Reviews: ' + str(game_data.num_of_reviews) +')\n'
 
         # TODO: Add giveaway entered time (from entries page)
         if not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time):
             for user in users_list:
                 if user in group_giveaway.entries:
-                    response += 'User ' + user + ' entered giveaway: ' + group_giveaway.link + '\n'
+                    response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> ' \
+                                'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A>\n'
 
     return response
 
@@ -277,7 +280,7 @@ def load_user(group_user, user_name):
 
 
 def test(group_webpage):
-    group = add_new_group(group_webpage, '')
+    # group = add_new_group(group_webpage, '')
     # MySqlConnector.save_group(group_webpage, group)
     # group = MySqlConnector.load_group(group_webpage)
 
@@ -287,7 +290,12 @@ def test(group_webpage):
     #         print message
     #     if group_user.global_won > group_user.global_sent:
     #         print 'User ' + group_user.user_name + ' has negative global gifts ratio'
+    game = GameData('Chroma Squad', 'http://store.steampowered.com/app/251130/', 15)
 
+    try:
+        SteamScrapingUtils.update_game_additional_data(game)
+    except:
+        SteamDBScrapingUtils.update_game_additional_data(game)
 
 def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time=None, end_time=None):
     if group_webpage in groups_cache:
@@ -321,7 +329,7 @@ def update_group_data(group_webpage, cookies, group):
 
     existing_games = MySqlConnector.check_existing_games(games.keys())
     for game in games.values():
-        if game.game_name not in existing_games:
+        if game.game_name not in existing_games and game.game_link.startswith(SteamConsts.STEAM_GAME_LINK):
             # TODO: Add fallback from SteamDB
             try:
                 SteamScrapingUtils.update_game_additional_data(game)
