@@ -59,6 +59,6 @@ def verify_after_n_giveaways(steam_after_n_thread_link, giveaways, group_users, 
 def update_game_additional_data(game):
     html_content = WebUtils.get_html_page(game.game_link, "birthtime=-7199; lastagecheckage=1-January-1970; mature_content=1;")
     steam_game_tooltip = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="user_reviews_summary_row"]/@data-store-tooltip')[-1]
-    if steam_game_tooltip != 'Need more user reviews to generate a score':
+    if steam_game_tooltip != 'Need more user reviews to generate a score' and steam_game_tooltip != 'No user reviews':
         game.steam_score = StringUtils.normalize_int(steam_game_tooltip.split('%')[0])
         game.num_of_reviews = StringUtils.normalize_int(steam_game_tooltip.split('of the')[1].split('user reviews')[0])
