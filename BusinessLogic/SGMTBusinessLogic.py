@@ -131,9 +131,15 @@ def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value
         end_day = group_giveaway.end_time.tm_mday
         if group_giveaway.creator in users and len(group_giveaway.groups) == 1\
                 and start_month == month and end_month == month\
-                and end_day - start_day >= min_days\
-                and (min_game_value == 0 or group_giveaway.value >= min_game_value):
-            if check_steam_reviews(group_giveaway, min_steam_num_of_reviews, min_steam_score):
+                and end_day - start_day >= min_days:
+            game_data = load_game(group_giveaway.game_name)
+            if not game_data:
+                print 'Could not load game data: ' + group_giveaway.game_name
+            if not game_data \
+                or (game_data
+                and (min_game_value == 0 or (game_data.value != 0 and game_data.value >= min_game_value))
+                and (min_steam_num_of_reviews == 0 or (game_data.num_of_reviews != 0 and min_steam_num_of_reviews <= game_data.num_of_reviews))
+                and (min_steam_score == 0 or (game_data.steam_score != 0 and min_steam_score <= game_data.steam_score))):
                 if group_giveaway.has_winners():
                     monthly_posters.add(group_giveaway.creator)
                 else:
@@ -150,20 +156,6 @@ def check_monthly(group_webpage, year_month, cookies, min_days=0, min_game_value
         if user not in monthly_posters and user not in monthly_unfinished.keys():
             response += SteamGiftsConsts.get_user_link(user) + '\n'
     return response
-
-
-def check_steam_reviews(giveaway, min_steam_num_of_reviews, min_steam_score):
-    game_data = None
-    if min_steam_num_of_reviews != 0 or min_steam_score != 0:
-        game_name = giveaway.game_name
-        if game_name in games_cache:
-            game_data = games_cache[game_name]
-        if not game_data:
-            game_data = MySqlConnector.get_game_data(game_name)
-            games_cache[game_name] = game_data
-    return game_data and \
-           (min_steam_num_of_reviews == 0 or (game_data.num_of_reviews != 0 and min_steam_num_of_reviews <= game_data.num_of_reviews)) \
-           and (min_steam_score == 0 or (game_data.steam_score != 0 and min_steam_score <= game_data.steam_score))
 
 
 def get_users_with_negative_steamgifts_ratio(group_webpage):
@@ -220,10 +212,15 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
                 or (addition_date and days_to_create_ga > 0 and group_giveaway.start_time.tm_mday <= int(addition_date.split('-')[2]) + days_to_create_ga))
             and
                 (min_ga_time == 0
-                or (min_ga_time > 0 and group_giveaway.end_time.tm_mday - group_giveaway.start_time.tm_mday >= min_ga_time))
-            and
-                (min_game_value == 0 or group_giveaway.value >= min_game_value)):
-            if check_steam_reviews(group_giveaway, min_steam_num_of_reviews, min_steam_score):
+                or (min_ga_time > 0 and group_giveaway.end_time.tm_mday - group_giveaway.start_time.tm_mday >= min_ga_time))):
+            game_data = load_game(group_giveaway.game_name)
+            if not game_data:
+                print 'Could not load game data: ' + group_giveaway.game_name
+            if not game_data \
+                or (game_data
+                and (min_game_value == 0 or (game_data.value != 0 and game_data.value >= min_game_value))
+                and (min_steam_num_of_reviews == 0 or (game_data.num_of_reviews != 0 and min_steam_num_of_reviews <= game_data.num_of_reviews))
+                and (min_steam_score == 0 or (game_data.steam_score != 0 and min_steam_score <= game_data.steam_score))):
                 response += 'User ' + group_giveaway.creator + ' first giveaway: ' + group_giveaway.link + '\n'
 
         # TODO: Add giveaway entered time (from entries page)
@@ -302,31 +299,17 @@ def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, lim
 
 
 def add_new_group(group_webpage, cookies):
-    group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
-    existing_users = MySqlConnector.check_existing_users(group_users.keys())
-    for group_user in group_users.values():
-        if group_user.user_name not in existing_users:
-            SteamGiftsScrapingUtils.update_user_additional_data(group_user)
-
-    group_giveaways,games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies)
-
-    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways), existing_users)
-
-    existing_games = MySqlConnector.check_existing_games(games.keys())
-    for game in games.values():
-        if game.game_name not in existing_games:
-            # TODO: Add fallback from SteamDB
-            try:
-                SteamScrapingUtils.update_game_additional_data(game)
-            except:
-                print "Unexpected error:", sys.exc_info()[0]
-    MySqlConnector.save_games(games, existing_games)
+    update_group_data(group_webpage, cookies, Group())
 
 
-def update_group_data(group_webpage, cookies):
+def update_existing_group(group_webpage, cookies):
     group = load_group(group_webpage)
     if not group:
         return None
+    update_group_data(group_webpage, cookies, group)
+
+
+def update_group_data(group_webpage, cookies, group):
     group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
     existing_users = MySqlConnector.check_existing_users(group_users.keys())
     for group_user in group_users.values():
@@ -339,7 +322,11 @@ def update_group_data(group_webpage, cookies):
     existing_games = MySqlConnector.check_existing_games(games.keys())
     for game in games.values():
         if game.game_name not in existing_games:
-            SteamScrapingUtils.update_game_additional_data(game)
+            # TODO: Add fallback from SteamDB
+            try:
+                SteamScrapingUtils.update_game_additional_data(game)
+            except:
+                print 'Cannot add additional data for ' + game.game_name + ' ERROR: %s', sys.exc_info()[0]
     MySqlConnector.save_games(games, existing_games)
 
 
@@ -358,6 +345,16 @@ def update_users_data():
 def update_games_data():
     #Go over all DB games, and update their data
     pass
+
+
+def load_game(game_name):
+    game_data=None
+    if game_name in games_cache:
+        game_data = games_cache[game_name]
+    if not game_data:
+        game_data = MySqlConnector.get_game_data(game_name)
+        games_cache[game_name] = game_data
+    return game_data
 
 
 def parse_list(list, prefix=''):

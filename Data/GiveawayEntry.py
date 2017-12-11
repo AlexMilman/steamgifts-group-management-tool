@@ -8,6 +8,6 @@ class GiveawayEntry(object):
     winner=False
 
     def __init__(self, user_name, entry_time=None, winner=False):
-        self.user_name = user_name
+        self.user_name = user_name.encode('utf-8')
         self.entry_time = entry_time
         self.winner = winner

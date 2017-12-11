@@ -38,10 +38,10 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
         entries_data = []
         for entry in group_giveaway.entries.values():
             entries_data.append((entry.user_name, to_epoch(entry.entry_time), entry.winner))
-        giveaways_data.append((giveaway_id, group_giveaway.link, group_giveaway.creator, group_giveaway.value, group_giveaway.game_name, json.dumps(entries_data), json.dumps(group_giveaway.groups)))
+        giveaways_data.append((giveaway_id, group_giveaway.link, group_giveaway.creator, group_giveaway.game_name, json.dumps(entries_data), json.dumps(group_giveaway.groups)))
 
-    cursor.executemany("INSERT INTO Giveaways (GiveawayID,LinkURL,Creator,Value,GameName,Entries,Groups) VALUES (%s,%s,%s,%s,%s,%s,%s)"\
-                       + " ON DUPLICATE KEY UPDATE LinkURL=VALUES(LinkURL),Creator=VALUES(Creator),Value=VALUES(Value),GameName=VALUES(GameName),Entries=VALUES(Entries),Groups=VALUES(Groups)", giveaways_data)
+    cursor.executemany("INSERT INTO Giveaways (GiveawayID,LinkURL,Creator,GameName,Entries,Groups) VALUES (%s,%s,%s,%s,%s,%s)"\
+                       + " ON DUPLICATE KEY UPDATE LinkURL=VALUES(LinkURL),Creator=VALUES(Creator),GameName=VALUES(GameName),Entries=VALUES(Entries),Groups=VALUES(Groups)", giveaways_data)
 
     # Merge with existing group data (in case of update/merge)
     if existing_group_data and existing_group_data.group_giveaways:
@@ -81,8 +81,7 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
     print 'Save Group ' + group_website + ' took ' + str(time.time() - start_time) +  ' seconds'
 
 
-#TODO Implement optional params
-def load_group(group_website, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time=None, end_time=None):
+def load_group(group_website, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time_str=None, end_time_str=None):
     start_time = time.time()
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
     cursor = connection.cursor()
@@ -117,27 +116,32 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
     giveaways_by_id=dict()
     if load_giveaway_data:
         for row in group_giveaways_data:
+            start_time_epoch = row[1]
+            end_time_epoch = row[2]
+            if limit_by_time and \
+                    ((not start_time_str or to_epoch(time.strptime(start_time_str, "%Y-%m-%d")) > start_time_epoch)
+                     or (not end_time_str or to_epoch(time.strptime(end_time_str, "%Y-%m-%d")) < end_time_epoch)):
+                    pass
             # (giveaway_id, calendar.timegm(group_giveaway.start_time), calendar.timegm(group_giveaway.end_time))
             giveaway_id = row[0]
-            giveaways_by_id[giveaway_id] = GroupGiveaway(giveaway_id, start_time=from_epoch(row[1]), end_time=from_epoch(row[2]))
+            giveaways_by_id[giveaway_id] = GroupGiveaway(giveaway_id, start_time=from_epoch(start_time_epoch), end_time=from_epoch(end_time_epoch))
 
         cursor.execute('SELECT * FROM Giveaways WHERE GiveawayID in (' + parse_list(giveaways_by_id.keys()) + ')')
         data = cursor.fetchall()
         for row in data:
-            # (giveaway_id, group_giveaway.link, group_giveaway.creator, group_giveaway.value, group_giveaway.game_name, json.dumps(entries_data), json.dumps(group_giveaway.groups))
+            # (giveaway_id, group_giveaway.link, group_giveaway.creator, group_giveaway.game_name, json.dumps(entries_data), json.dumps(group_giveaway.groups))
             giveaway_link = row[1]
             giveaway_id = StringUtils.get_hashed_id(giveaway_link)
             group_giveaways[giveaway_link] = giveaways_by_id[giveaway_id]
             group_giveaways[giveaway_link].link = giveaway_link
             group_giveaways[giveaway_link].creator = row[2]
-            group_giveaways[giveaway_link].value = float(row[3])
-            group_giveaways[giveaway_link].game_name = row[4]
+            group_giveaways[giveaway_link].game_name = row[3]
             group_giveaways[giveaway_link].entries = dict()
-            for ent_row in json.loads(row[5]):
+            for ent_row in json.loads(row[4]):
                 # (entry.user_name, entry.entry_time, entry.winner)
                 user_name = ent_row[0]
                 group_giveaways[giveaway_link].entries[user_name] = GiveawayEntry(user_name, entry_time=from_epoch(ent_row[1]), winner=ent_row[2])
-            group_giveaways[giveaway_link].groups = json.loads(row[6])
+            group_giveaways[giveaway_link].groups = json.loads(row[5])
 
     cursor.close()
     connection.close()

@@ -115,7 +115,7 @@ def add_new_group():
 def update_group_data():
     group_webpage = request.args.get('group_webpage')
     cookies = request.args.get('cookies')
-    SGMTBusinessLogic.update_group_data(group_webpage, cookies)
+    SGMTBusinessLogic.update_existing_group(group_webpage, cookies)
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
 
