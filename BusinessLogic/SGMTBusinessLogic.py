@@ -201,9 +201,11 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
         return None
     response = ''
     users_list = users.split(',')
+    user_to_end_time=dict()
     for group_giveaway in group.group_giveaways.values():
         game_name = group_giveaway.game_name
-        if (  group_giveaway.creator in users_list
+        user_name = group_giveaway.creator
+        if (user_name in users_list
             and
                 len(group_giveaway.groups) == 1
             and
@@ -215,17 +217,18 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
             game_data = load_game(game_name)
             check_game_data(game_data, game_name)
             if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value,alt_min_num_of_reviews, alt_min_score):
-                response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(group_giveaway.creator) + '">' + group_giveaway.creator + '</A> ' \
+                if user_name not in user_to_end_time or group_giveaway.end_time < user_to_end_time[user_name]:
+                    user_to_end_time[user_name] = group_giveaway.end_time
+                response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user_name) + '">' + user_name + '</A> ' \
                             'first giveaway: <A HREF="' + group_giveaway.link + '">' + game_name + '</A> ' \
                           ' (Steam Value: ' + str(game_data.value) + ', Steam Score: ' + str(game_data.steam_score) + ', Num Of Reviews: ' + str(game_data.num_of_reviews) +')\n'
 
-        # TODO: Add giveaway entered time (from entries page)
-        # TODO: Fix this to check according to first user GA end time
+    for group_giveaway in group.group_giveaways.values():
         if check_entered_giveaways and (not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time)):
             for user in users_list:
-                if user in group_giveaway.entries:
+                if user in group_giveaway.entries and group_giveaway.entries[user].entry_time.tm_mday > int(addition_date.split('-')[2]) and group_giveaway.entries[user].entry_time < user_to_end_time[user]:
                     response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> ' \
-                                'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + game_name + '</A>\n'
+                                'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A>\n'
 
     return response
 
@@ -353,6 +356,9 @@ def update_group_data(group_webpage, cookies, group):
             except:
                 print 'Cannot add additional data for ' + game.game_name + ' ERROR: %s', sys.exc_info()[0]
     MySqlConnector.save_games(games, existing_games)
+
+    if group_webpage in groups_cache:
+        groups_cache[group_webpage] = None
 
 
 #TODO: Implement with scheduler

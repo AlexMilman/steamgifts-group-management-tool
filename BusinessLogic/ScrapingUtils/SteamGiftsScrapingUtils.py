@@ -82,14 +82,14 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict()):
 
             giveaway_entries=dict()
             giveaway_entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(partial_giveaway_link), cookies=cookies)
-            giveaway_users = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//a[@class="table__column__heading"]/text()')
-            #TODO: Add entry time
-            for user_name in giveaway_users:
-                user_name = user_name.encode('utf-8')
+            giveaway_entries_elements = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//div[@class="table__row-inner-wrap"]')
+            for entry_element in giveaway_entries_elements:
+                entry_user = WebUtils.get_item_by_xpath(entry_element, u'.//a[@class="table__column__heading"]/text()').encode('utf-8')
+                entry_time = time.gmtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(entry_element, u'.//div[@class="table__column--width-small text-center"]/span/@data-timestamp')))
                 winner = False
-                if user_name in winners:
+                if entry_user in winners:
                     winner = True
-                giveaway_entries[user_name] = GiveawayEntry(user_name, winner=winner)
+                giveaway_entries[entry_user] = GiveawayEntry(entry_user, entry_time, winner=winner)
 
             giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(partial_giveaway_link), cookies=cookies)
             giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
