@@ -142,16 +142,16 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
                 else:
                     if group_giveaway.creator not in monthly_unfinished:
                         monthly_unfinished[group_giveaway.creator] = set()
-                    monthly_unfinished[group_giveaway.creator].add(group_giveaway.link)
+                    monthly_unfinished[group_giveaway.creator].add('<A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A>')
 
     response += '\n\nUsers with unfinished monthly GAs:\n'
     for user,links in monthly_unfinished.iteritems():
-        response += 'User ' + SteamGiftsConsts.get_user_link(user) + ' giveaways: ' + parse_list(links) + '\n'
+        response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> giveaways: ' + parse_list(links) + '\n'
 
     response += '\n\nUsers without monthly giveaways:\n'
     for user in users:
         if user not in monthly_posters and user not in monthly_unfinished.keys():
-            response += SteamGiftsConsts.get_user_link(user) + '\n'
+            response += '<A HREF="'+ SteamGiftsConsts.get_user_link(str(user)) + '">' + str(user) + '</A>\n'
     return response
 
 
@@ -177,7 +177,6 @@ def get_users_with_negative_group_ratio(group_webpage):
     return users_with_negative_ratio
 
 
-#TODO: Add giveaway entered time (from entries page)
 def get_user_entered_giveaways(group_webpage, users, addition_date):
     group = load_group(group_webpage, load_users_data=False)
     if not group:
@@ -190,6 +189,40 @@ def get_user_entered_giveaways(group_webpage, users, addition_date):
             for user in users_list:
                 if user in group_giveaway.entries:
                     response += 'User ' + user + ' entered giveaway: ' + group_giveaway.link + '\n'
+    return response
+
+
+def get_group_all_entered_giveaways(group_webpage, start_time):
+    group = load_group(group_webpage, limit_by_time=start_time, start_time=start_time)
+    if not group:
+        return None
+    response = dict()
+    users_list = group.group_users.keys()
+    for group_giveaway in group.group_giveaways.values():
+        # Go over all giveaways not closed before "addition_date"
+        if not start_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.end_time):
+            for user in users_list:
+                if user in group_giveaway.entries.keys() and start_time <= time.strftime('%Y-%m-%d', group_giveaway.entries[user].entry_time):
+                    if user not in response:
+                        response[user] = []
+                    response[user].append((group_giveaway.link, group_giveaway.game_name, group_giveaway.entries[user].winner))
+    return response
+
+
+def get_group_all_created_giveaways(group_webpage, start_time):
+    group = load_group(group_webpage, load_users_data=False, limit_by_time=start_time, start_time=start_time)
+    if not group:
+        return None
+    response = dict()
+    for group_giveaway in group.group_giveaways.values():
+        # Go over all giveaways not closed before "addition_date"
+        if not start_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.end_time):
+            user = group_giveaway.creator
+            if user not in response:
+                response[user] = []
+            game_name = group_giveaway.game_name
+            game_data = load_game(game_name)
+            response[user].append((group_giveaway.link, game_name, game_data))
     return response
 
 
@@ -228,7 +261,8 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
             for user in users_list:
                 if user in group_giveaway.entries and group_giveaway.entries[user].entry_time.tm_mday >= int(addition_date.split('-')[2]) and group_giveaway.entries[user].entry_time < user_to_end_time[user]:
                     response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> ' \
-                                'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A>\n'
+                                'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A> ' \
+                               '(Entry date: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.entries[user].entry_time) + ')\n'
 
     return response
 
@@ -358,7 +392,7 @@ def update_group_data(group_webpage, cookies, group):
     MySqlConnector.save_games(games, existing_games)
 
     if group_webpage in groups_cache:
-        groups_cache[group_webpage] = None
+        del groups_cache[group_webpage]
 
 
 #TODO: Implement with scheduler
