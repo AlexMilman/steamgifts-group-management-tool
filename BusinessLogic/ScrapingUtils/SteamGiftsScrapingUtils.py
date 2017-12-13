@@ -60,16 +60,20 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict()):
     reached_end=False
     giveaways_changed = True
     page_index = 1
+    print 'Starting to process giveaways for group' + group_webpage
     while not reached_end and giveaways_changed:
         giveaways_changed = False
         html_content = WebUtils.get_html_page(group_webpage + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
             break
+        print 'Processing page #' + str(current_page_num)
 
         giveaway_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
         for giveaway_elem in giveaway_elements:
             partial_giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
+            giveaway_link = SteamGiftsConsts.get_giveaway_link(partial_giveaway_link)
+            print 'Processing: ' + giveaway_link
             game_name = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/text()').encode('utf-8')
             winners = WebUtils.get_items_by_xpath(giveaway_elem, u'.//div[@class="giveaway__column--positive"]/a/text()')
             poster = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__username"]/text()')
@@ -82,19 +86,20 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict()):
 
             giveaway_entries=dict()
             giveaway_entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(partial_giveaway_link), cookies=cookies)
-            giveaway_entries_elements = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//div[@class="table__row-inner-wrap"]')
-            for entry_element in giveaway_entries_elements:
-                entry_user = WebUtils.get_item_by_xpath(entry_element, u'.//a[@class="table__column__heading"]/text()').encode('utf-8')
-                entry_time = time.gmtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(entry_element, u'.//div[@class="table__column--width-small text-center"]/span/@data-timestamp')))
-                winner = False
-                if entry_user in winners:
-                    winner = True
-                giveaway_entries[entry_user] = GiveawayEntry(entry_user, entry_time, winner=winner)
+            error_message = WebUtils.get_item_by_xpath(giveaway_entries_content, u'.//div[@class="page__heading__breadcrumbs"]/text()')
+            if not error_message or error_message != 'Error':
+                giveaway_entries_elements = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//div[@class="table__row-inner-wrap"]')
+                for entry_element in giveaway_entries_elements:
+                    entry_user = WebUtils.get_item_by_xpath(entry_element, u'.//a[@class="table__column__heading"]/text()').encode('utf-8')
+                    entry_time = time.gmtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(entry_element, u'.//div[@class="table__column--width-small text-center"]/span/@data-timestamp')))
+                    winner = False
+                    if entry_user in winners:
+                        winner = True
+                    giveaway_entries[entry_user] = GiveawayEntry(entry_user, entry_time, winner=winner)
 
             giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(partial_giveaway_link), cookies=cookies)
             giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
 
-            giveaway_link = SteamGiftsConsts.get_giveaway_link(partial_giveaway_link)
             group_giveaway = GroupGiveaway(giveaway_link, game_name, poster, creation_time, end_time, giveaway_entries, giveaway_groups)
 
             steam_game_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__icon"]/@href')
@@ -114,6 +119,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict()):
 
         page_index += 1
 
+    print 'Finished processing giveaways for group' + group_webpage
     return group_giveaways, games
 
 

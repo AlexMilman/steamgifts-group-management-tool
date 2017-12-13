@@ -226,6 +226,117 @@ def get_group_all_created_giveaways(group_webpage, start_time):
     return response
 
 
+def get_group_summary(group_webpage, start_time):
+    group = load_group(group_webpage, limit_by_time=start_time, start_time=start_time)
+    if not group:
+        return None
+    all_group_users = group.group_users.keys()
+    users_created = dict()
+    users_entered = dict()
+    users_won = dict()
+    group_games_count=0
+    group_games_value=0.0
+    group_games_without_data=0
+    group_games_total_score=0.0
+    group_games_total_num_of_reviews=0.0
+    for group_giveaway in group.group_giveaways.values():
+        # Go over all giveaways started after "addition_date"
+        if not start_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.end_time):
+            group_games_count += 1
+            game_data = load_game(group_giveaway.game_name)
+            value = game_data.value
+            group_games_value += value
+            score = game_data.steam_score
+            num_of_reviews = game_data.num_of_reviews
+            game_data_available = score != -1 and num_of_reviews != -1
+            if game_data_available:
+                group_games_total_score += score
+                group_games_total_num_of_reviews += num_of_reviews
+            else:
+                group_games_without_data += 1
+
+            creator = group_giveaway.creator
+            # Number of created GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
+            if creator not in users_created:
+                users_created[creator] = [0, 0, 0, 0, 0]
+            users_created[creator][0] += 1
+            users_created[creator][1] += value
+            if game_data_available:
+                users_created[creator][2] += 1
+                users_created[creator][3] += score
+                users_created[creator][4] += num_of_reviews
+
+            for entry in group_giveaway.entries.values():
+                user_name = entry.user_name
+                if user_name not in all_group_users:
+                    continue
+                # Number of entered GAs, Number of Shared GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
+                if user_name not in users_entered:
+                    users_entered[user_name] = [0, 0, 0, 0, 0, 0]
+                users_entered[user_name][0] += 1
+                if len(group_giveaway.groups) > 1:
+                    users_entered[user_name][1] += 1
+                users_entered[user_name][2] += value
+                if game_data_available:
+                    users_entered[user_name][3] += 1
+                    users_entered[user_name][4] += score
+                    users_entered[user_name][5] += num_of_reviews
+
+                if entry.winner:
+                    # Number of won GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
+                    if user_name not in users_won:
+                        users_won[user_name] = [0, 0, 0, 0, 0]
+                    users_won[user_name][0] += 1
+                    users_won[user_name][1] += value
+                    if game_data_available:
+                        users_won[user_name][2] += 1
+                        users_won[user_name][3] += score
+                        users_won[user_name][4] += num_of_reviews
+
+
+    group_average_game_value = group_games_value / group_games_count
+    group_average_game_score = group_games_total_score / (group_games_count - group_games_without_data)
+    group_average_game_num_of_reviews = group_games_total_num_of_reviews / (group_games_count - group_games_without_data)
+    # Total Games Value, Average games value, Average Game Score, Average Game NumOfReviews
+    total_group_data = (group_games_value, group_average_game_value, group_average_game_score, group_average_game_num_of_reviews)
+
+    # Number of created GAs, Total Value, Average Value, Average Score, Average NumOfReviews
+    # Number of entered GAs, Percentage of unique, Average Value, Average Score, Average Num Of Reviews
+    # If avialable: number of won GAs, Winning percentage, Average Value, Average Score, Average Num Of Reviews
+    users_data = dict()
+    for user in users_created.keys():
+        if user not in users_data:
+            users_data[user] = [(),(),()]
+        # Number of created GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
+        user_data = users_created[user]
+        # Number of created GAs, Total Value, Average Value, Average Score, Average NumOfReviews
+        if user_data[2] > 0:
+            users_data[user][0] = (user_data[0], user_data[1], float(user_data[1]) / user_data[0], float(user_data[3]) / user_data[2], float(user_data[4]) / user_data[2])
+        else:
+            users_data[user][0] = (user_data[0], user_data[1], float(user_data[1]) / user_data[0], 0, 0)
+
+    for user in users_entered.keys():
+        if user not in users_data:
+            users_data[user] = [(),(),()]
+        # Number of entered GAs, Number of Shared GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
+        user_data = users_entered[user]
+        # Number of entered GAs, Percentage of unique, Total Value, Average Value, Average Score, Average Num Of Reviews
+        if user_data[3] > 0:
+            users_data[user][1] = (user_data[0], float(user_data[1]) / user_data[0] * 100, user_data[2], float(user_data[2]) / user_data[0], float(user_data[4]) / user_data[3], float(user_data[5]) / user_data[3])
+        else:
+            users_data[user][1] = (user_data[0], float(user_data[1]) / user_data[0] * 100, user_data[2], float(user_data[2]) / user_data[0], 0, 0)
+        if user in users_won:
+            # Number of won GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
+            user_data = users_won[user]
+            # Number of won GAs, Winning percentage, Total value, Average Value, Average Score, Average Num Of Reviews
+            if user_data[2] > 0:
+                users_data[user][2] = (user_data[0], float(user_data[0]) / users_data[user][1][0] * 100, user_data[1], float(user_data[1]) / user_data[0], float(user_data[3]) / user_data[2], float(user_data[4]) / user_data[2])
+            else:
+                users_data[user][2] = (user_data[0], float(user_data[0]) / users_data[user][1][0] * 100, user_data[1], float(user_data[1]) / user_data[0], 0, 0)
+
+    return total_group_data, users_data
+
+
 def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_create_ga=0, min_ga_time=0,
                               min_value=0.0, min_num_of_reviews=0, min_score=0, alt_min_value=0.0,
                               alt_min_num_of_reviews=0, alt_min_score=0, check_entered_giveaways=False):
@@ -260,6 +371,8 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
         if check_entered_giveaways and (not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time)):
             for user in users_list:
                 if user in group_giveaway.entries and group_giveaway.entries[user].entry_time.tm_mday >= int(addition_date.split('-')[2]) and group_giveaway.entries[user].entry_time < user_to_end_time[user]:
+                    #TODO: Add check user could have entered via another group
+                    #TODO: Add "Whitelist detected" warning
                     response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> ' \
                                 'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A> ' \
                                '(Entry date: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.entries[user].entry_time) + ')\n'
@@ -279,12 +392,12 @@ def game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, 
     if not game_data:
         return True
     if ((min_value == 0 or (game_data.value == 0 or game_data.value >= min_value))
-         and (min_num_of_reviews == 0 or (game_data.num_of_reviews == 0 or min_num_of_reviews <= game_data.num_of_reviews))
-         and (min_score == 0 or (game_data.steam_score == 0 or min_score <= game_data.steam_score))):
+         and (min_num_of_reviews == 0 or (game_data.num_of_reviews == -1 or min_num_of_reviews <= game_data.num_of_reviews))
+         and (min_score == 0 or (game_data.steam_score == -1 or min_score <= game_data.steam_score))):
         return True
     if ((alt_min_value == 0 or (game_data.value == 0 or game_data.value >= alt_min_value))
-         and (alt_min_num_of_reviews == 0 or (game_data.num_of_reviews == 0 or alt_min_num_of_reviews <= game_data.num_of_reviews))
-         and (alt_min_score == 0 or (game_data.steam_score == 0 or alt_min_score <= game_data.steam_score))):
+         and (alt_min_num_of_reviews == 0 or (game_data.num_of_reviews == -1 or alt_min_num_of_reviews <= game_data.num_of_reviews))
+         and (alt_min_score == 0 or (game_data.steam_score == -1 or alt_min_score <= game_data.steam_score))):
         return True
     return False
 
@@ -354,9 +467,10 @@ def test(group_webpage):
 def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time=None, end_time=None):
     if group_webpage in groups_cache:
         group = groups_cache[group_webpage]
-    else:
-        group = MySqlConnector.load_group(group_webpage, load_users_data, load_giveaway_data, limit_by_time, start_time, end_time)
-        groups_cache[group_webpage] = group
+        if group and (not load_users_data or group.group_users) and (not load_giveaway_data or group.group_giveaways):
+            return group
+    group = MySqlConnector.load_group(group_webpage, load_users_data, load_giveaway_data, limit_by_time, start_time, end_time)
+    groups_cache[group_webpage] = group
     return group
 
 
@@ -396,7 +510,7 @@ def update_group_data(group_webpage, cookies, group):
 
 
 #TODO: Implement with scheduler
-def update_all_groups(cookies):
+def update_all_groups():
     #Load list of all groups from DB
     #For each group, run: update_group_data
     pass

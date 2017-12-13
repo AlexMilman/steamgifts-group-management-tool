@@ -64,7 +64,7 @@ def user_check_first_giveaway():
     response = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, users, addition_date, days_to_create_ga, min_ga_time, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, check_entered_giveaways)
     return response.replace('\n','<BR>')
 
-
+# TODO: Convert the 2 endpoints into: GetUserFullGroupInfo + Move all logic into BL
 @app.route('/SGMT/AllUsersEnteredGiveaways', methods=['GET'])
 def all_user_entered_giveaways():
     group_webpage = request.args.get('group_webpage')
@@ -120,7 +120,7 @@ def all_user_created_giveaways():
             total_value += giveaway_data[2].value
             total_score += giveaway_data[2].steam_score
             total_num_of_reviews += giveaway_data[2].num_of_reviews
-            if total_score == 0.0 and total_num_of_reviews == 0:
+            if giveaway_data[2].steam_score == 0 and giveaway_data[2].num_of_reviews == 0:
                 missing_data += 1
         response += u'<BR>User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A> created ' + str(len(giveaways_data)) + ' giveaways '
         if len(giveaways_data) > 1:
@@ -133,6 +133,71 @@ def all_user_created_giveaways():
             response += u' (Steam Value: ' + str(giveaway_data[2].value) + u', Steam Score: ' + str(giveaway_data[2].steam_score) + u', Num Of Reviews: ' + str(giveaway_data[2].num_of_reviews) + u')\n'
             response += u'<BR>'
     return response
+
+
+@app.route('/SGMT/GroupUsersSummary', methods=['GET'])
+def group_users_summary():
+    group_webpage = request.args.get('group_webpage')
+    start_date = request.args.get('start_date')
+
+    if not group_webpage:
+        return 'GroupUsersSummary  - For a given group, return summary of all giveaways created, entered and won by members.<BT>' \
+               'Usage: /SGMT/GroupUsersSummary?group_webpage=[steamgifts group webpage]&start_date=[date from which you want to check: YYYY-MM-DD] ' \
+               'Example: /SGMT/GroupUsersSummary?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&start_date=2017-12-01'
+
+    total_group_data, users_data = SGMTBusinessLogic.get_group_summary(group_webpage, start_date)
+
+    response = u'Summary for group ' + group_webpage + u':<BR><BR>'
+    # Total Games Value, Average games value, Average Game Score, Average Game NumOfReviews
+    response += u'Total value of games given away in group: $' + float_to_str(total_group_data[0]) + '<BR>'
+    response += u'Average value of a game: $' + float_to_str(total_group_data[1]) + '<BR>'
+    response += u'Average game steam score per game: ' + float_to_str(total_group_data[2]) + '<BR>'
+    response += u'Average game number of steam reviews per game: ' + float_to_str(total_group_data[3]) + '<BR>'
+
+    response += u'<BR>Summaries for all group users:<BR>'
+    for user_name, user_data in users_data.items():
+        response += u'<BR>User <A HREF="' + SteamGiftsConsts.get_user_link(user_name) + u'">' + user_name + u'</A>:<BR>'
+        # Number of created GAs, Total Value, Average Value, Average Score, Average NumOfReviews
+        user_created = user_data[0]
+        if user_created:
+            response += u'Created: '
+            response += u'Number of GAs: ' + float_to_str(user_created[0]) \
+                        + u', Total GAs value: $' + float_to_str(user_created[1]) \
+                        + u', Average GA value: $' + float_to_str(user_created[2]) \
+                        + u', Average GA Steam game score: ' + float_to_str(user_created[3]) + u'%' \
+                        + u', Average GA Steam number of reviews: ' + float_to_str(user_created[4]) + u'<BR>'
+
+        # Number of entered GAs, Percentage of unique, Total Value, Average Value, Average Score, Average Num Of Reviews
+        user_entered = user_data[1]
+        if user_entered:
+            response += u'Entered: '
+            response += u'Number of GAs: ' + float_to_str(user_entered[0]) \
+                        + u', Group-only GAs: ' + float_to_str(user_entered[1]) + u'%' \
+                        + u', Total GAs value: $' + float_to_str(user_entered[2]) \
+                        + u', Average GA value: $' + float_to_str(user_entered[3]) \
+                        + u', Average GA Steam game score: ' + float_to_str(user_entered[4]) + u'%' \
+                        + u', Average GA Steam number of reviews: ' + float_to_str(user_entered[5]) + u'<BR>'
+
+        # Number of won GAs, Winning percentage, Total value, Average Value, Average Score, Average Num Of Reviews
+        user_won = user_data[2]
+        if user_won:
+            response += u'Won: '
+            response += u'Number of GAs: ' + float_to_str(user_won[0]) \
+                        + u', Won vs total entered: ' + float_to_str(user_won[1]) + u'%' \
+                        + u', Total GAs value: $' + float_to_str(user_won[2]) \
+                        + u', Average GA value: $' + float_to_str(user_won[3]) \
+                        + u', Average GA Steam game score: ' + float_to_str(user_won[4]) + u'%' \
+                        + u', Average GA Steam number of reviews: ' + float_to_str(user_won[5]) + u'<BR>'
+
+    return response
+
+
+def count_won(giveaways_data):
+    count = 0
+    for data in giveaways_data:
+        if data[2]:
+            count += 1
+    return count
 
 
 @app.route('/SGMT/UserCheckRules', methods=['GET'])
@@ -219,6 +284,18 @@ def get_optional_float_param(param_name):
     if param_value:
         return float(param_value)
     return 0.0
+
+
+def float_to_str(float_value):
+    float_str = str(float_value)
+    if '.' in float_str:
+        float_split = float_str.split('.')
+        if float_split[1] == '0':
+            return float_split[0]
+        after_decimal_point = len(float_split[1])
+        if after_decimal_point > 2:
+            return float_str[:-after_decimal_point + 2]
+    return float_str
 
 
 if __name__ == '__main__':

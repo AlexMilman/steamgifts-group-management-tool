@@ -88,12 +88,13 @@ Steam may not care about a couple of hundred concurrent requests. But for SteamG
 So for now this tool will run slowly, but safely.
 
 ### Future plans
-* Add a DB to be able to cache the data for any given SteamGifts group, which will obsolete the need for many requests to Steam, SteamGifts, SGTools, etc.
 * Deploy this tool to a server somewhere, and let anyone use it as an API.
 * I'm also consideting creating a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies
 
 ### TODO
-* Add MySql support
+* Implement CheckAllGroupGiveaways
+* Implement GetGroupUserSummary
+* If new user entered a group GA - Add checking if he's on one of the other groups of the GA
+* Add Whitelist data to giveaways
 * Handle TODO leftovers
-* Add all remaining commands to service API
 * Add index.html page with usage instructions and links to service API
