@@ -192,17 +192,9 @@ def group_users_summary():
     return response
 
 
-def count_won(giveaways_data):
-    count = 0
-    for data in giveaways_data:
-        if data[2]:
-            count += 1
-    return count
-
-
 @app.route('/SGMT/UserCheckRules', methods=['GET'])
 def user_check_rules():
-    user = request.args.get('user')
+    users = request.args.get('users')
     check_nonactivated = request.args.get('check_nonactivated')
     check_multiple_wins = request.args.get('check_multiple_wins')
     check_real_cv_value = request.args.get('check_real_cv_value')
@@ -211,9 +203,9 @@ def user_check_rules():
     level = int(request.args.get('level'))
     check_steamrep = request.args.get('check_steamrep')
 
-    if not user:
+    if not users:
         return 'UserCheckRules - Check if a user complies to group rules.<BT>' \
-               'Usage: /SGMT/UserCheckRules?&user=[steamgifts username]&[options]<BR>' \
+               'Usage: /SGMT/UserCheckRules?&users=[steamgifts users separated by comma]&[options]<BR>' \
                 'Options:<BR>' \
                 'check_nonactivated=True/False - Check user doesn\'t have non activated games<BR>'\
                 'check_multiple_wins=True/False - Check user doesn\'t have multiple wins<BR>'\
@@ -224,10 +216,10 @@ def user_check_rules():
                 'level=# - Check user is above certain level<BR>'\
                'Example: /SGMT/UserCheckRules?user=Mdk25&check_nonactivated=True&check_multiple_wins=True&check_real_cv_value=True&check_steamgifts_ratio=True&check_steamrep=True&check_level=True&level=1'
 
-    response_object = SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_steamgifts_ratio, check_level, level, check_steamrep)
+    response_object = SGMTBusinessLogic.user_check_rules(users, check_nonactivated, check_multiple_wins, check_real_cv_value, check_steamgifts_ratio, check_level, level, check_steamrep)
     response = ''
     for user in response_object.keys():
-        response += 'User ' + user + ';<BR>'
+        response += '<BR>User ' + user + ';<BR>'
         for user_message in response_object[user]:
             response += user_message + '<BR>'
     return response.replace('\n','<BR>')
