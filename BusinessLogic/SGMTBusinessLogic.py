@@ -370,7 +370,7 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
     for group_giveaway in group.group_giveaways.values():
         if check_entered_giveaways and (not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time)):
             for user in users_list:
-                if user in group_giveaway.entries and group_giveaway.entries[user].entry_time.tm_mday >= int(addition_date.split('-')[2]) and group_giveaway.entries[user].entry_time < user_to_end_time[user]:
+                if user in group_giveaway.entries and group_giveaway.entries[user].entry_time.tm_mday >= int(addition_date.split('-')[2]) and (user not in user_to_end_time or group_giveaway.entries[user].entry_time < user_to_end_time[user]):
                     #TODO: Add check user could have entered via another group
                     #TODO: Add "Whitelist detected" warning
                     response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> ' \
@@ -402,36 +402,38 @@ def game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, 
     return False
 
 
-def user_check_rules(user_name, check_nonactivated=False, check_multiple_wins=False, check_real_cv_ratio=False, check_steamgifts_ratio=False, check_level=False, min_level=0, check_steamrep=False):
+def user_check_rules(users, check_nonactivated=False, check_multiple_wins=False, check_real_cv_ratio=False, check_steamgifts_ratio=False, check_level=False, min_level=0, check_steamrep=False):
     broken_rules = dict()
-    group_user=None
-    if check_nonactivated and SGToolsScrapingUtils.check_nonactivated(user_name):
-        append_map_list(broken_rules, user_name, 'Has non-activated games: ' + SGToolsConsts.SGTOOLS_CHECK_NONACTIVATED_LINK + user_name)
+    users_list = users.split(',')
+    for user_name in users_list:
+        group_user=None
+        if check_nonactivated and SGToolsScrapingUtils.check_nonactivated(user_name):
+            append_map_list(broken_rules, user_name, 'Has non-activated games: ' + SGToolsConsts.SGTOOLS_CHECK_NONACTIVATED_LINK + user_name)
 
-    if check_multiple_wins and SGToolsScrapingUtils.check_multiple_wins(user_name):
-        append_map_list(broken_rules, user_name, 'Has multiple wins: ' + SGToolsConsts.SGTOOLS_CHECK_MULTIPLE_WINS_LINK + user_name)
+        if check_multiple_wins and SGToolsScrapingUtils.check_multiple_wins(user_name):
+            append_map_list(broken_rules, user_name, 'Has multiple wins: ' + SGToolsConsts.SGTOOLS_CHECK_MULTIPLE_WINS_LINK + user_name)
 
-    if check_real_cv_ratio and SGToolsScrapingUtils.check_real_cv_RATIO(user_name):
-        append_map_list(broken_rules, user_name, 'Won more than Sent (Real CV value).\n'
-                                                + 'Real CV Won: ' + SGToolsConsts.SGTOOLS_CHECK_WON_LINK + user_name + '\n'
-                                                + 'Real CV Sent: ' + SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user_name)
+        if check_real_cv_ratio and SGToolsScrapingUtils.check_real_cv_RATIO(user_name):
+            append_map_list(broken_rules, user_name, 'Won more than Sent (Real CV value).\n'
+                                                    + 'Real CV Won: ' + SGToolsConsts.SGTOOLS_CHECK_WON_LINK + user_name + '\n'
+                                                    + 'Real CV Sent: ' + SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user_name)
 
-    if check_steamgifts_ratio:
-        group_user = load_user(group_user, user_name)
-        if group_user.global_won > group_user.global_sent:
-            append_map_list(broken_rules, user_name, 'Won more than Sent.\n'
-                            + 'Won: ' + str(group_user.global_won) + '\n'
-                            + 'Sent: ' + str(group_user.global_sent))
+        if check_steamgifts_ratio:
+            group_user = load_user(group_user, user_name)
+            if group_user.global_won > group_user.global_sent:
+                append_map_list(broken_rules, user_name, 'Won more than sent in SteamGifts:\n'
+                                + 'Won: ' + str(group_user.global_won) + '\n'
+                                + 'Sent: ' + str(group_user.global_sent))
 
-    if check_level and min_level > 0:
-        group_user = load_user(group_user, user_name)
-        if group_user.level < float(min_level):
-            append_map_list(broken_rules, user_name, 'User level is less than ' + str(min_level))
+        if check_level and min_level > 0:
+            group_user = load_user(group_user, user_name)
+            if group_user.level < float(min_level):
+                append_map_list(broken_rules, user_name, 'User level is less than ' + str(min_level))
 
-    if check_steamrep:
-        user_steam_id = SteamGiftsScrapingUtils.get_user_steam_id(user_name)
-        if user_steam_id and not SteamRepScrapingUtils.check_user_not_public_or_banned(user_steam_id):
-            append_map_list(broken_rules, user_name, 'User is not public or banned: ' + SteamRepConsts.get_steamrep_link(user_steam_id))
+        if check_steamrep:
+            user_steam_id = SteamGiftsScrapingUtils.get_user_steam_id(user_name)
+            if user_steam_id and not SteamRepScrapingUtils.check_user_not_public_or_banned(user_steam_id):
+                append_map_list(broken_rules, user_name, 'User is not public or banned: ' + SteamRepConsts.get_steamrep_link(user_steam_id))
 
     return broken_rules
 
