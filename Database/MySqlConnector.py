@@ -199,8 +199,8 @@ def save_user(group_user):
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
     cursor = connection.cursor()
 
-    cursor.execute('INSERT INTO Users (UserName,SteamId,GlobalWon,GlobalSent) '
-                   'VALUES ("' + group_user.user_name + '","' + group_user.steam_id + '",' + str(group_user.global_won) + ',' + str(group_user.global_sent) + ')')
+    cursor.execute('INSERT INTO Users (UserName,SteamId,GlobalWon,GlobalSent,Level) '
+                   'VALUES ("' + group_user.user_name + '","' + group_user.steam_id + '",' + str(group_user.global_won) + ',' + str(group_user.global_sent) + ',' + str(group_user.level) + ')')
 
     connection.commit()  # you need to call commit() method to save your changes to the database
 
