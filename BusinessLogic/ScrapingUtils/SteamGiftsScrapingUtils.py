@@ -54,15 +54,15 @@ def update_user_additional_data(user):
             user.level = StringUtils.normalize_float(user_level_item.split('name" : "')[2].split('", "color')[0])
 
 
-def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict()):
+def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force_full_run=False):
     group_giveaways=dict()
     games=dict()
     reached_end=False
     giveaways_changed=True
-    reached_ended_giveawayss=False
+    reached_ended_giveaways=False
     page_index = 1
-    print 'Starting to process giveaways for group' + group_webpage
-    while not reached_end and (giveaways_changed or not reached_ended_giveawayss):
+    print 'Starting to process giveaways for group ' + group_webpage
+    while not reached_end and (giveaways_changed or not reached_ended_giveaways or force_full_run):
         giveaways_changed = False
         reached_ended_giveawayss = False
         html_content = WebUtils.get_html_page(group_webpage + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
@@ -87,7 +87,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict()):
                 creation_time = time.gmtime(StringUtils.normalize_float(timestamps[1]))
 
             if winners:
-                reached_ended_giveawayss = True
+                reached_ended_giveaways = True
 
             giveaway_entries=dict()
             giveaway_entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(partial_giveaway_link), cookies=cookies)

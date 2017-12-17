@@ -202,7 +202,7 @@ def get_group_all_entered_giveaways(group_webpage, start_time):
         # Go over all giveaways not closed before "addition_date"
         if not start_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.end_time):
             for user in users_list:
-                if user in group_giveaway.entries.keys() and start_time <= time.strftime('%Y-%m-%d', group_giveaway.entries[user].entry_time):
+                if user in group_giveaway.entries.keys() and (not group_giveaway.entries[user].entry_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.entries[user].entry_time)):
                     if user not in response:
                         response[user] = []
                     response[user].append((group_giveaway.link, group_giveaway.game_name, group_giveaway.entries[user].winner))
@@ -222,8 +222,29 @@ def get_group_all_created_giveaways(group_webpage, start_time):
                 response[user] = []
             game_name = group_giveaway.game_name
             game_data = load_game(game_name)
-            response[user].append((group_giveaway.link, game_name, game_data))
+            response[user].append((group_giveaway.link, game_name, game_data, group_giveaway.end_time))
     return response
+
+
+def get_user_all_giveways(group_webpage, user, start_time):
+    group = load_group(group_webpage, load_users_data=False, limit_by_time=start_time, start_time=start_time)
+    if not group:
+        return None
+    created_giveaways=[]
+    entered_giveaways=[]
+    games=dict()
+    for group_giveaway in group.group_giveaways.values():
+        if not start_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.end_time):
+            game_name = group_giveaway.game_name
+            if group_giveaway.creator == user:
+                created_giveaways.append(group_giveaway)
+                games[game_name] = load_game(game_name)
+            elif user in group_giveaway.entries.keys():
+                entered_giveaways.append(group_giveaway)
+                games[game_name] = load_game(game_name)
+
+
+    return created_giveaways, entered_giveaways, games
 
 
 def get_group_summary(group_webpage, start_time):
@@ -239,7 +260,12 @@ def get_group_summary(group_webpage, start_time):
     group_games_without_data=0
     group_games_total_score=0.0
     group_games_total_num_of_reviews=0.0
+    group_total_entered=0.0
+    group_total_won=0.0
     for group_giveaway in group.group_giveaways.values():
+        creator = group_giveaway.creator
+        if creator not in all_group_users:
+            continue
         # Go over all giveaways started after "addition_date"
         if not start_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.end_time):
             group_games_count += 1
@@ -255,7 +281,6 @@ def get_group_summary(group_webpage, start_time):
             else:
                 group_games_without_data += 1
 
-            creator = group_giveaway.creator
             # Number of created GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
             if creator not in users_created:
                 users_created[creator] = [0, 0, 0, 0, 0]
@@ -270,11 +295,12 @@ def get_group_summary(group_webpage, start_time):
                 user_name = entry.user_name
                 if user_name not in all_group_users:
                     continue
-                # Number of entered GAs, Number of Shared GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
+                group_total_entered += 1
+                # Number of entered GAs, Number of Unique GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
                 if user_name not in users_entered:
                     users_entered[user_name] = [0, 0, 0, 0, 0, 0]
                 users_entered[user_name][0] += 1
-                if len(group_giveaway.groups) > 1:
+                if len(group_giveaway.groups) == 1:
                     users_entered[user_name][1] += 1
                 users_entered[user_name][2] += value
                 if game_data_available:
@@ -283,6 +309,7 @@ def get_group_summary(group_webpage, start_time):
                     users_entered[user_name][5] += num_of_reviews
 
                 if entry.winner:
+                    group_total_won += 1
                     # Number of won GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
                     if user_name not in users_won:
                         users_won[user_name] = [0, 0, 0, 0, 0]
@@ -297,8 +324,8 @@ def get_group_summary(group_webpage, start_time):
     group_average_game_value = group_games_value / group_games_count
     group_average_game_score = group_games_total_score / (group_games_count - group_games_without_data)
     group_average_game_num_of_reviews = group_games_total_num_of_reviews / (group_games_count - group_games_without_data)
-    # Total Games Value, Average games value, Average Game Score, Average Game NumOfReviews
-    total_group_data = (group_games_value, group_average_game_value, group_average_game_score, group_average_game_num_of_reviews)
+    # Total Games Value, Average games value, Average Game Score, Average Game NumOfReviews, Average number of created per user, Average number of entrered per user, Average number of won per user
+    total_group_data = (group_games_value, group_average_game_value, group_average_game_score, group_average_game_num_of_reviews, group_games_count / len(all_group_users), group_total_entered / len(all_group_users), group_total_won / len(all_group_users))
 
     # Number of created GAs, Total Value, Average Value, Average Score, Average NumOfReviews
     # Number of entered GAs, Percentage of unique, Average Value, Average Score, Average Num Of Reviews
@@ -365,7 +392,8 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
                     user_to_end_time[user_name] = group_giveaway.end_time
                 response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user_name) + '">' + user_name + '</A> ' \
                             'first giveaway: <A HREF="' + group_giveaway.link + '">' + game_name + '</A> ' \
-                          ' (Steam Value: ' + str(game_data.value) + ', Steam Score: ' + str(game_data.steam_score) + ', Num Of Reviews: ' + str(game_data.num_of_reviews) +')\n'
+                            ' (Steam Value: ' + str(game_data.value) + ', Steam Score: ' + str(game_data.steam_score) + ', Num Of Reviews: ' + str(game_data.num_of_reviews) +')' \
+                            ' Ends on: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.end_time) + '\n'
 
     for group_giveaway in group.group_giveaways.values():
         if check_entered_giveaways and (not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time)):
@@ -477,7 +505,7 @@ def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, lim
 
 
 def add_new_group(group_webpage, cookies):
-    update_group_data(group_webpage, cookies, Group())
+    update_group_data(group_webpage, cookies, Group(), force_full_run=True)
 
 
 def update_existing_group(group_webpage, cookies):
@@ -487,20 +515,21 @@ def update_existing_group(group_webpage, cookies):
     update_group_data(group_webpage, cookies, group)
 
 
-def update_group_data(group_webpage, cookies, group):
+def update_group_data(group_webpage, cookies, group, force_full_run=False):
     group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
     existing_users = MySqlConnector.check_existing_users(group_users.keys())
     for group_user in group_users.values():
         if group_user.user_name not in existing_users:
             SteamGiftsScrapingUtils.update_user_additional_data(group_user)
 
-    group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways)
+    group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run)
     MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways), existing_users, group)
 
     existing_games = MySqlConnector.check_existing_games(games.keys())
     for game in games.values():
         if game.game_name not in existing_games and game.game_link.startswith(SteamConsts.STEAM_GAME_LINK):
             # TODO: Add fallback from SteamDB
+            # TODO: Add handling of packages (choose the highest numOfReviews + Score)
             try:
                 SteamScrapingUtils.update_game_additional_data(game)
             except:

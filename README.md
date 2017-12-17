@@ -1,7 +1,7 @@
 # steamgifts-management-tool
 SteamGifts Group Management Tool (SGMT) is designed to give SteamGifts group admins tools needed to automatically manage their groups
 
-### Current Features 
+### Current Features - Out of date (Need to rewrite)
 The tool currently implements the following features:
 #### Basic Features
 * Print all users in a SteamGifts group
@@ -89,12 +89,13 @@ So for now this tool will run slowly, but safely.
 
 ### Future plans
 * Deploy this tool to a server somewhere, and let anyone use it as an API.
-* I'm also consideting creating a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies
+* I'm also consideting creating a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies - Opened a ticket to SteamGifts Admins. Waiting for their response...
 
 ### TODO
+* Rewrite features list in Readme
 * Implement CheckAllGroupGiveaways
-* Implement GetGroupUserSummary
 * If new user entered a group GA - Add checking if he's on one of the other groups of the GA
+* Add support for (Steam) game bundles (choose the best game from the bundle)
 * Add Whitelist data to giveaways
 * Handle TODO leftovers
 * Add index.html page with usage instructions and links to service API
