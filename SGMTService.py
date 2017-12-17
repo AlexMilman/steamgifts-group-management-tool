@@ -84,7 +84,6 @@ def user_full_giveaways_history():
     total_score = 0.0
     total_num_of_reviews = 0.0
     missing_data = 0
-    # TODO: Sort by end date
     for giveaway in created_giveaways:
         game_data = games[giveaway.game_name]
         total_value += game_data.value
@@ -99,7 +98,7 @@ def user_full_giveaways_history():
         response += u'(Total value of given away games: ' + str(total_value) + u' Average game score: ' + str(total_score / total) + u' Average Num of reviews: ' + str(total_num_of_reviews / total) + ')'
     response += u'<BR>'
 
-    for giveaway in created_giveaways:
+    for giveaway in sorted(created_giveaways, key = lambda x: x.end_time, reverse = True):
         game_name = giveaway.game_name
         game_data = games[game_name]
         response += u'<A HREF="' + giveaway.link + u'">' + game_name.decode('utf-8') + u'</A>'
@@ -107,8 +106,6 @@ def user_full_giveaways_history():
         response += u' Ends on: ' + time.strftime('%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'\n'
         response += u'<BR>'
 
-    # TODO: Add summary of won games
-    # TODO: Sort by end date
     won = 0
     for giveaway in entered_giveaways:
         if user in giveaway.entries.keys() and giveaway.entries[user].winner:
@@ -118,11 +115,13 @@ def user_full_giveaways_history():
     if won > 0:
         response += ' (won ' + str(won) + ') Winning percentage: ' + str(float(won) / len(entered_giveaways) * 100) + '%:<BR>'
 
-    for giveaway in entered_giveaways:
+    for giveaway in sorted(entered_giveaways, key = lambda x: x.entries[user].entry_time, reverse = True):
         response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name.decode('utf-8') + u'</A>'
+        response += u', Ends on: ' + time.strftime('%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'\n'
+        if giveaway.entries[user].entry_time:
+            response += u', Entry date: ' + time.strftime('%Y-%m-%d %H:%M:%S', giveaway.entries[user].entry_time) + u'\n'
         if user in giveaway.entries.keys() and giveaway.entries[user].winner:
-            response += ' (WINNER)'
-        response += u' Ends on: ' + time.strftime('%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'\n'
+            response += ' <B>(WINNER)</B>'
         response += '<BR>'
 
     return response
