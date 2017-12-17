@@ -1,43 +1,14 @@
 # steamgifts-management-tool
 SteamGifts Group Management Tool (SGMT) is designed to give SteamGifts group admins tools needed to automatically manage their groups
+The tool is built to run as a Service, and uses a MySql DB to store all collected data.
 
-### Current Features - Out of date (Need to rewrite)
+### Current Features
 The tool currently implements the following features:
-#### Basic Features
-* Print all users in a SteamGifts group
-* Print all giveaways in a SteamGifts group
-* Print Steam profile ID for each user in a SteamGifts group
-* Print a list of all games a user won in a SteamGifts group
-* Print a list of all giveaways a user created in a SteamGifts group
-#### Standard Features
-* Print a list of all after-n giveaways in a SteamGifts group
-    * "after-n giveaways" means that after winning N games in a group, as user is required (by group rules) to create a giveaway.
-    * Requires a Steam discussion where each member writes down the after-n giveaway he created
-    * Does not have additional verifications (that the giveaway is unique, that the user is not entering any giveaways while it's created, etc.)  
-* Print a list of users who did not create enough after-n giveaways in a SteamGifts group
-    * See above.
-* Print a list of users of a SteamGifts group with a negative won/gifted ratio in SteamGifts
-* Print a list of users with a negative won/gifted ratio in a SteamGifts Group
-* Check if a given user complies with some/all of the following rules:
-    * User doesn't have non activated games
-    * User doesn't have multiple wins
-    * User has positive real CV ratio
-    * User has no SteamRep bans and his profile is public
-    * Check user is above certain level on SteamGifts
-#### Advanced Features
-The following features are considered advanced, as they require you to provide a cookies of a user that is a member of the SteamGifts group in question, in order to work.
-* Print for a user, all the giveaways (in a SteamGifts group) he has joined since a given date (used to check if a user joined giveaways when he was not supposed to)
-* Check a user has created a giveaway (in a SteamGifts group) by some/all of the following rules (usually used for new users):
-    * Giveaway that is unique to the SteamGifts group (no other groups can participate)
-    * Optional: The giveaway is created within X days from when the user has joined the group
-    * Optional: The giveaway has a minimum of X days to exist 
-    * Optional: The giveaway game has a value of at least X
-    * Optional: The giveaway game has at least X reviews on Steam
-    * Optional: The giveaway game has at least X score on Steam
-* Print a list of users in a SteamGifts group that did not post a unique monthly giveaway in a given month/year
-    * Optional: The giveaway game has a value of at least X
-    * Optional: The giveaway game has at least X reviews on Steam
-    * Optional: The giveaway game has at least X score on Steam
+* CheckMonthly - Returns a list of all users who didn\'t create a "monthyl" giveaway in a given month (according to defined rules)
+* UserCheckFirstGiveaway  - Check if users comply with first giveaway rules (according to defined rules)
+* UserFullGiveawaysHistory  - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.) 
+* GroupUsersSummary  - For a given group, return summary of all giveaways created, entered and won by members
+* UserCheckRules - Check if a user complies to group rules
 
 ## How to Install and Run
 ### Python
@@ -49,7 +20,7 @@ Within a command prompt navigate to the steamgifts-group-management-tool folder 
 pip install -r requirements.txt
 ``` 
 
-### Running the tool in CLI
+### Running the tool in CLI - Deprecated (use at your own risk)
 Within a command prompt navigate to the steamgifts-group-management-tool folder and run the command
 ```
 python SGMTStandalone.py -h
@@ -92,7 +63,6 @@ So for now this tool will run slowly, but safely.
 * I'm also consideting creating a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies - Opened a ticket to SteamGifts Admins. Waiting for their response...
 
 ### TODO
-* Rewrite features list in Readme
 * Implement CheckAllGroupGiveaways
 * If new user entered a group GA - Add checking if he's on one of the other groups of the GA
 * Add support for (Steam) game bundles (choose the best game from the bundle)
