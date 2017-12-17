@@ -192,40 +192,6 @@ def get_user_entered_giveaways(group_webpage, users, addition_date):
     return response
 
 
-def get_group_all_entered_giveaways(group_webpage, start_time):
-    group = load_group(group_webpage, limit_by_time=start_time, start_time=start_time)
-    if not group:
-        return None
-    response = dict()
-    users_list = group.group_users.keys()
-    for group_giveaway in group.group_giveaways.values():
-        # Go over all giveaways not closed before "addition_date"
-        if not start_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.end_time):
-            for user in users_list:
-                if user in group_giveaway.entries.keys() and (not group_giveaway.entries[user].entry_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.entries[user].entry_time)):
-                    if user not in response:
-                        response[user] = []
-                    response[user].append((group_giveaway.link, group_giveaway.game_name, group_giveaway.entries[user].winner))
-    return response
-
-
-def get_group_all_created_giveaways(group_webpage, start_time):
-    group = load_group(group_webpage, load_users_data=False, limit_by_time=start_time, start_time=start_time)
-    if not group:
-        return None
-    response = dict()
-    for group_giveaway in group.group_giveaways.values():
-        # Go over all giveaways not closed before "addition_date"
-        if not start_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.end_time):
-            user = group_giveaway.creator
-            if user not in response:
-                response[user] = []
-            game_name = group_giveaway.game_name
-            game_data = load_game(game_name)
-            response[user].append((group_giveaway.link, game_name, game_data, group_giveaway.end_time))
-    return response
-
-
 def get_user_all_giveways(group_webpage, user, start_time):
     group = load_group(group_webpage, load_users_data=False, limit_by_time=start_time, start_time=start_time)
     if not group:
