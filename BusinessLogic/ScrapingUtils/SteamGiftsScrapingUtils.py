@@ -1,9 +1,10 @@
+import logging
 import time
 
 import requests
 
 from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SteamConsts
-from BusinessLogic.Utils import StringUtils, WebUtils
+from BusinessLogic.Utils import StringUtils, WebUtils, LogUtils
 from Data.GameData import GameData
 from Data.GiveawayEntry import GiveawayEntry
 from Data.GroupGiveaway import GroupGiveaway
@@ -61,7 +62,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
     giveaways_changed=True
     reached_ended_giveaways=False
     page_index = 1
-    print 'Starting to process giveaways for group ' + group_webpage
+    LogUtils.log_info('Starting to process giveaways for group ' + group_webpage)
     while not reached_end and (giveaways_changed or not reached_ended_giveaways or force_full_run):
         giveaways_changed = False
         reached_ended_giveaways = False
@@ -69,13 +70,13 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
             break
-        print 'Processing page #' + str(current_page_num)
+        LogUtils.log_info('Processing page #' + str(current_page_num))
 
         giveaway_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
         for giveaway_elem in giveaway_elements:
             partial_giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
             giveaway_link = SteamGiftsConsts.get_giveaway_link(partial_giveaway_link)
-            print 'Processing: ' + giveaway_link
+            LogUtils.log_info('Processing: ' + giveaway_link)
             game_name = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/text()').encode('utf-8')
             winners = WebUtils.get_items_by_xpath(giveaway_elem, u'.//div[@class="giveaway__column--positive"]/a/text()')
             poster = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__username"]/text()')
@@ -128,7 +129,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
 
         page_index += 1
 
-    print 'Finished processing giveaways for group' + group_webpage
+    LogUtils.log_info('Finished processing giveaways for group' + group_webpage)
     return group_giveaways, games
 
 

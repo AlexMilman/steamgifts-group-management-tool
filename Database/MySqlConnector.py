@@ -7,7 +7,7 @@ import ConfigParser
 
 import time
 
-from BusinessLogic.Utils import StringUtils
+from BusinessLogic.Utils import StringUtils, LogUtils
 from Data.GameData import GameData
 from Data.GiveawayEntry import GiveawayEntry
 from Data.Group import Group
@@ -78,7 +78,7 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
 
     cursor.close()
     connection.close()
-    print 'Save Group ' + group_website + ' took ' + str(time.time() - start_time) +  ' seconds'
+    LogUtils.log_info('Save Group ' + group_website + ' took ' + str(time.time() - start_time) +  ' seconds')
 
 
 def load_group(group_website, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time_str=None, end_time_str=None):
@@ -145,7 +145,7 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
 
     cursor.close()
     connection.close()
-    print 'Load Group ' + group_website + ' took ' + str(time.time() - start_time) +  ' seconds'
+    LogUtils.log_info('Load Group ' + group_website + ' took ' + str(time.time() - start_time) +  ' seconds')
     return Group(group_users, group_giveaways)
 
 

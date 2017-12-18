@@ -1,9 +1,12 @@
 import httplib
+import logging
 import urllib2
 from lxml import html
 
 # WebUtils module responsible for web page downloads, and xpath traversal
 # Copyright (C) 2017  Alex Milman
+from BusinessLogic.Utils import LogUtils
+
 
 def get_items_by_xpath(image_data, xpath_param, default=None):
     xpath_value = image_data.xpath(xpath_param)
@@ -36,7 +39,7 @@ def get_page_content(page_url, cookies=None):
     try:
         response = opener.open(page_url)
     except:
-        print 'Error downloading page ' + page_url
+        LogUtils.log_error('Error downloading page ' + page_url)
         return ''
     while 1:
         try:

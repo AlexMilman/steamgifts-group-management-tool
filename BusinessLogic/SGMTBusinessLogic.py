@@ -1,3 +1,4 @@
+import logging
 import time
 
 import pylru
@@ -7,6 +8,7 @@ from datetime import datetime
 
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
     SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts, SteamConsts, SteamDBScrapingUtils
+from BusinessLogic.Utils import LogUtils
 from Data.GameData import GameData
 from Data.Group import Group
 
@@ -389,9 +391,9 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
 def check_game_data(game_data, game_name):
     #TODO: Change to logger.error
     if not game_data:
-        print 'Could not load game data: ' + game_name
+        LogUtils.log_error('Could not load game data: ' + game_name)
     elif game_data.value == -1 or game_data.num_of_reviews == -1 or game_data.steam_score == -1:
-        print 'Could not load full game data: ' + game_name
+        LogUtils.log_error('Could not load full game data: ' + game_name)
 
 
 def game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score):
@@ -511,7 +513,7 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False):
             try:
                 SteamScrapingUtils.update_game_additional_data(game)
             except:
-                print 'Cannot add additional data for ' + game.game_name + ' ERROR: %s', sys.exc_info()[0]
+                LogUtils.log_error('Cannot add additional data for ' + game.game_name + ' ERROR: %s', sys.exc_info()[0])
     MySqlConnector.save_games(games, existing_games)
 
     if group_webpage in groups_cache:
