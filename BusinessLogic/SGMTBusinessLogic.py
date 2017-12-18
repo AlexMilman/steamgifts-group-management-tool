@@ -3,6 +3,8 @@ import time
 import pylru
 import sys
 
+from datetime import datetime
+
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
     SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts, SteamConsts, SteamDBScrapingUtils
 from Data.GameData import GameData
@@ -361,15 +363,25 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
                             ' (Steam Value: ' + str(game_data.value) + ', Steam Score: ' + str(game_data.steam_score) + ', Num Of Reviews: ' + str(game_data.num_of_reviews) +')' \
                             ' Ends on: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.end_time) + '\n'
 
+    response += '\n'
+    for user in users_list:
+        if user not in user_to_end_time.keys():
+            response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> did not create a GA yet!\n'
+
+    response += '\n'
     for group_giveaway in group.group_giveaways.values():
         if check_entered_giveaways and (not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time)):
             for user in users_list:
                 if user in group_giveaway.entries and group_giveaway.entries[user].entry_time.tm_mday >= int(addition_date.split('-')[2]) and (user not in user_to_end_time or group_giveaway.entries[user].entry_time < user_to_end_time[user]):
                     #TODO: Add check user could have entered via another group
                     #TODO: Add "Whitelist detected" warning
+                    #TODO: Add warning if entry time is from the date he entered the group
                     response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> ' \
                                 'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A> ' \
                                '(Entry date: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.entries[user].entry_time) + ')\n'
+
+    if addition_date and days_to_create_ga > 0 and time.gmtime().tm_mday > int(addition_date.split('-')[2]) + days_to_create_ga:
+        response += '\nTime to create first GA ended.\n'
 
     return response
 
