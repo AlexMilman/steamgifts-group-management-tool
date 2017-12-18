@@ -4,11 +4,11 @@ The tool is built to run as a Service, and uses a MySql DB to store all collecte
 
 ### Current Features
 The tool currently implements the following features:
-* CheckMonthly - Returns a list of all users who didn\'t create a "monthyl" giveaway in a given month (according to defined rules)
-* UserCheckFirstGiveaway  - Check if users comply with first giveaway rules (according to defined rules)
-* UserFullGiveawaysHistory  - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.) 
-* GroupUsersSummary  - For a given group, return summary of all giveaways created, entered and won by members
-* UserCheckRules - Check if a user complies to group rules
+* CheckMonthly - Returns a list of all users who didn\'t create a "monthyl" giveaway in a given month (according to defined rules). Response example: https://imgur.com/a/4RsM9
+* UserCheckFirstGiveaway  - Check if users comply with first giveaway rules (according to defined rules). Response example: https://imgur.com/a/afSBB
+* UserFullGiveawaysHistory  - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.). Response example: https://imgur.com/a/FQaqz 
+* GroupUsersSummary  - For a given group, return summary of all giveaways created, entered and won by members. Response example: https://imgur.com/a/WSkt1 
+* UserCheckRules - Check if a user complies to group rules. Response example: https://imgur.com/a/oCL3N
 
 ## How to Install and Run
 ### Python
