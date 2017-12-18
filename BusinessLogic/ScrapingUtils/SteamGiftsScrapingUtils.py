@@ -64,7 +64,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
     print 'Starting to process giveaways for group ' + group_webpage
     while not reached_end and (giveaways_changed or not reached_ended_giveaways or force_full_run):
         giveaways_changed = False
-        reached_ended_giveawayss = False
+        reached_ended_giveaways = False
         html_content = WebUtils.get_html_page(group_webpage + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
