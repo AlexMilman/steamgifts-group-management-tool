@@ -1,0 +1,81 @@
+#!/bin/bash
+#chkconfig: 2345 95 20
+# description: Description of the script
+# processname: SteamGifts Group Management Tool
+#####################################################################################
+# This shell script is running SteamGifts Group Management Tool as service
+# 
+# 
+# 
+####################################################################################
+
+# Constants
+DAEMON_PATH="/home/ec2-user/steamgifts-management-tool"
+PIDFILE=${DAEMON_PATH}/SGMT.lock
+DAEMON=${DAEMON_PATH}/startSGMT.sh
+PROCESS_OWNER=ec2-user
+NAME="SteamGifts Group Management Tool"
+
+# exit the script if a given pid is already running
+# parameters:
+#       $1 - process ID
+function exitIfPidExists {
+        if [ "x$1" != "x" ]; then
+                pid=$(/bin/ps -p $1 --no-heading -o pid | /bin/awk '{print $1}')
+                if [ "x$pid" = "x$1" ]; then
+                        printf "Script with PID=$pid is already running. Exiting"
+                        exit 1
+                fi
+        fi
+}
+
+case "$1" in
+start) 
+	printf "%-50s" "Starting $NAME..."
+	cd $DAEMON_PATH
+	PID=`cat $PIDFILE 2>/dev/null`
+	exitIfPidExists $PID
+	PID=`su $PROCESS_OWNER -c "$DAEMON $PIDFILE"`
+        #echo "Saving PID" $PID " to " $PIDFILE
+        if [ -z $PID ]; then
+            printf "%s\n" "Fail"
+        else
+            #echo $PID > $PIDFILE
+            echo "Successfully started $NAME - "$PID
+        fi
+;;
+status)
+        printf "%-50s" "Checking $NAME..."
+        if [ -f $PIDFILE ]; then
+            PID=`cat $PIDFILE 2>/dev/null`
+            if [ -z "`ps axf | grep ${PID} | grep -v grep`" ]; then
+                printf "%s\n" "Process dead but pidfile exists"
+            else
+                echo "Running..."$PID
+            fi
+        else
+            printf "%s\n" "Service not running"
+        fi
+;;
+stop)
+        printf "%-50s" "Stopping $NAME"
+            PID=`cat $PIDFILE 2>/dev/null`
+            cd $DAEMON_PATH
+        if [ -f $PIDFILE ]; then
+            sudo kill -9 $PID
+            printf "%s\n" "Ok"
+            rm -f $PIDFILE
+        else
+            printf "%s\n" "pidfile not found"
+        fi
+;;
+
+restart)
+  	$0 stop
+  	$0 start
+;;
+
+*)
+        echo "Usage: $0 {status|start|stop|restart}"
+        exit 1
+esac
