@@ -134,7 +134,8 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
         else:
             start_day = group_giveaway.start_time.tm_mday
         end_day = group_giveaway.end_time.tm_mday
-        if group_giveaway.creator in users and len(group_giveaway.groups) == 1\
+        creator = group_giveaway.creator
+        if creator in users and len(group_giveaway.groups) == 1\
                 and start_month == month and end_month == month\
                 and end_day - start_day >= min_days:
             game_name = group_giveaway.game_name
@@ -142,15 +143,16 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
             check_game_data(game_data, game_name)
             if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score):
                 if group_giveaway.has_winners():
-                    monthly_posters.add(group_giveaway.creator)
+                    monthly_posters.add(creator)
                 else:
-                    if group_giveaway.creator not in monthly_unfinished:
-                        monthly_unfinished[group_giveaway.creator] = set()
-                    monthly_unfinished[group_giveaway.creator].add('<A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A>')
+                    if creator not in monthly_unfinished:
+                        monthly_unfinished[creator] = set()
+                    monthly_unfinished[creator].add('<A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A>')
 
     response += '\n\nUsers with unfinished monthly GAs:\n'
-    for user,links in monthly_unfinished.iteritems():
-        response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> giveaways: ' + parse_list(links) + '\n'
+    for user, links in monthly_unfinished.iteritems():
+        if user not in monthly_posters:
+            response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> giveaways: ' + parse_list(links) + '\n'
 
     response += '\n\nUsers without monthly giveaways:\n'
     for user in users:
