@@ -2,3 +2,4 @@ Flask
 lxml
 PyMysql
 pylru
+gunicorn
