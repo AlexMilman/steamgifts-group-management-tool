@@ -1,6 +1,4 @@
-import logging
 import time
-
 import requests
 
 from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SteamConsts
@@ -14,10 +12,12 @@ from Data.GroupUser import GroupUser
 # Copyright (C) 2017  Alex Milman
 
 
-def get_group_users(group_webpage, max_pages=0):
+def get_group_users(group_webpage):
+    LogUtils.log_info('Processing users for group' + group_webpage)
     group_users = dict()
     page_index = 1
-    while page_index < max_pages or max_pages == 0:
+    while True:
+        LogUtils.log_info('Processing page #' + page_index)
         html_content = WebUtils.get_html_page(SteamGiftsConsts.get_steamgifts_users_page(group_webpage) + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
@@ -36,10 +36,12 @@ def get_group_users(group_webpage, max_pages=0):
 
         page_index += 1
 
+    LogUtils.log_info('Finished processing users for group' + group_webpage)
     return group_users
 
 
 def update_user_additional_data(user):
+    LogUtils.log_info('Processing new user ' + user.user_name)
     html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user.user_name))
     steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
     user.steam_id = steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
@@ -56,13 +58,13 @@ def update_user_additional_data(user):
 
 
 def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force_full_run=False):
+    LogUtils.log_info('Starting to process giveaways for group ' + group_webpage)
     group_giveaways=dict()
     games=dict()
     reached_end=False
     giveaways_changed=True
     reached_ended_giveaways=False
     page_index = 1
-    LogUtils.log_info('Starting to process giveaways for group ' + group_webpage)
     while not reached_end and (giveaways_changed or not reached_ended_giveaways or force_full_run):
         giveaways_changed = False
         reached_ended_giveaways = False

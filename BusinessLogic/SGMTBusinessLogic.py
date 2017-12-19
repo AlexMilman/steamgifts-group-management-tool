@@ -513,7 +513,7 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False):
             try:
                 SteamScrapingUtils.update_game_additional_data(game)
             except:
-                LogUtils.log_error('Cannot add additional data for ' + game.game_name + ' ERROR: %s', sys.exc_info()[0])
+                LogUtils.log_error('Cannot add additional data for ' + game.game_name + ' ERROR: ' + str(sys.exc_info()[0]))
     MySqlConnector.save_games(games, existing_games)
 
     if group_webpage in groups_cache:

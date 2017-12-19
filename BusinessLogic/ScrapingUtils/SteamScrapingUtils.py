@@ -1,7 +1,7 @@
 from lxml import html
 
 from BusinessLogic.ScrapingUtils import SteamFinderScrapingUtils, SteamConsts, SteamGiftsConsts
-from BusinessLogic.Utils import WebUtils, StringUtils
+from BusinessLogic.Utils import WebUtils, StringUtils, LogUtils
 
 
 # All scraping implementations for SteamFinder pages
@@ -57,6 +57,7 @@ def verify_after_n_giveaways(steam_after_n_thread_link, giveaways, group_users, 
 
 
 def update_game_additional_data(game):
+    LogUtils.log_info('Processing new game ' + game.game_name)
     html_content = WebUtils.get_html_page(game.game_link, "birthtime=-7199; lastagecheckage=1-January-1970; mature_content=1;")
     steam_game_tooltip = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="user_reviews_summary_row"]/@data-store-tooltip')[-1]
     if steam_game_tooltip != 'Need more user reviews to generate a score' and steam_game_tooltip != 'No user reviews':

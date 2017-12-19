@@ -7,7 +7,7 @@ import logging
 config = ConfigParser.ConfigParser()
 config.read('application.config')
 dir = config.get('Logging', 'Directory')
-file_name = int(config.get('Logging', 'FileName'))
+file_name = config.get('Logging', 'FileName')
 
 logging.basicConfig(format='%(asctime)s %(message)s', filename=dir + file_name, level=logging.INFO)
 logging.getLogger().addHandler(logging.StreamHandler())

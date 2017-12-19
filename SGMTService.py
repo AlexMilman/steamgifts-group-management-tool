@@ -111,7 +111,7 @@ def user_full_giveaways_history():
         if user in giveaway.entries.keys() and giveaway.entries[user].winner:
             won += 1
 
-    response += u'<BR>User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A> entered ' + str(len(entered_giveaways)) + ' giveaways:<BR>'
+    response += u'<BR>User entered ' + str(len(entered_giveaways)) + ' giveaways:<BR>'
     if won > 0:
         response = response[:-4]
         response += ' (Won ' + str(won) + ', Winning percentage: ' + str(float(won) / len(entered_giveaways) * 100) + '%)<BR>'
