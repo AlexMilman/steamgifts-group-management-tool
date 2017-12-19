@@ -3,17 +3,17 @@ SteamGifts Group Management Tool (SGMT) is designed to give SteamGifts group adm
 The tool is built to run as a Service, and uses a MySql DB to store all collected data.
 
 ### Using the tool
-The tool is currently deployed on a web server, and can be accessed through [here](http://18.217.222.235:5000/SGMT/)
+The tool is currently deployed on a web server, and can be accessed through [here](http://18.217.222.235:8080/SGMT/)
 
 In order for the tool to be usable for any specific group, this group needs to be added. Contact me for details.
 
 ### Current Features
 The tool currently implements the following features:
-* [CheckMonthly](http://18.217.222.235:5000/SGMT/CheckMonthly) - Returns a list of all users who didn\'t create a "monthyl" giveaway in a given month (according to defined rules). Response example: https://imgur.com/a/4RsM9
-* [UserCheckFirstGiveaway](http://18.217.222.235:5000/SGMT/UserCheckFirstGiveaway)  - Check if users comply with first giveaway rules (according to defined rules). Response example: https://imgur.com/a/afSBB
-* [UserFullGiveawaysHistory](http://18.217.222.235:5000/SGMT/UserFullGiveawaysHistory)  - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.). Response example: https://imgur.com/a/FQaqz 
-* [GroupUsersSummary](http://18.217.222.235:5000/SGMT/GroupUsersSummary)  - For a given group, return summary of all giveaways created, entered and won by members. Response example: https://imgur.com/a/WSkt1 
-* [UserCheckRules](http://18.217.222.235:5000/SGMT/UserCheckRules) - Check if a user complies to group rules. Response example: https://imgur.com/a/oCL3N
+* [CheckMonthly](http://18.217.222.235:8080/SGMT/CheckMonthly) - Returns a list of all users who didn\'t create a "monthyl" giveaway in a given month (according to defined rules). Response example: https://imgur.com/a/4RsM9
+* [UserCheckFirstGiveaway](http://18.217.222.235:8080/SGMT/UserCheckFirstGiveaway)  - Check if users comply with first giveaway rules (according to defined rules). Response example: https://imgur.com/a/afSBB
+* [UserFullGiveawaysHistory](http://18.217.222.235:8080/SGMT/UserFullGiveawaysHistory)  - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.). Response example: https://imgur.com/a/FQaqz 
+* [GroupUsersSummary](http://18.217.222.235:8080/SGMT/GroupUsersSummary)  - For a given group, return summary of all giveaways created, entered and won by members. Response example: https://imgur.com/a/WSkt1 
+* [UserCheckRules](http://18.217.222.235:8080/SGMT/UserCheckRules) - Check if a user complies to group rules. Response example: https://imgur.com/a/oCL3N
 
 ## How to Install and Run
 ### Python
@@ -67,10 +67,7 @@ So for now this tool will run slowly, but safely.
 * Create a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies - Opened a ticket to SteamGifts Admins. Waiting for their response...
 
 ### TODO
-* Add deployment script
-* Create service to run the tool
 * Make the service auto-start when machine comes up
-* Save machine AMI
 * Add index.html page with usage instructions and links to service API
 * Add scheduler for daily(?) group refreshes
 * Implement CheckAllGroupGiveaways
