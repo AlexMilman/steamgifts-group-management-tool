@@ -17,7 +17,7 @@ def get_group_users(group_webpage):
     group_users = dict()
     page_index = 1
     while True:
-        LogUtils.log_info('Processing page #' + page_index)
+        LogUtils.log_info('Processing page #' + str(page_index))
         html_content = WebUtils.get_html_page(SteamGiftsConsts.get_steamgifts_users_page(group_webpage) + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
