@@ -40,7 +40,8 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
             entries_data.append((entry.user_name, to_epoch(entry.entry_time), entry.winner))
         giveaways_data.append((giveaway_id, group_giveaway.link, group_giveaway.creator, group_giveaway.game_name, json.dumps(entries_data), json.dumps(group_giveaway.groups)))
 
-    cursor.executemany("INSERT INTO Giveaways (GiveawayID,LinkURL,Creator,GameName,Entries,Groups) VALUES (%s,%s,%s,%s,%s,%s)"\
+    if giveaways_data:
+        cursor.executemany("INSERT INTO Giveaways (GiveawayID,LinkURL,Creator,GameName,Entries,Groups) VALUES (%s,%s,%s,%s,%s,%s)"\
                        + " ON DUPLICATE KEY UPDATE LinkURL=VALUES(LinkURL),Creator=VALUES(Creator),GameName=VALUES(GameName),Entries=VALUES(Entries),Groups=VALUES(Groups)", giveaways_data)
 
     # Merge with existing group data (in case of update/merge)
@@ -59,13 +60,8 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
         if group_user.user_name not in users_to_ignore:
             users_data.append((group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level))
 
-    cursor.executemany("INSERT IGNORE INTO Users (UserName,SteamId,GlobalWon,GlobalSent,Level) VALUES (%s, %s, %s, %s, %s)", users_data)
-
-    # Merge with existing group data (in case of update/merge)
-    if existing_group_data and existing_group_data.group_users:
-        for existing_user_data in existing_group_data.group_users.values():
-            if existing_user_data.user_name not in group.group_users.keys():
-                group_users_data.append((existing_user_data.user_name, existing_user_data.group_won, existing_user_data.group_sent))
+    if users_data:
+        cursor.executemany("INSERT IGNORE INTO Users (UserName,SteamId,GlobalWon,GlobalSent,Level) VALUES (%s, %s, %s, %s, %s)", users_data)
 
     # Insert Group
     group_id_str = "\"" + StringUtils.get_hashed_id(group_website) + "\""
