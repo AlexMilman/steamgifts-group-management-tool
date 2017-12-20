@@ -8,7 +8,7 @@ from datetime import datetime
 
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
     SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts, SteamConsts, SteamDBScrapingUtils
-from BusinessLogic.Utils import LogUtils
+from BusinessLogic.Utils import LogUtils, WebUtils
 from Data.GameData import GameData
 from Data.Group import Group
 
@@ -459,6 +459,7 @@ def load_user(group_user, user_name):
 
 
 def test(group_webpage):
+    WebUtils.get_html_page('https://www.steamgifts.com/giveaway/OCir9/plank-not-included/groups1')
     # group = add_new_group(group_webpage, '')
     # MySqlConnector.save_group(group_webpage, group)
     # group = MySqlConnector.load_group(group_webpage)
@@ -469,12 +470,13 @@ def test(group_webpage):
     #         print message
     #     if group_user.global_won > group_user.global_sent:
     #         print 'User ' + group_user.user_name + ' has negative global gifts ratio'
-    game = GameData('Chroma Squad', 'http://store.steampowered.com/app/251130/', 15)
-
-    try:
-        SteamScrapingUtils.update_game_additional_data(game)
-    except:
-        SteamDBScrapingUtils.update_game_additional_data(game)
+    # game = GameData('Chroma Squad', 'http://store.steampowered.com/app/251130/', 15)
+    #
+    # try:
+    #     SteamScrapingUtils.update_game_additional_data(game)
+    # except:
+    #     SteamDBScrapingUtils.update_game_additional_data(game)
+    pass
 
 def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time=None, end_time=None):
     if group_webpage in groups_cache:
@@ -509,13 +511,31 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False):
 
     existing_games = MySqlConnector.check_existing_games(games.keys())
     for game in games.values():
-        if game.game_name not in existing_games and game.game_link.startswith(SteamConsts.STEAM_GAME_LINK):
-            # TODO: Add fallback from SteamDB
-            # TODO: Add handling of packages (choose the highest numOfReviews + Score)
-            try:
-                SteamScrapingUtils.update_game_additional_data(game)
-            except:
-                LogUtils.log_error('Cannot add additional data for ' + game.game_name + ' ERROR: ' + str(sys.exc_info()[0]))
+        game_name = game.game_name
+        game_link = game.game_link
+        if game_name not in existing_games:
+            if game_link.startswith(SteamConsts.STEAM_GAME_LINK):
+                try:
+                    steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name, game_link)
+                    game.steam_score = steam_score
+                    game.num_of_reviews = num_of_reviews
+                except:
+                    # TODO: Add fallback from elsewhere (for example: SteamDB)
+                    LogUtils.log_error('Cannot add additional data for ' + game_name + ' ERROR: ' + str(sys.exc_info()[0]))
+            elif game_link.startswith(SteamConsts.STEAM_PACKAGE_LINK):
+                chosem_score = 0
+                chosen_num_of_reviews = 0
+                package_games = SteamScrapingUtils.get_games_from_package(game_name, game_link)
+                i = 0
+                for package_url in package_games:
+                    steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name + ' - package #' + str(i), package_url)
+                    if num_of_reviews > chosen_num_of_reviews:
+                        chosem_score = steam_score
+                        chosen_num_of_reviews = num_of_reviews
+                    i += 1
+                game.steam_score = chosem_score
+                game.num_of_reviews = chosen_num_of_reviews
+
     MySqlConnector.save_games(games, existing_games)
 
     if group_webpage in groups_cache:

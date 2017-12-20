@@ -56,13 +56,21 @@ def verify_after_n_giveaways(steam_after_n_thread_link, giveaways, group_users, 
     return after_n_giveaways
 
 
-def update_game_additional_data(game):
-    LogUtils.log_info('Processing new game ' + game.game_name)
-    html_content = WebUtils.get_html_page(game.game_link, "birthtime=-7199; lastagecheckage=1-January-1970; mature_content=1;")
+def get_game_additional_data(game_name, game_link):
+    LogUtils.log_info('Processing new game ' + game_name)
+    steam_score = 0
+    num_of_reviews = 0
+    html_content = WebUtils.get_html_page(game_link, "birthtime=-7199; lastagecheckage=1-January-1970; mature_content=1;")
     steam_game_tooltip = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="user_reviews_summary_row"]/@data-store-tooltip')[-1]
     if steam_game_tooltip != 'Need more user reviews to generate a score' and steam_game_tooltip != 'No user reviews':
-        game.steam_score = StringUtils.normalize_int(steam_game_tooltip.split('%')[0])
-        game.num_of_reviews = StringUtils.normalize_int(steam_game_tooltip.split('of the')[1].split('user reviews')[0])
-    else:
-        game.steam_score = 0
-        game.num_of_reviews = 0
+        steam_score = StringUtils.normalize_int(steam_game_tooltip.split('%')[0])
+        num_of_reviews = StringUtils.normalize_int(steam_game_tooltip.split('of the')[1].split('user reviews')[0])
+    return steam_score, num_of_reviews
+
+
+
+def get_games_from_package(package_name, package_link):
+    LogUtils.log_info('Processing new package ' + package_name)
+    html_content = WebUtils.get_html_page(package_link, "birthtime=-7199; lastagecheckage=1-January-1970; mature_content=1;")
+    games = WebUtils.get_items_by_xpath(html_content, u'.//a[@class="tab_item_overlay"]/@href')
+    return games
