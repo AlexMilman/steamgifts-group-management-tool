@@ -1,6 +1,8 @@
 import httplib
 import logging
 import urllib2
+
+import time
 from lxml import html
 
 # WebUtils module responsible for web page downloads, and xpath traversal
@@ -26,8 +28,16 @@ def get_item_by_xpath(image_data, xpath_param, default=None):
         return xpath_value.extract()
 
 
-def get_html_page(page_url, cookies=None):
-    return html.fromstring(get_page_content(page_url, cookies))
+def get_html_page(page_url, cookies=None, retries=3):
+    while retries > 0:
+        try:
+            return html.fromstring(get_page_content(page_url, cookies))
+        except:
+            LogUtils.log_error('Error downloading page ' + page_url + '. ' + str(retries) + ' retries left')
+            time.sleep(0.1)
+            retries -= 1
+
+    return None
 
 
 def get_page_content(page_url, cookies=None):
@@ -36,11 +46,8 @@ def get_page_content(page_url, cookies=None):
     opener = urllib2.build_opener()
     if cookies:
         opener.addheaders.append(('Cookie', cookies))
-    try:
-        response = opener.open(page_url)
-    except:
-        LogUtils.log_error('Error downloading page ' + page_url)
-        return ''
+    response = opener.open(page_url)
+
     while 1:
         try:
             data = response.read()
@@ -50,5 +57,6 @@ def get_page_content(page_url, cookies=None):
         if not data:
             break
         content += data
+
     return content
 
