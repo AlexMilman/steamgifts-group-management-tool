@@ -240,6 +240,8 @@ def get_game_data(game_name):
 
 def parse_list(list, prefix=''):
     result = ''
+    if not list or len(list) == 0:
+        return result
     for item in list:
         result += '"' + prefix + item + '",'
 
