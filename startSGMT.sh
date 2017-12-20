@@ -1,3 +1,3 @@
 cd /home/ec2-user/steamgifts-management-tool
-python SGMTService.py > /dev/null 2>&1 & echo $! > $1
+gunicorn --bind 0.0.0.0:8080 --workers 8 wsgi:app > /dev/null 2>&1 & echo $! > $1
 cat $1
