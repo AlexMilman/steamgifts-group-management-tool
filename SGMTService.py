@@ -10,6 +10,7 @@ from BusinessLogic import SGMTBusinessLogic
 # API Service of SGMT
 # Copyright (C) 2017  Alex Milman
 from BusinessLogic.ScrapingUtils import SteamGiftsConsts
+from BusinessLogic.Utils import LogUtils
 
 app = Flask(__name__)
 
@@ -27,11 +28,20 @@ def check_monthly():
     alt_min_steam_score = get_optional_int_param('alt_min_steam_score')
 
     if not group_webpage or not year_month:
-        return 'CheckMonthly - Returns a list of all users who didn\'t create a giveaway in a given month<BR>' \
-               'Usage: /SGMT/CheckMonthly?group_webpage=[steamgifts group webpage]&year_month=[Year+Month: YYYY-MM] ' \
-               '(Optional: &min_days=[Minimum number of days of a GA]&min_game_value=[Minimal game value (in $) allowed]&min_steam_num_of_reviews=[Minimal number of Steam reviews allowed for a game]&min_steam_score=[Minimal Steam score allowed for a game])<BR><BR>' \
-               '&alt_min_game_value=[Alt. Minimal game value (in $) allowed]&alt_min_steam_num_of_reviews=[Alt. Minimal number of Steam reviews allowed for a game]&alt_min_steam_score=[Alt. Minimal Steam score allowed for a game])<BR><BR>' \
-               'Example: /SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80'
+        return 'CheckMonthly - Returns a list of all users who didn\'t create a giveaway in a given month<BR><BR>' \
+               '<B>Params:</B><BR> ' \
+               'group_webpage - SteamGifts group webpage<BR>' \
+               'year_month=YYYY-MM Year+Month for which you want to check  <BR>' \
+               '<B>Optional Params:</B> <BR>' \
+               'min_days - Minimum number of days of a GA<BR>' \
+               'min_game_value - Minimal game value (in $) allowed<BR>' \
+               'min_steam_num_of_reviews - Minimal number of Steam reviews allowed for a game<BR>' \
+               'min_steam_score - Minimal Steam score allowed for a game<BR>' \
+               'alt_min_game_value - Alternative minimal game value (in $) allowed<BR>' \
+               'alt_min_steam_num_of_reviews - Alternative minimal number of Steam reviews allowed for a game<BR>' \
+               'alt_min_steam_score - Alternative Minimal Steam score allowed for a game<BR>' \
+               '<BR><BR>' \
+               'Example:<BR> /SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80'
 
     response = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score)
     return response.replace('\n','<BR>')
@@ -59,7 +69,7 @@ def user_check_first_giveaway():
                '(Optional: &addition_date=[date from which the user entered the group: YYYY-MM-DD]&days_to_create_ga=[within how many days since entering the group should the GA be created]&min_ga_time=[min GA running time (in days)]' \
                '&min_game_value=[Minimal game value (in $) allowed]&min_steam_num_of_reviews=[Minimal number of Steam reviews allowed for a game]&min_steam_score=[Minimal Steam score allowed for a game])<BR><BR>' \
                '&alt_min_game_value=[Alt. Minimal game value (in $) allowed]&alt_min_steam_num_of_reviews=[Alt. Minimal number of Steam reviews allowed for a game]&alt_min_steam_score=[Alt. Minimal Steam score allowed for a game])&check_entered_giveaways=[Check if user entered any group GAs while his first GA is active]<BR><BR>' \
-               'Example: /SGMT/UserCheckFirstGiveaway?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&users=User1,User2&addition_date=2017-12-01&days_to_create_ga=2&min_ga_time=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80&check_entered_giveaways=True'
+               'Example:<BR> /SGMT/UserCheckFirstGiveaway?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&users=User1,User2&addition_date=2017-12-01&days_to_create_ga=2&min_ga_time=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80&check_entered_giveaways=True'
 
     response = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, users, addition_date, days_to_create_ga, min_ga_time, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, check_entered_giveaways)
     return response.replace('\n','<BR>')
@@ -116,7 +126,7 @@ def user_full_giveaways_history():
         response = response[:-4]
         response += ' (Won ' + str(won) + ', Winning percentage: ' + str(float(won) / len(entered_giveaways) * 100) + '%)<BR>'
 
-    for giveaway in sorted(entered_giveaways, key = lambda x: x.entries[user].entry_time, reverse = True):
+    for giveaway in sorted(entered_giveaways, key = lambda x: x.end_time, reverse = True):
         response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name.decode('utf-8') + u'</A>'
         response += u', Ends on: ' + time.strftime('%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'\n'
         if giveaway.entries[user].entry_time:
@@ -197,7 +207,7 @@ def user_check_rules():
     check_real_cv_value = request.args.get('check_real_cv_value')
     check_steamgifts_ratio = request.args.get('check_steamgifts_ratio')
     check_level = request.args.get('check_level')
-    level = int(request.args.get('level'))
+    level = get_optional_int_param(request.args.get('level'))
     check_steamrep = request.args.get('check_steamrep')
 
     if not users:
@@ -261,6 +271,11 @@ def conditions():
            '(at your option) any later version.'
 
 
+@app.route('/SGMT/servicecheck', methods=['GET'])
+def service_check():
+    return 'OK'
+
+
 def get_optional_int_param(param_name):
     param_value = request.args.get(param_name)
     if param_value:
@@ -288,5 +303,5 @@ def float_to_str(float_value):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
-    # app.run(debug=True)
+    # app.run(host='0.0.0.0')
+    app.run(debug=True)
