@@ -494,7 +494,10 @@ def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, lim
 
 def add_new_group(group_webpage, cookies):
     group_name = SteamGiftsScrapingUtils.get_group_name(group_webpage)
-    update_group_data(group_webpage, cookies, Group(group_name=group_name, group_webpage=group_webpage, cookies=cookies), force_full_run=True)
+    if not cookies:
+        cookies = common_cookies
+    games = update_group_data(group_webpage, cookies, Group(group_name=group_name, group_webpage=group_webpage, cookies=cookies), force_full_run=True)
+    update_games_data(games)
 
 
 def update_existing_group(group_webpage):
@@ -504,22 +507,14 @@ def update_existing_group(group_webpage):
     cookies = common_cookies
     if group.cookies:
         cookies = group.cookies
-    update_group_data(group_webpage, cookies, group)
+    games = update_group_data(group_webpage, cookies, group)
+    update_games_data(games)
+
+    if group_webpage in groups_cache:
+        del groups_cache[group_webpage]
 
 
-def update_group_data(group_webpage, cookies, group, force_full_run=False):
-    group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
-    existing_users = MySqlConnector.check_existing_users(group_users.keys())
-    for group_user in group_users.values():
-        if group_user.user_name not in existing_users:
-            try:
-                SteamGiftsScrapingUtils.update_user_additional_data(group_user)
-            except:
-                LogUtils.log_error('Cannot add additional data for user: ' + group_user.user_name + ' ERROR: ' + str(sys.exc_info()[0]))
-
-    group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run)
-    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways), existing_users, group)
-
+def update_games_data(games):
     existing_games = MySqlConnector.check_existing_games(games.keys())
     for game in games.values():
         game_name = game.game_name
@@ -536,7 +531,8 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False):
                     package_games = SteamScrapingUtils.get_games_from_package(game_name, game_link)
                     i = 0
                     for package_url in package_games:
-                        steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name + ' - package #' + str(i), package_url)
+                        steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(
+                            game_name + ' - package #' + str(i), package_url)
                         if num_of_reviews > chosen_num_of_reviews:
                             chosem_score = steam_score
                             chosen_num_of_reviews = num_of_reviews
@@ -547,27 +543,40 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False):
                     LogUtils.log_error('Don\'t know how to handle game: ' + game_name + ' at ' + game_link)
             except:
                 # TODO: Add fallback from elsewhere (for example: SteamDB)
-                LogUtils.log_error('Cannot add additional data for game: ' + game_name + ' ERROR: ' + str(sys.exc_info()[0]))
-
+                LogUtils.log_error(
+                    'Cannot add additional data for game: ' + game_name + ' ERROR: ' + str(sys.exc_info()[0]))
     MySqlConnector.save_games(games, existing_games)
 
-    if group_webpage in groups_cache:
-        del groups_cache[group_webpage]
+
+def update_group_data(group_webpage, cookies, group, force_full_run=False):
+    group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
+    existing_users = MySqlConnector.check_existing_users(group_users.keys())
+    for group_user in group_users.values():
+        if group_user.user_name not in existing_users:
+            try:
+                SteamGiftsScrapingUtils.update_user_additional_data(group_user)
+            except:
+                LogUtils.log_error('Cannot add additional data for user: ' + group_user.user_name + ' ERROR: ' + str(sys.exc_info()[0]))
+
+    group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run)
+    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways), existing_users, group)
+
+    return games
 
 
 #TODO: Implement with scheduler
-def update_all_groups():
+def update_all_db_groups():
     #Load list of all groups from DB
     #For each group, run: update_group_data
     pass
 
 
-def update_users_data():
+def update_all_db_users_data():
     #Go over all DB users, and update their data
     pass
 
 
-def update_games_data():
+def update_all_db_games_data():
     #Go over all DB games, and update their data
     pass
 
