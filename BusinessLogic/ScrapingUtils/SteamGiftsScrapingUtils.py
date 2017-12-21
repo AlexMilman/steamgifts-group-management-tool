@@ -17,7 +17,7 @@ def get_group_users(group_webpage):
     group_users = dict()
     page_index = 1
     while True:
-        LogUtils.log_info('Processing page #' + str(page_index))
+        LogUtils.log_info('Processing users page #' + str(page_index))
         users_page_url = SteamGiftsConsts.get_steamgifts_users_page(group_webpage) + SteamGiftsConsts.STEAMGIFTS_SEARCH_PAGE + str(page_index)
         html_content = WebUtils.get_html_page(users_page_url)
         if html_content is None:
@@ -83,7 +83,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
             break
-        LogUtils.log_info('Processing page #' + str(current_page_num))
+        LogUtils.log_info('Processing giveaways page #' + str(current_page_num))
 
         giveaway_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
         for giveaway_elem in giveaway_elements:
@@ -121,6 +121,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
                     for entry_user in winners:
                         giveaway_entries[entry_user] = GiveawayEntry(entry_user, time.gmtime(0), winner=True)
 
+            giveaway_groups = []
             giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(partial_giveaway_link), cookies=cookies)
             if giveaway_groups_content is not None:
                 giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
