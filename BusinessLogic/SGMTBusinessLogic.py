@@ -1,7 +1,5 @@
 import ConfigParser
 import time
-
-import pylru
 import sys
 
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
@@ -18,17 +16,9 @@ config = ConfigParser.ConfigParser()
 config.read('application.config')
 common_cookies = config.get('Web', 'Cookies')
 
-GROUP_LRU_CACHE_SIZE = 100
-GAME_LRU_CACHE_SIZE = 1000
-
-# LRU cache used to hold data of last LRU_CACHE_SIZE groups. In order to cache the data and not retrieve it every time.
-# Going forward need to consider using an external (persistent) cache server
-groups_cache = pylru.lrucache(GROUP_LRU_CACHE_SIZE)
-games_cache = pylru.lrucache(GAME_LRU_CACHE_SIZE)
-
 
 def missing_after_n_giveaway(group_webpage, n, steam_thread):
-    group = load_group(group_webpage)
+    group = MySqlConnector.load_group(group_webpage)
     if not group:
         return None
     group_giveaways = group.group_giveaways
@@ -63,7 +53,7 @@ def findDiscrepancies(N, wins, after_n_giveaways):
 
 
 def get_all_after_n_giveaways_per_user(group_webpage, n, steam_thread):
-    group = load_group(group_webpage)
+    group = MySqlConnector.load_group(group_webpage)
     if not group:
         return None
     after_n_giveaways = SteamScrapingUtils.verify_after_n_giveaways(steam_thread, group.group_giveaways, group.group_users.keys())
@@ -71,7 +61,7 @@ def get_all_after_n_giveaways_per_user(group_webpage, n, steam_thread):
 
 
 def get_all_user_giveaways(group_webpage):
-    group = load_group(group_webpage)
+    group = MySqlConnector.load_group(group_webpage)
     if not group:
         return None
     giveaways_per_user=dict()
@@ -86,7 +76,7 @@ def get_all_user_giveaways(group_webpage):
 
 
 def get_all_user_wins(group_webpage):
-    group = load_group(group_webpage)
+    group = MySqlConnector.load_group(group_webpage)
     if not group:
         return None
     wins = get_user_wins(group)
@@ -94,7 +84,7 @@ def get_all_user_wins(group_webpage):
 
 
 def get_stemagifts_to_steam_user_translation(group_webpage):
-    group = load_group(group_webpage)
+    group = MySqlConnector.load_group(group_webpage)
     if not group:
         return None
     steam_id_to_user = SteamScrapingUtils.get_steam_id_to_user_dict(group.group_users.values())
@@ -102,14 +92,14 @@ def get_stemagifts_to_steam_user_translation(group_webpage):
 
 
 def get_all_giveaways_in_group(group_webpage):
-    group = load_group(group_webpage, load_users_data=False)
+    group = MySqlConnector.load_group(group_webpage, load_users_data=False)
     if not group:
         return None
     return group.group_giveaways.values()
 
 
 def get_all_users_in_group(group_webpage):
-    group = load_group(group_webpage, load_giveaway_data=False)
+    group = MySqlConnector.load_group(group_webpage, load_giveaway_data=False)
     if not group:
         return None
     return group.group_users.keys()
@@ -118,7 +108,7 @@ def get_all_users_in_group(group_webpage):
 def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_of_reviews=0, min_score=0,
                   alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0):
     response = ''
-    group = load_group(group_webpage, limit_by_time=True, start_time=year_month + '-01', end_time=year_month + '-31')
+    group = MySqlConnector.load_group(group_webpage, limit_by_time=True, start_time_str=year_month + '-01', end_time_str=year_month + '-31')
     if not group:
         return None
     users = group.group_users.keys()
@@ -140,7 +130,7 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
                 and start_month == month and end_month == month\
                 and end_day - start_day >= min_days:
             game_name = group_giveaway.game_name
-            game_data = load_game(game_name)
+            game_data = MySqlConnector.get_game_data(game_name)
             check_game_data(game_data, game_name)
             if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score):
                 if group_giveaway.has_winners():
@@ -163,7 +153,7 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
 
 
 def get_users_with_negative_steamgifts_ratio(group_webpage):
-    group = load_group(group_webpage, load_giveaway_data=False)
+    group = MySqlConnector.load_group(group_webpage, load_giveaway_data=False)
     if not group:
         return None
     users_with_negative_sg_ratio = set()
@@ -174,7 +164,7 @@ def get_users_with_negative_steamgifts_ratio(group_webpage):
 
 
 def get_users_with_negative_group_ratio(group_webpage):
-    group = load_group(group_webpage, load_giveaway_data=False)
+    group = MySqlConnector.load_group(group_webpage, load_giveaway_data=False)
     if not group:
         return None
     users_with_negative_ratio=[]
@@ -185,7 +175,7 @@ def get_users_with_negative_group_ratio(group_webpage):
 
 
 def get_user_entered_giveaways(group_webpage, users, addition_date):
-    group = load_group(group_webpage, load_users_data=False)
+    group = MySqlConnector.load_group(group_webpage, load_users_data=False)
     if not group:
         return None
     response = ''
@@ -200,7 +190,7 @@ def get_user_entered_giveaways(group_webpage, users, addition_date):
 
 
 def get_user_all_giveways(group_webpage, user, start_time):
-    group = load_group(group_webpage, load_users_data=False, limit_by_time=start_time, start_time=start_time)
+    group = MySqlConnector.load_group(group_webpage, load_users_data=False, limit_by_time=start_time, start_time_str=start_time)
     if not group:
         return None
     created_giveaways=[]
@@ -211,17 +201,17 @@ def get_user_all_giveways(group_webpage, user, start_time):
             game_name = group_giveaway.game_name
             if group_giveaway.creator == user:
                 created_giveaways.append(group_giveaway)
-                games[game_name] = load_game(game_name)
+                games[game_name] = MySqlConnector.get_game_data(game_name)
             elif user in group_giveaway.entries.keys():
                 entered_giveaways.append(group_giveaway)
-                games[game_name] = load_game(game_name)
+                games[game_name] = MySqlConnector.get_game_data(game_name)
 
 
     return created_giveaways, entered_giveaways, games
 
 
 def get_group_summary(group_webpage, start_time):
-    group = load_group(group_webpage, limit_by_time=start_time, start_time=start_time)
+    group = MySqlConnector.load_group(group_webpage, limit_by_time=start_time, start_time_str=start_time)
     if not group:
         return None
     all_group_users = group.group_users.keys()
@@ -242,7 +232,7 @@ def get_group_summary(group_webpage, start_time):
         # Go over all giveaways started after "addition_date"
         if not start_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.end_time):
             group_games_count += 1
-            game_data = load_game(group_giveaway.game_name)
+            game_data = MySqlConnector.get_game_data(group_giveaway.game_name)
             value = game_data.value
             group_games_value += value
             score = game_data.steam_score
@@ -340,7 +330,7 @@ def get_group_summary(group_webpage, start_time):
 def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_create_ga=0, min_ga_time=0,
                               min_value=0.0, min_num_of_reviews=0, min_score=0, alt_min_value=0.0,
                               alt_min_num_of_reviews=0, alt_min_score=0, check_entered_giveaways=False):
-    group = load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, start_time=addition_date)
+    group = MySqlConnector.load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, start_time_str=addition_date)
     if not group:
         return None
     response = ''
@@ -359,7 +349,7 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
             and
                 (min_ga_time == 0
                 or (min_ga_time > 0 and group_giveaway.end_time.tm_mday - group_giveaway.start_time.tm_mday >= min_ga_time))):
-            game_data = load_game(game_name)
+            game_data = MySqlConnector.get_game_data(game_name)
             check_game_data(game_data, game_name)
             if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value,alt_min_num_of_reviews, alt_min_score):
                 if user_name not in user_to_end_time or group_giveaway.end_time < user_to_end_time[user_name]:
@@ -466,7 +456,7 @@ def test(group_webpage):
     WebUtils.get_html_page('https://www.steamgifts.com/giveaway/OCir9/plank-not-included/groups1')
     # group = add_new_group(group_webpage, '')
     # MySqlConnector.save_group(group_webpage, group)
-    # group = MySqlConnector.load_group(group_webpage)
+    # group = MySqlConnector.MySqlConnector.load_group(group_webpage)
 
     # for group_user in group.group_users.values():
     #     print '\nUser: ' + group_user.user_name
@@ -482,15 +472,6 @@ def test(group_webpage):
     #     SteamDBScrapingUtils.update_game_additional_data(game)
     pass
 
-def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time=None, end_time=None):
-    if group_webpage in groups_cache:
-        group = groups_cache[group_webpage]
-        if group and (not load_users_data or group.group_users) and (not load_giveaway_data or group.group_giveaways):
-            return group
-    group = MySqlConnector.load_group(group_webpage, load_users_data, load_giveaway_data, limit_by_time, start_time, end_time)
-    groups_cache[group_webpage] = group
-    return group
-
 
 def add_new_group(group_webpage, cookies):
     group_name = SteamGiftsScrapingUtils.get_group_name(group_webpage)
@@ -501,7 +482,7 @@ def add_new_group(group_webpage, cookies):
 
 
 def update_existing_group(group_webpage):
-    group = load_group(group_webpage)
+    group = MySqlConnector.load_group(group_webpage)
     if not group:
         return None
     cookies = common_cookies
@@ -509,9 +490,6 @@ def update_existing_group(group_webpage):
         cookies = group.cookies
     games = update_group_data(group_webpage, cookies, group)
     update_games_data(games)
-
-    if group_webpage in groups_cache:
-        del groups_cache[group_webpage]
 
 
 def update_games_data(games):
@@ -579,16 +557,6 @@ def update_all_db_users_data():
 def update_all_db_games_data():
     #Go over all DB games, and update their data
     pass
-
-
-def load_game(game_name):
-    game_data=None
-    if game_name in games_cache:
-        game_data = games_cache[game_name]
-    if not game_data:
-        game_data = MySqlConnector.get_game_data(game_name)
-        games_cache[game_name] = game_data
-    return game_data
 
 
 def parse_list(list, prefix=''):
