@@ -167,6 +167,8 @@ def check_existing_users(users_list):
 
     cursor.close()
     connection.close()
+
+    LogUtils.log_info('Out of total ' + str(len(users_list)) + ' users in group, already exist in DB: ' + str(len(existing_users)))
     return existing_users
 
 
@@ -182,6 +184,8 @@ def check_existing_games(games_list):
 
     cursor.close()
     connection.close()
+
+    LogUtils.log_info('Out of total ' + str(len(games_list)) + ' games in group, already exist in DB: ' + str(len(existing_games)))
     return existing_games
 
 
