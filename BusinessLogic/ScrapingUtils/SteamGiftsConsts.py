@@ -2,7 +2,8 @@
 # Copyright (C) 2017  Alex Milman
 
 
-STEAMGIFTS_SEARCH_QUERY = '/search?page='
+STEAMGIFTS_SEARCH_PAGE = '/search?page='
+STEAMGIFTS_SEARCH_QUERY = '/search?q='
 STEAMGIFTS_USER_LINK = 'https://www.steamgifts.com/user/'
 STEAMGIFTS_GIVEAWAY_LINK = 'https://www.steamgifts.com/giveaway/'
 STEAMGIFTS_LINK = 'https://www.steamgifts.com'

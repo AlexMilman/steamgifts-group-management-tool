@@ -33,7 +33,10 @@ def get_html_page(page_url, cookies=None, retries=3):
         try:
             return html.fromstring(get_page_content(page_url, cookies))
         except:
-            LogUtils.log_error('Error downloading page ' + page_url + '. ' + str(retries) + ' retries left')
+            if retries > 0:
+                LogUtils.log_error('Error downloading page ' + page_url + '. ' + str(retries) + ' retries left. retyring...')
+            else:
+                LogUtils.log_error('Error downloading page ' + page_url + '. now more retries left. stopping...')
             time.sleep(0.1)
             retries -= 1
 

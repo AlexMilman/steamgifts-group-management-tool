@@ -67,8 +67,17 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
     group_id_str = "\"" + StringUtils.get_hashed_id(group_website) + "\""
     group_users_data_str = "\"" + json.dumps(group_users_data).replace('"', '\\"') + "\""
     group_giveaways_data_str = "\"" + json.dumps(group_giveaways_data).replace('"', '\\"') + "\""
-    cursor.execute("INSERT INTO Groups (GroupID,Users,Giveaways) VALUES (" + group_id_str + "," + group_users_data_str + "," + group_giveaways_data_str + ")"\
-                  "  ON DUPLICATE KEY UPDATE Users=VALUES(Users),Giveaways=VALUES(Giveaways)")
+    group_name_str = "\"" + group.group_name + "\""
+    group_webpage_str = "\"" + group.group_webpage + "\""
+    cookies_str = "\"" + group.cookies + "\""
+    cursor.execute("INSERT INTO Groups (GroupID,Users,Giveaways,Name,Webpage,Cookies) VALUES ("
+                   + group_id_str + ","
+                   + group_users_data_str + ","
+                   + group_giveaways_data_str + ","
+                   + group_name_str + ","
+                   + group_webpage_str + ","
+                   + cookies_str
+                   + ") ON DUPLICATE KEY UPDATE Users=VALUES(Users),Giveaways=VALUES(Giveaways)")
 
     connection.commit()  # you need to call commit() method to save your changes to the database
 
@@ -84,10 +93,11 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
 
     # Load Group
     group_id = StringUtils.get_hashed_id(group_website)
-    cursor.execute('SELECT * FROM Groups WHERE GroupID="' + group_id + '"')
+    cursor.execute('SELECT Users,Giveaways,Cookies FROM Groups WHERE GroupID="' + group_id + '"')
     data = cursor.fetchone()
-    group_users_data = json.loads(data[1])
-    group_giveaways_data = json.loads(data[2])
+    group_users_data = json.loads(data[0])
+    group_giveaways_data = json.loads(data[1])
+    cookies = data[2]
 
     # Load Users Data
     group_users = dict()
@@ -142,7 +152,7 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
     cursor.close()
     connection.close()
     LogUtils.log_info('Load Group ' + group_website + ' took ' + str(time.time() - start_time) +  ' seconds')
-    return Group(group_users, group_giveaways)
+    return Group(group_users, group_giveaways, cookies=cookies)
 
 
 def check_existing_users(users_list):

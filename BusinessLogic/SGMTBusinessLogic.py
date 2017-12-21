@@ -1,21 +1,22 @@
-import logging
+import ConfigParser
 import time
 
 import pylru
 import sys
 
-from datetime import datetime
-
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
     SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts, SteamConsts, SteamDBScrapingUtils
 from BusinessLogic.Utils import LogUtils, WebUtils
-from Data.GameData import GameData
 from Data.Group import Group
+from Data.GroupUser import GroupUser
+from Database import MySqlConnector
 
 # Internal business logic of different SGMT commands
 # Copyright (C) 2017  Alex Milman
-from Data.GroupUser import GroupUser
-from Database import MySqlConnector
+
+config = ConfigParser.ConfigParser()
+config.read('application.config')
+common_cookies = config.get('Web', 'Cookies')
 
 GROUP_LRU_CACHE_SIZE = 100
 GAME_LRU_CACHE_SIZE = 1000
@@ -345,6 +346,7 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
     response = ''
     users_list = users.split(',')
     user_to_end_time=dict()
+    user_addition_day = int(addition_date.split('-')[2])
     for group_giveaway in group.group_giveaways.values():
         game_name = group_giveaway.game_name
         user_name = group_giveaway.creator
@@ -353,7 +355,7 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
                 len(group_giveaway.groups) == 1
             and
                 ((not addition_date or days_to_create_ga == 0)
-                or (addition_date and days_to_create_ga > 0 and group_giveaway.start_time.tm_mday <= int(addition_date.split('-')[2]) + days_to_create_ga))
+                or (addition_date and days_to_create_ga > 0 and group_giveaway.start_time.tm_mday <= user_addition_day + days_to_create_ga))
             and
                 (min_ga_time == 0
                 or (min_ga_time > 0 and group_giveaway.end_time.tm_mday - group_giveaway.start_time.tm_mday >= min_ga_time))):
@@ -373,25 +375,27 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
             response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> did not create a GA yet!\n'
 
     response += '\n'
+    partial_group_webpage = group_webpage.split(SteamGiftsConsts.STEAMGIFTS_LINK)[1]
     for group_giveaway in group.group_giveaways.values():
         if check_entered_giveaways and (not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time)):
             for user in users_list:
-                if user in group_giveaway.entries and group_giveaway.entries[user].entry_time.tm_mday >= int(addition_date.split('-')[2]) and (user not in user_to_end_time or group_giveaway.entries[user].entry_time < user_to_end_time[user]):
-                    #TODO: Add check user could have entered via another group
+                if user in group_giveaway.entries \
+                        and group_giveaway.entries[user].entry_time.tm_mday >= user_addition_day \
+                        and (user not in user_to_end_time or group_giveaway.entries[user].entry_time < user_to_end_time[user])\
+                        and (len(group_giveaway.groups) == 1 or not SteamGiftsScrapingUtils.user_in_group(user, filter(lambda x: x != partial_group_webpage, group_giveaway.groups))):
                     #TODO: Add "Whitelist detected" warning
-                    #TODO: Add warning if entry time is from the date he entered the group
                     response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> ' \
                                 'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A> ' \
-                               '(Entry date: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.entries[user].entry_time) + ')\n'
+                               '(Entry date: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.entries[user].entry_time) + ')'
+                    response += '\n'
 
-    if addition_date and days_to_create_ga > 0 and time.gmtime().tm_mday > int(addition_date.split('-')[2]) + days_to_create_ga:
+    if addition_date and days_to_create_ga > 0 and time.gmtime().tm_mday > user_addition_day + days_to_create_ga:
         response += '\nTime to create first GA ended.\n'
 
     return response
 
 
 def check_game_data(game_data, game_name):
-    #TODO: Change to logger.error
     if not game_data:
         LogUtils.log_error('Could not load game data: ' + game_name)
     elif game_data.value == -1 or game_data.num_of_reviews == -1 or game_data.steam_score == -1:
@@ -489,13 +493,17 @@ def load_group(group_webpage, load_users_data=True, load_giveaway_data=True, lim
 
 
 def add_new_group(group_webpage, cookies):
-    update_group_data(group_webpage, cookies, Group(), force_full_run=True)
+    group_name = SteamGiftsScrapingUtils.get_group_name(group_webpage)
+    update_group_data(group_webpage, cookies, Group(group_name=group_name, group_webpage=group_webpage, cookies=cookies), force_full_run=True)
 
 
-def update_existing_group(group_webpage, cookies):
+def update_existing_group(group_webpage):
     group = load_group(group_webpage)
     if not group:
         return None
+    cookies = common_cookies
+    if group.cookies:
+        cookies = group.cookies
     update_group_data(group_webpage, cookies, group)
 
 

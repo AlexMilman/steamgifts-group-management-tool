@@ -18,7 +18,11 @@ def get_group_users(group_webpage):
     page_index = 1
     while True:
         LogUtils.log_info('Processing page #' + str(page_index))
-        html_content = WebUtils.get_html_page(SteamGiftsConsts.get_steamgifts_users_page(group_webpage) + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
+        users_page_url = SteamGiftsConsts.get_steamgifts_users_page(group_webpage) + SteamGiftsConsts.STEAMGIFTS_SEARCH_PAGE + str(page_index)
+        html_content = WebUtils.get_html_page(users_page_url)
+        if html_content is None:
+            LogUtils.log_error('Cannot process users page: ' + users_page_url)
+            break
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
             break
@@ -43,6 +47,9 @@ def get_group_users(group_webpage):
 def update_user_additional_data(user):
     LogUtils.log_info('Processing new user ' + user.user_name)
     html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user.user_name))
+    if html_content is None:
+        LogUtils.log_error('Cannot update additional data for user: ' + user.user_name)
+        return
     steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
     user.steam_id = steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
     all_rows = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="featured__table__row"]')
@@ -68,7 +75,11 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
     while not reached_end and (giveaways_changed or not reached_ended_giveaways or force_full_run):
         giveaways_changed = False
         reached_ended_giveaways = False
-        html_content = WebUtils.get_html_page(group_webpage + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
+        giveaways_page_url = group_webpage + SteamGiftsConsts.STEAMGIFTS_SEARCH_PAGE + str(page_index)
+        html_content = WebUtils.get_html_page(giveaways_page_url)
+        if html_content is None:
+            LogUtils.log_error('Cannot process page: ' + giveaways_page_url)
+            break
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
             break
@@ -94,23 +105,25 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
 
             giveaway_entries=dict()
             giveaway_entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(partial_giveaway_link), cookies=cookies)
-            error_message = WebUtils.get_item_by_xpath(giveaway_entries_content, u'.//div[@class="page__heading__breadcrumbs"]/text()')
-            if not error_message or error_message != 'Error':
-                giveaway_entries_elements = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//div[@class="table__row-inner-wrap"]')
-                for entry_element in giveaway_entries_elements:
-                    entry_user = WebUtils.get_item_by_xpath(entry_element, u'.//a[@class="table__column__heading"]/text()').encode('utf-8')
-                    entry_time = time.gmtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(entry_element, u'.//div[@class="table__column--width-small text-center"]/span/@data-timestamp')))
-                    winner = False
-                    if entry_user in winners:
-                        winner = True
-                    giveaway_entries[entry_user] = GiveawayEntry(entry_user, entry_time, winner=winner)
-            else:
-                # We can't access the GA data, but we can still know who won
-                for entry_user in winners:
-                    giveaway_entries[entry_user] = GiveawayEntry(entry_user, time.gmtime(0), winner=True)
+            if giveaway_entries_content is not None:
+                error_message = WebUtils.get_item_by_xpath(giveaway_entries_content, u'.//div[@class="page__heading__breadcrumbs"]/text()')
+                if not error_message or error_message != 'Error':
+                    giveaway_entries_elements = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//div[@class="table__row-inner-wrap"]')
+                    for entry_element in giveaway_entries_elements:
+                        entry_user = WebUtils.get_item_by_xpath(entry_element, u'.//a[@class="table__column__heading"]/text()').encode('utf-8')
+                        entry_time = time.gmtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(entry_element, u'.//div[@class="table__column--width-small text-center"]/span/@data-timestamp')))
+                        winner = False
+                        if entry_user in winners:
+                            winner = True
+                        giveaway_entries[entry_user] = GiveawayEntry(entry_user, entry_time, winner=winner)
+                else:
+                    # We can't access the GA data, but we can still know who won
+                    for entry_user in winners:
+                        giveaway_entries[entry_user] = GiveawayEntry(entry_user, time.gmtime(0), winner=True)
 
             giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(partial_giveaway_link), cookies=cookies)
-            giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
+            if giveaway_groups_content is not None:
+                giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
 
             group_giveaway = GroupGiveaway(giveaway_link, game_name, poster, creation_time, end_time, giveaway_entries, giveaway_groups)
 
@@ -131,7 +144,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
 
         page_index += 1
 
-    LogUtils.log_info('Finished processing giveaways for group' + group_webpage)
+    LogUtils.log_info('Finished processing giveaways for group ' + group_webpage)
     return group_giveaways, games
 
 
@@ -140,7 +153,7 @@ def get_monthly_posters(group_webpage, month, max_pages=0):
     posters=set()
     page_index = 1
     while page_index < max_pages or max_pages == 0:
-        html_content = WebUtils.get_html_page(group_webpage + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + str(page_index))
+        html_content = WebUtils.get_html_page(group_webpage + SteamGiftsConsts.STEAMGIFTS_SEARCH_PAGE + str(page_index))
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
             break
@@ -178,6 +191,21 @@ def get_steam_game_link(steamgifts_link, cookies):
     return WebUtils.get_item_by_xpath(html_content, u'.//a[@class="global__image-outer-wrap global__image-outer-wrap--game-large"]/@href')
 
 
+def get_group_name(group_webpage):
+    html_content = WebUtils.get_html_page(group_webpage)
+    return WebUtils.get_item_by_xpath(html_content, u'.//div[@class="featured__heading__medium"]/text()')
+
+
+def user_in_group(user, groups_to_check):
+    for group in groups_to_check:
+        search_user_url = SteamGiftsConsts.get_steamgifts_users_page(SteamGiftsConsts.get_giveaway_link(group)) + SteamGiftsConsts.STEAMGIFTS_SEARCH_QUERY + user
+        html_content = WebUtils.get_html_page(search_user_url)
+        found_user = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="table__column__heading"]/text()')
+        if user == found_user:
+            return True
+    return False
+
+
 def isValidLink(link):
     try:
         request = requests.get(link)
@@ -187,4 +215,5 @@ def isValidLink(link):
             return False
     except:
         return False
+
 

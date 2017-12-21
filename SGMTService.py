@@ -1,16 +1,15 @@
 #!flask/bin/python
 import json
-
 import time
+
 from flask import Flask
 from flask import request
 
 from BusinessLogic import SGMTBusinessLogic
+from BusinessLogic.ScrapingUtils import SteamGiftsConsts
 
 # API Service of SGMT
 # Copyright (C) 2017  Alex Milman
-from BusinessLogic.ScrapingUtils import SteamGiftsConsts
-from BusinessLogic.Utils import LogUtils
 
 app = Flask(__name__)
 
@@ -249,8 +248,7 @@ def add_new_group():
 def update_group_data():
     start_time = time.time()
     group_webpage = request.args.get('group_webpage')
-    cookies = request.args.get('cookies')
-    SGMTBusinessLogic.update_existing_group(group_webpage, cookies)
+    SGMTBusinessLogic.update_existing_group(group_webpage)
     print 'UpdateGroupData ' + group_webpage + ' took ' + str(time.time() - start_time) +  ' seconds'
     return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
 
