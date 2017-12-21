@@ -1,4 +1,7 @@
 #!flask/bin/python
+# API Service of SGMT
+# Copyright (C) 2017  Alex Milman
+
 import json
 import time
 
@@ -7,9 +10,7 @@ from flask import request
 
 from BusinessLogic import SGMTBusinessLogic
 from BusinessLogic.ScrapingUtils import SteamGiftsConsts
-
-# API Service of SGMT
-# Copyright (C) 2017  Alex Milman
+from BusinessLogic.Utils import LogUtils
 
 app = Flask(__name__)
 
@@ -240,8 +241,8 @@ def add_new_group():
     group_webpage = request.args.get('group_webpage')
     cookies = request.args.get('cookies')
     SGMTBusinessLogic.add_new_group(group_webpage, cookies)
-    print 'UpdateGroupData ' + group_webpage + ' took ' + str(time.time() - start_time) +  ' seconds'
-    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+    LogUtils.log_info('AddNewGroup ' + group_webpage + ' took ' + str(time.time() - start_time) +  ' seconds')
+    return json.dumps({'success': True, 'timestamp': time.time()}), 200, {'ContentType': 'application/json'}
 
 
 @app.route('/SGMT-Admin/UpdateGroupData', methods=['GET'])
@@ -249,8 +250,8 @@ def update_group_data():
     start_time = time.time()
     group_webpage = request.args.get('group_webpage')
     SGMTBusinessLogic.update_existing_group(group_webpage)
-    print 'UpdateGroupData ' + group_webpage + ' took ' + str(time.time() - start_time) +  ' seconds'
-    return json.dumps({'success': True}), 200, {'ContentType': 'application/json'}
+    LogUtils.log_info('UpdateGroupData ' + group_webpage + ' took ' + str(time.time() - start_time) +  ' seconds')
+    return json.dumps({'success': True, 'timestamp': time.time()}), 200, {'ContentType': 'application/json'}
 
 
 @app.route('/SGMT/warranty', methods=['GET'])
