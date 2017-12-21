@@ -543,6 +543,8 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False):
                         i += 1
                     game.steam_score = chosem_score
                     game.num_of_reviews = chosen_num_of_reviews
+                else:
+                    LogUtils.log_error('Don\'t know how to handle game: ' + game_name + ' at ' + game_link)
             except:
                 # TODO: Add fallback from elsewhere (for example: SteamDB)
                 LogUtils.log_error('Cannot add additional data for game: ' + game_name + ' ERROR: ' + str(sys.exc_info()[0]))
