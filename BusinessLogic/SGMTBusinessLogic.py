@@ -512,7 +512,10 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False):
     existing_users = MySqlConnector.check_existing_users(group_users.keys())
     for group_user in group_users.values():
         if group_user.user_name not in existing_users:
-            SteamGiftsScrapingUtils.update_user_additional_data(group_user)
+            try:
+                SteamGiftsScrapingUtils.update_user_additional_data(group_user)
+            except:
+                LogUtils.log_error('Cannot add additional data for user: ' + group_user.user_name + ' ERROR: ' + str(sys.exc_info()[0]))
 
     group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run)
     MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways), existing_users, group)
@@ -522,27 +525,27 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False):
         game_name = game.game_name
         game_link = game.game_link
         if game_name not in existing_games:
-            if game_link.startswith(SteamConsts.STEAM_GAME_LINK):
-                try:
+            try:
+                if game_link.startswith(SteamConsts.STEAM_GAME_LINK):
                     steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name, game_link)
                     game.steam_score = steam_score
                     game.num_of_reviews = num_of_reviews
-                except:
-                    # TODO: Add fallback from elsewhere (for example: SteamDB)
-                    LogUtils.log_error('Cannot add additional data for ' + game_name + ' ERROR: ' + str(sys.exc_info()[0]))
-            elif game_link.startswith(SteamConsts.STEAM_PACKAGE_LINK):
-                chosem_score = 0
-                chosen_num_of_reviews = 0
-                package_games = SteamScrapingUtils.get_games_from_package(game_name, game_link)
-                i = 0
-                for package_url in package_games:
-                    steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name + ' - package #' + str(i), package_url)
-                    if num_of_reviews > chosen_num_of_reviews:
-                        chosem_score = steam_score
-                        chosen_num_of_reviews = num_of_reviews
-                    i += 1
-                game.steam_score = chosem_score
-                game.num_of_reviews = chosen_num_of_reviews
+                elif game_link.startswith(SteamConsts.STEAM_PACKAGE_LINK):
+                    chosem_score = 0
+                    chosen_num_of_reviews = 0
+                    package_games = SteamScrapingUtils.get_games_from_package(game_name, game_link)
+                    i = 0
+                    for package_url in package_games:
+                        steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name + ' - package #' + str(i), package_url)
+                        if num_of_reviews > chosen_num_of_reviews:
+                            chosem_score = steam_score
+                            chosen_num_of_reviews = num_of_reviews
+                        i += 1
+                    game.steam_score = chosem_score
+                    game.num_of_reviews = chosen_num_of_reviews
+            except:
+                # TODO: Add fallback from elsewhere (for example: SteamDB)
+                LogUtils.log_error('Cannot add additional data for game: ' + game_name + ' ERROR: ' + str(sys.exc_info()[0]))
 
     MySqlConnector.save_games(games, existing_games)
 
