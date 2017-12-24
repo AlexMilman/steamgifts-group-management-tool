@@ -45,12 +45,15 @@ def get_group_users(group_webpage):
 
 
 def update_user_additional_data(user):
-    LogUtils.log_info('Processing new user ' + user.user_name)
+    LogUtils.log_info('Processing user ' + user.user_name)
     html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user.user_name))
     if html_content is None:
         LogUtils.log_error('Cannot update additional data for user: ' + user.user_name)
         return
     steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
+    if not steam_user:
+        LogUtils.log_error('Cannot update non-existent user: ' + user.user_name)
+        return
     user.steam_id = steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
     all_rows = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="featured__table__row"]')
     for row_content in all_rows:

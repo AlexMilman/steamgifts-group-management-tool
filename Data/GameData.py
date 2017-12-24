@@ -15,3 +15,10 @@ class GameData(object):
         self.value = float(value)
         self.num_of_reviews = int(num_of_reviews)
         self.steam_score = int(steam_score)
+
+    def equals(self, game):
+        return self.game_name == game.game_name\
+                and self.game_link == game.game_link\
+                and self.value == game.value\
+                and self.num_of_reviews == game.num_of_reviews\
+                and self.steam_score == game.steam_score

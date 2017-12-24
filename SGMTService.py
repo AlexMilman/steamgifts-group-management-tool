@@ -242,7 +242,7 @@ def add_new_group():
     cookies = request.args.get('cookies')
     SGMTBusinessLogic.add_new_group(group_webpage, cookies)
     LogUtils.log_info('AddNewGroup ' + group_webpage + ' took ' + str(time.time() - start_time) +  ' seconds')
-    return json.dumps({'success': True, 'timestamp': time.time()}), 200, {'ContentType': 'application/json'}
+    return json.dumps({'success': True, 'timestamp': time.strftime('%Y-%m-%d %H:%M:%S', time.time())}), 200, {'ContentType': 'application/json'}
 
 
 @app.route('/SGMT-Admin/UpdateGroupData', methods=['GET'])
@@ -251,7 +251,17 @@ def update_group_data():
     group_webpage = request.args.get('group_webpage')
     SGMTBusinessLogic.update_existing_group(group_webpage)
     LogUtils.log_info('UpdateGroupData ' + group_webpage + ' took ' + str(time.time() - start_time) +  ' seconds')
-    return json.dumps({'success': True, 'timestamp': time.time()}), 200, {'ContentType': 'application/json'}
+    return json.dumps({'success': True, 'timestamp': time.strftime('%Y-%m-%d %H:%M:%S', time.time())}), 200, {'ContentType': 'application/json'}
+
+
+@app.route('/SGMT-Admin/UpdateAllGroups', methods=['GET'])
+def update_all_groups():
+    start_time = time.time()
+    SGMTBusinessLogic.update_all_db_users_data()
+    SGMTBusinessLogic.update_all_db_games_data()
+    SGMTBusinessLogic.update_all_db_groups()
+    LogUtils.log_info('UpdateAllGroups took ' + str(time.time() - start_time) +  ' seconds')
+    return json.dumps({'success': True, 'timestamp': time.strftime('%Y-%m-%d %H:%M:%S', time.time())}), 200, {'ContentType': 'application/json'}
 
 
 @app.route('/SGMT/warranty', methods=['GET'])

@@ -155,6 +155,24 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
     return Group(group_users, group_giveaways, cookies=cookies)
 
 
+def get_all_group_urls():
+    start_time = time.time()
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    group_urls = []
+    cursor.execute("SELECT Webpage FROM Groups")
+    data = cursor.fetchall()
+    for row in data:
+        group_urls.append(row[0])
+
+    cursor.close()
+    connection.close()
+
+    LogUtils.log_info('Get all group urls took ' + str(time.time() - start_time) +  ' seconds')
+    return group_urls
+
+
 def check_existing_users(users_list):
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
     cursor = connection.cursor()
@@ -170,23 +188,6 @@ def check_existing_users(users_list):
 
     LogUtils.log_info('Out of total ' + str(len(users_list)) + ' users in group, already exist in DB: ' + str(len(existing_users)))
     return existing_users
-
-
-def check_existing_games(games_list):
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
-    cursor = connection.cursor()
-
-    existing_games = []
-    cursor.execute("SELECT Name FROM Games WHERE Name IN (" + parse_list(games_list) + ")")
-    data = cursor.fetchall()
-    for row in data:
-        existing_games.append(row[0])
-
-    cursor.close()
-    connection.close()
-
-    LogUtils.log_info('Out of total ' + str(len(games_list)) + ' games in group, already exist in DB: ' + str(len(existing_games)))
-    return existing_games
 
 
 def get_user_data(user_name):
@@ -218,14 +219,71 @@ def save_user(group_user):
     connection.close()
 
 
-def save_games(games, existing_games):
+def get_all_users():
+    start_time = time.time()
+    all_users = []
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    cursor.execute('SELECT * FROM Users')
+    data = cursor.fetchall()
+    for row in data:
+        # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level)
+        group_user = GroupUser(row[0], steam_id=row[1], global_won=row[2], global_sent=row[3], level=row[4])
+        all_users.append(group_user)
+
+    cursor.close()
+    connection.close()
+
+    LogUtils.log_info('Get all users took ' + str(time.time() - start_time) +  ' seconds')
+    return all_users
+
+
+def update_existing_users(users):
+    start_time = time.time()
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    users_data = []
+    for user_data in users:
+        users_data.append((user_data.steam_id, user_data.global_won, user_data.global_sent, user_data.level, user_data.user_name))
+
+    cursor.executemany("UPDATE Users SET SteamId=%s,GlobalWon=%s,GlobalSent=%s,Level=%s WHERE UserName=%s", users_data)
+    connection.commit()  # you need to call commit() method to save your changes to the database
+
+    cursor.close()
+    connection.close()
+    LogUtils.log_info('Update existing users for  ' + str(len(users)) + ' users took ' + str(time.time() - start_time) +  ' seconds')
+
+
+def get_existing_games_data(games_list):
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    existing_games_data = dict()
+    cursor.execute("SELECT * FROM Games WHERE Name IN (" + parse_list(games_list) + ")")
+    data = cursor.fetchall()
+    for row in data:
+        # (game.game_name, game.game_link, game.value, game.steam_score, game.num_of_reviews)
+        game_name = row[0]
+        game_data = GameData(game_name, row[1], row[2], steam_score=row[3], num_of_reviews=row[4])
+        existing_games_data[game_name] = game_data
+
+    cursor.close()
+    connection.close()
+
+    LogUtils.log_info('Out of total ' + str(len(games_list)) + ' games in group, already exist in DB: ' + str(len(existing_games_data)))
+    return existing_games_data
+
+
+def save_games(games):
+    start_time = time.time()
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
     cursor = connection.cursor()
 
     games_data = []
-    for game in games.values():
-        if game.game_name not in existing_games:
-            games_data.append((game.game_name, game.game_link, game.value, game.steam_score, game.num_of_reviews))
+    for game in games:
+        games_data.append((game.game_name, game.game_link, game.value, game.steam_score, game.num_of_reviews))
 
     cursor.executemany("INSERT INTO Games (Name,LinkURL,Value,Score,NumOfReviews) VALUES (%s, %s, %s, %s, %s)", games_data)
 
@@ -233,6 +291,24 @@ def save_games(games, existing_games):
 
     cursor.close()
     connection.close()
+    LogUtils.log_info('Save games for  ' + str(len(games)) + ' games took ' + str(time.time() - start_time) +  ' seconds')
+
+
+def update_existing_games(games):
+    start_time = time.time()
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    games_data = []
+    for game in games:
+        games_data.append((game.game_link, game.value, game.steam_score, game.num_of_reviews, game.game_name))
+
+    cursor.executemany("UPDATE Games SET LinkURL=%s,Value=%s,Score=%s,NumOfReviews=%s WHERE Name=%s", games_data)
+    connection.commit()  # you need to call commit() method to save your changes to the database
+
+    cursor.close()
+    connection.close()
+    LogUtils.log_info('Update existing games for  ' + str(len(games)) + ' games took ' + str(time.time() - start_time) +  ' seconds')
 
 
 def get_game_data(game_name):
@@ -250,6 +326,24 @@ def get_game_data(game_name):
     connection.close()
     return game_data
 
+
+def get_all_games():
+    start_time = time.time()
+    all_games = []
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    cursor.execute('SELECT * FROM Games')
+    data = cursor.fetchall()
+    for row in data:
+        # (game.game_name, game.game_link, game.value, game.steam_score, game.num_of_reviews)
+        game_data = GameData(row[0], row[1], row[2], steam_score=row[3], num_of_reviews=row[4])
+        all_games.append(game_data)
+
+    cursor.close()
+    connection.close()
+    return all_games
+    LogUtils.log_info('Get list of all games took ' + str(time.time() - start_time) +  ' seconds')
 
 
 def parse_list(list, prefix=''):

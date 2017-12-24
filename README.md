@@ -67,11 +67,9 @@ So for now this tool will run slowly, but safely.
 * Create a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies - Opened a ticket to SteamGifts Admins. Waiting for their response...
 
 ### TODO
-* Add MySql create schema file
-* Add scheduler for daily(?) group refreshes
 * Fix usage + example printouts
 * Add index.html page with usage instructions and links to service API
 * Implement CheckAllGroupGiveaways
 * Add Whitelist data to giveaways
-* Add checking for game price changed (if game exists in DB)
+* Add handling large data quantities: Giveaways, Users, Games (separate into smaller chuncks)
 * Handle TODO leftovers

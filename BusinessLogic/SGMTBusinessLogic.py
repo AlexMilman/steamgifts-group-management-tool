@@ -5,6 +5,7 @@ import sys
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
     SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts, SteamConsts, SteamDBScrapingUtils
 from BusinessLogic.Utils import LogUtils, WebUtils
+from Data.GameData import GameData
 from Data.Group import Group
 from Data.GroupUser import GroupUser
 from Database import MySqlConnector
@@ -489,41 +490,56 @@ def update_existing_group(group_webpage):
     if group.cookies:
         cookies = group.cookies
     games = update_group_data(group_webpage, cookies, group)
-    update_games_data(games)
+    update_games_data(games, update_value=True)
 
 
-def update_games_data(games):
-    existing_games = MySqlConnector.check_existing_games(games.keys())
+def update_games_data(games, update_value=False):
+    games_to_add = []
+    games_to_update_value = []
+    existing_games = MySqlConnector.get_existing_games_data(games.keys())
     for game in games.values():
         game_name = game.game_name
-        game_link = game.game_link
-        if game_name not in existing_games:
-            try:
-                if game_link.startswith(SteamConsts.STEAM_GAME_LINK):
-                    steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name, game_link)
-                    game.steam_score = steam_score
-                    game.num_of_reviews = num_of_reviews
-                elif game_link.startswith(SteamConsts.STEAM_PACKAGE_LINK):
-                    chosem_score = 0
-                    chosen_num_of_reviews = 0
-                    package_games = SteamScrapingUtils.get_games_from_package(game_name, game_link)
-                    i = 0
-                    for package_url in package_games:
-                        steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(
-                            game_name + ' - package #' + str(i), package_url)
-                        if num_of_reviews > chosen_num_of_reviews:
-                            chosem_score = steam_score
-                            chosen_num_of_reviews = num_of_reviews
-                        i += 1
-                    game.steam_score = chosem_score
-                    game.num_of_reviews = chosen_num_of_reviews
-                else:
-                    LogUtils.log_error('Don\'t know how to handle game: ' + game_name + ' at ' + game_link)
-            except:
-                # TODO: Add fallback from elsewhere (for example: SteamDB)
-                LogUtils.log_error(
-                    'Cannot add additional data for game: ' + game_name + ' ERROR: ' + str(sys.exc_info()[0]))
-    MySqlConnector.save_games(games, existing_games)
+        if game_name not in existing_games.keys():
+            update_game_data(game)
+            games_to_add.append(game)
+        elif update_value and game.value != existing_games[game_name].value:
+            games_to_update_value.append(game)
+
+    if games_to_add:
+        MySqlConnector.save_games(games_to_add)
+
+    if games_to_update_value:
+        MySqlConnector.update_existing_games(games_to_update_value)
+
+
+def update_game_data(game):
+    game_link = game.game_link
+    game_name = game.game_name
+    try:
+        if game_link.startswith(SteamConsts.STEAM_GAME_LINK):
+            steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name, game_link)
+            game.steam_score = steam_score
+            game.num_of_reviews = num_of_reviews
+        elif game_link.startswith(SteamConsts.STEAM_PACKAGE_LINK):
+            chosem_score = 0
+            chosen_num_of_reviews = 0
+            package_games = SteamScrapingUtils.get_games_from_package(game_name, game_link)
+            i = 0
+            for package_url in package_games:
+                tmp_game_name = game_name + ' - package #' + str(i)
+                steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(tmp_game_name, package_url)
+                if num_of_reviews > chosen_num_of_reviews:
+                    chosem_score = steam_score
+                    chosen_num_of_reviews = num_of_reviews
+                i += 1
+            game.steam_score = chosem_score
+            game.num_of_reviews = chosen_num_of_reviews
+        else:
+            LogUtils.log_error('Don\'t know how to handle game: ' + game_name + ' at ' + game_link)
+    except:
+        # TODO: Add fallback from elsewhere (for example: SteamDB)
+        LogUtils.log_error(
+            'Cannot add additional data for game: ' + game_name + ' ERROR: ' + str(sys.exc_info()[0]))
 
 
 def update_group_data(group_webpage, cookies, group, force_full_run=False):
@@ -542,21 +558,43 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False):
     return games
 
 
-#TODO: Implement with scheduler
 def update_all_db_groups():
     #Load list of all groups from DB
+    group_urls = MySqlConnector.get_all_group_urls()
     #For each group, run: update_group_data
-    pass
+    for group_url in group_urls:
+        if group_url:
+            update_existing_group(group_url)
 
 
 def update_all_db_users_data():
-    #Go over all DB users, and update their data
-    pass
+    #Load all DB users from DB
+    users = MySqlConnector.get_all_users()
+    #Go over list, check if any changed
+    changed_users = []
+    for user in users:
+        new_user = GroupUser(user.user_name)
+        SteamGiftsScrapingUtils.update_user_additional_data(new_user)
+        if not user.equals(new_user):
+            changed_users.append(new_user)
+    #Save changed users to the DB
+    if changed_users:
+        MySqlConnector.update_existing_users(changed_users)
 
 
 def update_all_db_games_data():
-    #Go over all DB games, and update their data
-    pass
+    #Load all games from DB
+    games = MySqlConnector.get_all_games()
+    #Go over all games, and update their data
+    changed_games = []
+    for game in games:
+        new_game = GameData(game.game_name, game.game_link, game.value)
+        update_game_data(new_game)
+        if not game.equals(new_game):
+            changed_games.append(new_game)
+    #Save changed games to the DB
+    if changed_games:
+        MySqlConnector.update_existing_games(changed_games)
 
 
 def parse_list(list, prefix=''):
