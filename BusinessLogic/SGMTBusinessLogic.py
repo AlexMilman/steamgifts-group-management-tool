@@ -2,6 +2,8 @@ import ConfigParser
 import time
 import sys
 
+from datetime import datetime
+
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
     SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts, SteamConsts, SteamDBScrapingUtils
 from BusinessLogic.Utils import LogUtils, WebUtils
@@ -151,6 +153,30 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
         if user not in monthly_posters and user not in monthly_unfinished.keys():
             response += '<A HREF="'+ SteamGiftsConsts.get_user_link(str(user)) + '">' + str(user) + '</A>\n'
     return response
+
+
+def check_giveaways_valid(group_webpage, start_date, min_days=0, min_value=0.0, min_num_of_reviews=0, min_score=0,
+                  alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0):
+    group = MySqlConnector.load_group(group_webpage, limit_by_time=True, start_time_str=start_date)
+    if not group:
+        return None
+    users = group.group_users.keys()
+    invalid_giveaways = dict()
+    games = dict()
+    for group_giveaway in group.group_giveaways.values():
+        creator = group_giveaway.creator
+        if creator in users:
+            game_name = group_giveaway.game_name
+            game_data = MySqlConnector.get_game_data(game_name)
+            check_game_data(game_data, game_name)
+            if not game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score)\
+                    or (datetime.fromtimestamp(time.mktime(group_giveaway.end_time)) - datetime.fromtimestamp(time.mktime(group_giveaway.start_time))).days < min_days:
+                if creator not in invalid_giveaways:
+                    invalid_giveaways[creator] = set()
+                invalid_giveaways[creator].add(group_giveaway)
+                games[game_name] = game_data
+
+    return invalid_giveaways, games
 
 
 def get_users_with_negative_steamgifts_ratio(group_webpage):
@@ -400,9 +426,10 @@ def game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, 
          and (min_num_of_reviews == 0 or (game_data.num_of_reviews == -1 or min_num_of_reviews <= game_data.num_of_reviews))
          and (min_score == 0 or (game_data.steam_score == -1 or min_score <= game_data.steam_score))):
         return True
-    if ((alt_min_value == 0 or (game_data.value == 0 or game_data.value >= alt_min_value))
-         and (alt_min_num_of_reviews == 0 or (game_data.num_of_reviews == -1 or alt_min_num_of_reviews <= game_data.num_of_reviews))
-         and (alt_min_score == 0 or (game_data.steam_score == -1 or alt_min_score <= game_data.steam_score))):
+    if ((alt_min_value != 0 or alt_min_score != 0 or alt_min_num_of_reviews != 0)
+            and (alt_min_value == 0 or (game_data.value == 0 or game_data.value >= alt_min_value))
+            and (alt_min_num_of_reviews == 0 or (game_data.num_of_reviews == -1 or alt_min_num_of_reviews <= game_data.num_of_reviews))
+            and (alt_min_score == 0 or (game_data.steam_score == -1 or alt_min_score <= game_data.steam_score))):
         return True
     return False
 

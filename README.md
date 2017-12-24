@@ -68,8 +68,9 @@ So for now this tool will run slowly, but safely.
 
 ### TODO
 * Fix usage + example printouts
-* Add index.html page with usage instructions and links to service API
-* Implement CheckAllGroupGiveaways
+* Add main page with usage instructions and links to service API: Separate into commands that need cookies, and don't
+* Add main admin page with usage instructions and links to admin API
 * Add Whitelist data to giveaways
+* Check replacing the heaviest flow (UpdateAllGroups) with a lambda AWS process
 * Add handling large data quantities: Giveaways, Users, Games (separate into smaller chuncks)
 * Handle TODO leftovers

@@ -20,7 +20,7 @@ app = Flask(__name__)
 def check_monthly():
     group_webpage = request.args.get('group_webpage')
     year_month = request.args.get('year_month')
-    min_days = get_optional_int_param(request.args.get('min_days'))
+    min_days = get_optional_int_param('min_days')
     min_game_value = get_optional_float_param('min_game_value')
     min_steam_num_of_reviews = get_optional_int_param('min_steam_num_of_reviews')
     min_steam_score = get_optional_int_param('min_steam_score')
@@ -46,6 +46,51 @@ def check_monthly():
 
     response = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score)
     return response.replace('\n','<BR>')
+
+
+@app.route('/SGMT/CheckAllGiveawaysAccordingToRules', methods=['GET'])
+def check_all_giveaways():
+    group_webpage = request.args.get('group_webpage')
+    start_date = request.args.get('start_date')
+    min_days = get_optional_int_param('min_days')
+    min_game_value = get_optional_float_param('min_game_value')
+    min_steam_num_of_reviews = get_optional_int_param('min_steam_num_of_reviews')
+    min_steam_score = get_optional_int_param('min_steam_score')
+    alt_min_game_value = get_optional_float_param('alt_min_game_value')
+    alt_min_steam_num_of_reviews = get_optional_int_param('alt_min_steam_num_of_reviews')
+    alt_min_steam_score = get_optional_int_param('alt_min_steam_score')
+
+    if not group_webpage:
+        return 'CheckAllGiveawaysAccordingToRules - Returns a list of all giveaways which were created not according to the rules<BR><BR>' \
+               '<B>Params:</B><BR> ' \
+               'group_webpage - SteamGifts group webpage<BR>' \
+               'start_date=YYYY-MM-DD Start date from which to check giveaways <BR>' \
+               '<B>Optional Params:</B> <BR>' \
+               'min_days - Minimum number of days of a GA<BR>' \
+               'min_game_value - Minimal game value (in $) allowed<BR>' \
+               'min_steam_num_of_reviews - Minimal number of Steam reviews allowed for a game<BR>' \
+               'min_steam_score - Minimal Steam score allowed for a game<BR>' \
+               'alt_min_game_value - Alternative minimal game value (in $) allowed<BR>' \
+               'alt_min_steam_num_of_reviews - Alternative minimal number of Steam reviews allowed for a game<BR>' \
+               'alt_min_steam_score - Alternative Minimal Steam score allowed for a game<BR>' \
+               '<BR><BR>' \
+               'Example:<BR> /SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80'
+
+    invalid_giveaways, games = SGMTBusinessLogic.check_giveaways_valid(group_webpage, start_date, min_days, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score)
+    response = u'<B>Invalid Giveaways:</B>'
+    for user, user_giveaways in invalid_giveaways.iteritems():
+        response += u'<BR>User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A>:<BR>'
+
+        for giveaway in sorted(user_giveaways, key=lambda x: x.end_time, reverse=True):
+            game_name = giveaway.game_name
+            game_data = games[game_name]
+            response += u'<A HREF="' + giveaway.link + u'">' + game_name.decode('utf-8') + u'</A>'
+            if game_data:
+                response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
+            response += u' Ends on: ' + time.strftime('%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'\n'
+            response += u'<BR>'
+
+    return response
 
 
 @app.route('/SGMT/UserCheckFirstGiveaway', methods=['GET'])
@@ -208,7 +253,7 @@ def user_check_rules():
     check_real_cv_value = request.args.get('check_real_cv_value')
     check_steamgifts_ratio = request.args.get('check_steamgifts_ratio')
     check_level = request.args.get('check_level')
-    level = get_optional_int_param(request.args.get('level'))
+    level = get_optional_int_param('level')
     check_steamrep = request.args.get('check_steamrep')
 
     if not users:
@@ -231,9 +276,6 @@ def user_check_rules():
         for user_message in response_object[user]:
             response += user_message + '<BR>'
     return response.replace('\n','<BR>')
-
-
-#TODO: Add CheckAllGiveawaysAccordingToRules
 
 
 @app.route('/SGMT-Admin/AddNewGroup', methods=['GET'])

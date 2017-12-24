@@ -125,9 +125,9 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
             start_time_epoch = row[1]
             end_time_epoch = row[2]
             if limit_by_time and \
-                    ((not start_time_str or to_epoch(time.strptime(start_time_str, "%Y-%m-%d")) > start_time_epoch)
-                     or (not end_time_str or to_epoch(time.strptime(end_time_str, "%Y-%m-%d")) < end_time_epoch)):
-                    pass
+                    ((start_time_str and to_epoch(time.strptime(start_time_str, "%Y-%m-%d")) > start_time_epoch)
+                     or (end_time_str and to_epoch(time.strptime(end_time_str, "%Y-%m-%d")) < end_time_epoch)):
+                    continue
             # (giveaway_id, calendar.timegm(group_giveaway.start_time), calendar.timegm(group_giveaway.end_time))
             giveaway_id = row[0]
             giveaways_by_id[giveaway_id] = GroupGiveaway(giveaway_id, start_time=from_epoch(start_time_epoch), end_time=from_epoch(end_time_epoch))
