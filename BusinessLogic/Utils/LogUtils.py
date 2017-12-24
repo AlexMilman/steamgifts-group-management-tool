@@ -12,7 +12,6 @@ file_name = config.get('Logging', 'FileName')
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logging.getLogger().addHandler(RotatingFileHandler(dir + file_name, maxBytes=50000000, backupCount=5))
-logging.getLogger().addHandler(logging.StreamHandler())
 
 
 def log_debug(message):
