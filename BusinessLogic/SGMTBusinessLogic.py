@@ -548,8 +548,8 @@ def update_game_data(game):
             game.steam_score = steam_score
             game.num_of_reviews = num_of_reviews
         elif game_link.startswith(SteamConsts.STEAM_PACKAGE_LINK):
-            chosem_score = 0
-            chosen_num_of_reviews = 0
+            chosem_score = -1
+            chosen_num_of_reviews = -1
             package_games = SteamScrapingUtils.get_games_from_package(game_name, game_link)
             i = 0
             for package_url in package_games:
