@@ -1,5 +1,6 @@
 import ConfigParser
 import logging
+from logging.handlers import RotatingFileHandler
 
 # Utilities for working with logs
 # Copyright (C) 2017  Alex Milman
@@ -9,7 +10,8 @@ config.read('application.config')
 dir = config.get('Logging', 'Directory')
 file_name = config.get('Logging', 'FileName')
 
-logging.basicConfig(format='%(asctime)s %(message)s', filename=dir + file_name, level=logging.INFO)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logging.getLogger().addHandler(RotatingFileHandler(dir + file_name, maxBytes=50000000, backupCount=5))
 logging.getLogger().addHandler(logging.StreamHandler())
 
 
