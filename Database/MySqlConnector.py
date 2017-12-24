@@ -83,7 +83,7 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
 
     cursor.close()
     connection.close()
-    LogUtils.log_info('Save Group ' + group_website + ' took ' + str(time.time() - start_time) +  ' seconds')
+    LogUtils.log_info('Save Group ' + group_website + ' took ' + str(time.time() - start_time) + ' seconds')
 
 
 def load_group(group_website, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time_str=None, end_time_str=None):
@@ -151,7 +151,7 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
 
     cursor.close()
     connection.close()
-    LogUtils.log_info('Load Group ' + group_website + ' took ' + str(time.time() - start_time) +  ' seconds')
+    LogUtils.log_info('Load Group ' + group_website + ' took ' + str(time.time() - start_time) + ' seconds')
     return Group(group_users, group_giveaways, cookies=cookies)
 
 
@@ -169,7 +169,7 @@ def get_all_group_urls():
     cursor.close()
     connection.close()
 
-    LogUtils.log_info('Get all group urls took ' + str(time.time() - start_time) +  ' seconds')
+    LogUtils.log_info('Get all group urls took ' + str(time.time() - start_time) + ' seconds')
     return group_urls
 
 
@@ -235,7 +235,7 @@ def get_all_users():
     cursor.close()
     connection.close()
 
-    LogUtils.log_info('Get all users took ' + str(time.time() - start_time) +  ' seconds')
+    LogUtils.log_info('Get all users took ' + str(time.time() - start_time) + ' seconds')
     return all_users
 
 
@@ -253,7 +253,7 @@ def update_existing_users(users):
 
     cursor.close()
     connection.close()
-    LogUtils.log_info('Update existing users for  ' + str(len(users)) + ' users took ' + str(time.time() - start_time) +  ' seconds')
+    LogUtils.log_info('Update existing users for ' + str(len(users)) + ' users took ' + str(time.time() - start_time) + ' seconds')
 
 
 def get_existing_games_data(games_list):
@@ -291,7 +291,7 @@ def save_games(games):
 
     cursor.close()
     connection.close()
-    LogUtils.log_info('Save games for  ' + str(len(games)) + ' games took ' + str(time.time() - start_time) +  ' seconds')
+    LogUtils.log_info('Save games for ' + str(len(games)) + ' games took ' + str(time.time() - start_time) + ' seconds')
 
 
 def update_existing_games(games):
@@ -308,7 +308,7 @@ def update_existing_games(games):
 
     cursor.close()
     connection.close()
-    LogUtils.log_info('Update existing games for  ' + str(len(games)) + ' games took ' + str(time.time() - start_time) +  ' seconds')
+    LogUtils.log_info('Update existing games for ' + str(len(games)) + ' games took ' + str(time.time() - start_time) + ' seconds')
 
 
 def get_game_data(game_name):
@@ -342,8 +342,9 @@ def get_all_games():
 
     cursor.close()
     connection.close()
+
+    LogUtils.log_info('Get list of all games took ' + str(time.time() - start_time) + ' seconds')
     return all_games
-    LogUtils.log_info('Get list of all games took ' + str(time.time() - start_time) +  ' seconds')
 
 
 def parse_list(list, prefix=''):
