@@ -563,8 +563,10 @@ def update_all_db_groups():
     group_urls = MySqlConnector.get_all_group_urls()
     #For each group, run: update_group_data
     for group_url in group_urls:
-        if group_url:
+        try:
             update_existing_group(group_url)
+        except:
+            LogUtils.log_error('Cannot update data for group: ' + group_url + ' ERROR: ' + str(sys.exc_info()[0]))
 
 
 def update_all_db_users_data():
