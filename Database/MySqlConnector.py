@@ -67,9 +67,9 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
     group_id_str = "\"" + StringUtils.get_hashed_id(group_website) + "\""
     group_users_data_str = "\"" + json.dumps(group_users_data).replace('"', '\\"') + "\""
     group_giveaways_data_str = "\"" + json.dumps(group_giveaways_data).replace('"', '\\"') + "\""
-    group_name_str = "\"" + group.group_name + "\""
-    group_webpage_str = "\"" + group.group_webpage + "\""
-    cookies_str = "\"" + group.cookies + "\""
+    group_name_str = "\"" + to_str(group.group_name) + "\""
+    group_webpage_str = "\"" + to_str(group.group_webpage) + "\""
+    cookies_str = "\"" + to_str(group.cookies) + "\""
     cursor.execute("INSERT INTO Groups (GroupID,Users,Giveaways,Name,Webpage,Cookies) VALUES ("
                    + group_id_str + ","
                    + group_users_data_str + ","
@@ -101,7 +101,7 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
 
     # Load Users Data
     group_users = dict()
-    if load_users_data:
+    if load_users_data and group_users_data:
         for row in group_users_data:
             # (group_user.user_name, group_user.group_won, group_user.group_sent)
             user_name = row[0]
@@ -120,7 +120,7 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
     # Load Giveaways Data
     group_giveaways = dict()
     giveaways_by_id=dict()
-    if load_giveaway_data:
+    if load_giveaway_data and group_giveaways_data:
         for row in group_giveaways_data:
             start_time_epoch = row[1]
             end_time_epoch = row[2]
@@ -155,22 +155,22 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
     return Group(group_users, group_giveaways, cookies=cookies)
 
 
-def get_all_group_urls():
+def get_all_groups():
     start_time = time.time()
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
     cursor = connection.cursor()
 
-    group_urls = []
-    cursor.execute("SELECT Webpage FROM Groups")
+    groups = dict()
+    cursor.execute("SELECT Name,Webpage FROM Groups")
     data = cursor.fetchall()
     for row in data:
-        group_urls.append(row[0])
+        groups[row[0]] = row[1]
 
     cursor.close()
     connection.close()
 
-    LogUtils.log_info('Get all group urls took ' + str(time.time() - start_time) + ' seconds')
-    return group_urls
+    LogUtils.log_info('Get all group took ' + str(time.time() - start_time) + ' seconds')
+    return groups
 
 
 def check_existing_users(users_list):
@@ -347,6 +347,37 @@ def get_all_games():
     return all_games
 
 
+def save_empty_group(group_name, group_webpage, cookies):
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    cursor.execute('INSERT IGNORE INTO Groups (GroupID,Users,Giveaways,Name,Webpage,Cookies) '
+                   'VALUES ("' + StringUtils.get_hashed_id(group_webpage) + '","[]","[]","' + group_name + '","' + group_webpage + '","' + to_str(cookies) + '")')
+
+    connection.commit()  # you need to call commit() method to save your changes to the database
+
+    cursor.close()
+    connection.close()
+
+
+def get_all_empty_groups():
+    start_time = time.time()
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    cursor = connection.cursor()
+
+    groups = dict()
+    cursor.execute("SELECT Name,Webpage FROM Groups WHERE Users='[]' AND Giveaways='[]'")
+    data = cursor.fetchall()
+    for row in data:
+        groups[row[0]] = row[1]
+
+    cursor.close()
+    connection.close()
+
+    LogUtils.log_info('Get all group took ' + str(time.time() - start_time) + ' seconds')
+    return groups
+
+
 def parse_list(list, prefix=''):
     result = ''
     if not list or len(list) == 0:
@@ -369,3 +400,7 @@ def from_epoch(time_in_epoch):
     return None
 
 
+def to_str(param):
+    if not param:
+        return ''
+    return str(param)

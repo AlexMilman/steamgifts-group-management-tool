@@ -278,6 +278,36 @@ def user_check_rules():
     return response.replace('\n','<BR>')
 
 
+@app.route('/SGMT/AddNewGroup', methods=['GET'])
+def lazy_add_group():
+    group_webpage = request.args.get('group_webpage')
+    cookies = request.args.get('cookies')
+
+    if not group_webpage:
+        return 'AddNewGroup - Check if a user complies to group rules.<BR>' \
+               'Usage: /SGMT/UserCheckRules?&users=[steamgifts users separated by comma]&group_webpage=[steamgifts group webpage]&cookies=[your steamgifts cookies]<BR>' \
+               'Example: /SGMT/GroupUsersSummary?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group'
+
+    group_name = SGMTBusinessLogic.lazy_add_group(group_webpage, cookies)
+    return 'Succesfully added group <A HREF="' + group_webpage + '">' + group_name + '</A>.<BR> ' \
+          ' Please allow up to 24 hours for the group to be processed.'
+
+
+@app.route('/SGMT/GetAvailableGroups', methods=['GET'])
+def get_groups():
+    groups, empty_groups = SGMTBusinessLogic.get_groups()
+    results = '<B>Available Groups:</B><BR>'
+    for group_name in groups.keys():
+        if group_name not in empty_groups.keys():
+            results += '<BR> - <A HREF="' + groups[group_name] + '">' + group_name + '</A><BR>'
+
+    results += '<BR><BR><B>Groups awaiting processing:</B><BR>'
+    for group_name in empty_groups.keys():
+        results += '<BR> - <A HREF="' + empty_groups[group_name] + '">' + group_name + '</A><BR>'
+
+    return results
+
+
 @app.route('/SGMT-Admin/AddNewGroup', methods=['GET'])
 def add_new_group():
     start_time = time.time()

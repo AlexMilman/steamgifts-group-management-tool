@@ -111,13 +111,24 @@ def get_all_users_in_group(group_webpage):
 def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_of_reviews=0, min_score=0,
                   alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0):
     response = ''
-    group = MySqlConnector.load_group(group_webpage, limit_by_time=True, start_time_str=year_month + '-01', end_time_str=year_month + '-31')
+    split_date = year_month.split('-')
+    month = int(split_date[1])
+    if month == 1:
+        prev_month_start = str(int(split_date[0]) - 1) + '-12-01'
+    else:
+        prev_month_start = split_date[0] + '-' + str(month - 1) + '-01'
+
+    if month > 11:
+        month_end = str(int(split_date[0]) + 1) + '-' + str(month - 11) + '-01'
+    else:
+        month_end = split_date[0] + '-' + str(month + 1) + '-01'
+
+    group = MySqlConnector.load_group(group_webpage, limit_by_time=True, start_time_str=prev_month_start, end_time_str=month_end)
     if not group:
         return None
     users = group.group_users.keys()
     monthly_posters = set()
     monthly_unfinished = dict()
-    month = int(year_month.split('-')[1])
     for group_giveaway in group.group_giveaways.values():
         end_month = group_giveaway.end_time.tm_mon
         start_month = group_giveaway.start_time.tm_mon
@@ -131,7 +142,7 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
         creator = group_giveaway.creator
         if creator in users and len(group_giveaway.groups) == 1\
                 and start_month == month and end_month == month\
-                and end_day - start_day >= min_days:
+                and end_day - start_day + 1 >= min_days:
             game_name = group_giveaway.game_name
             game_data = MySqlConnector.get_game_data(game_name)
             check_game_data(game_data, game_name)
@@ -501,14 +512,17 @@ def test(group_webpage):
     pass
 
 
+def lazy_add_group(group_webpage, cookies):
+    group_name = SteamGiftsScrapingUtils.get_group_name(group_webpage)
+    MySqlConnector.save_empty_group(group_name, group_webpage, cookies)
+    return group_name
+
+
 def add_new_group(group_webpage, cookies):
     group_name = SteamGiftsScrapingUtils.get_group_name(group_webpage)
     if not cookies:
         cookies = common_cookies
-        user_cookies = ''
-    else:
-        user_cookies = cookies
-    games = update_group_data(group_webpage, cookies, Group(group_name=group_name, group_webpage=group_webpage, cookies=user_cookies), force_full_run=True)
+    games = update_group_data(group_webpage, cookies, Group(group_name=group_name, group_webpage=group_webpage, cookies=cookies), force_full_run=True)
     update_games_data(games)
 
 
@@ -521,6 +535,12 @@ def update_existing_group(group_webpage):
         cookies = group.cookies
     games = update_group_data(group_webpage, cookies, group)
     update_games_data(games, update_value=True)
+
+
+def get_groups():
+    groups = MySqlConnector.get_all_groups()
+    empty_groups = MySqlConnector.get_all_empty_groups()
+    return groups, empty_groups
 
 
 def update_games_data(games, update_value=False):
@@ -590,9 +610,9 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False):
 
 def update_all_db_groups():
     #Load list of all groups from DB
-    group_urls = MySqlConnector.get_all_group_urls()
+    groups = MySqlConnector.get_all_groups()
     #For each group, run: update_group_data
-    for group_url in group_urls:
+    for group_url in groups.values():
         try:
             update_existing_group(group_url)
         except:
