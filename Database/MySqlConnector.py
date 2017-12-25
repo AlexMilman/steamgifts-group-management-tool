@@ -169,7 +169,7 @@ def get_all_groups():
     cursor.close()
     connection.close()
 
-    LogUtils.log_info('Get all group took ' + str(time.time() - start_time) + ' seconds')
+    LogUtils.log_info('Get all groups took ' + str(time.time() - start_time) + ' seconds')
     return groups
 
 
@@ -374,7 +374,7 @@ def get_all_empty_groups():
     cursor.close()
     connection.close()
 
-    LogUtils.log_info('Get all group took ' + str(time.time() - start_time) + ' seconds')
+    LogUtils.log_info('Get all empty groups took ' + str(time.time() - start_time) + ' seconds')
     return groups
 
 
