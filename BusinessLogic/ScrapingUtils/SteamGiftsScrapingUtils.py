@@ -13,7 +13,7 @@ from Data.GroupUser import GroupUser
 
 
 def get_group_users(group_webpage):
-    LogUtils.log_info('Processing users for group' + group_webpage)
+    LogUtils.log_info('Processing users for group ' + group_webpage)
     group_users = dict()
     page_index = 1
     while True:
@@ -40,7 +40,7 @@ def get_group_users(group_webpage):
 
         page_index += 1
 
-    LogUtils.log_info('Finished processing users for group' + group_webpage)
+    LogUtils.log_info('Finished processing users for group ' + group_webpage)
     return group_users
 
 
@@ -90,6 +90,12 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
 
         giveaway_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
         for giveaway_elem in giveaway_elements:
+            giveaway_not_started_yet = False
+            for end_time_text in WebUtils.get_items_by_xpath(giveaway_elem, u'.//div/text()'):
+                if end_time_text == ' Begins in ':
+                    giveaway_not_started_yet = True
+            if giveaway_not_started_yet:
+                continue
             partial_giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
             giveaway_link = SteamGiftsConsts.get_giveaway_link(partial_giveaway_link)
             LogUtils.log_info('Processing: ' + giveaway_link)
@@ -120,6 +126,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
                             winner = True
                         giveaway_entries[entry_user] = GiveawayEntry(entry_user, entry_time, winner=winner)
                 else:
+                    LogUtils.log_warning('Unable to process entries for ' + giveaway_link)
                     # We can't access the GA data, but we can still know who won
                     for entry_user in winners:
                         giveaway_entries[entry_user] = GiveawayEntry(entry_user, time.gmtime(0), winner=True)
@@ -128,6 +135,8 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
             giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(partial_giveaway_link), cookies=cookies)
             if giveaway_groups_content is not None:
                 giveaway_groups = WebUtils.get_items_by_xpath(giveaway_groups_content, u'.//a[@class="table__column__heading"]/@href')
+            else:
+                LogUtils.log_warning('Unable to process groups for ' + giveaway_link)
 
             group_giveaway = GroupGiveaway(giveaway_link, game_name, poster, creation_time, end_time, giveaway_entries, giveaway_groups)
 
