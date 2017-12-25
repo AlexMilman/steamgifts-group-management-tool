@@ -10,6 +10,7 @@ In order for the tool to be usable for any specific group, this group needs to b
 ### Current Features
 The tool currently implements the following features:
 * [CheckMonthly](http://18.217.222.235:8080/SGMT/CheckMonthly) - Returns a list of all users who didn\'t create a "monthyl" giveaway in a given month (according to defined rules). Response example: https://imgur.com/a/4RsM9
+* [CheckAllGiveawaysAccordingToRules](http://18.217.222.235:8080/SGMT/CheckAllGiveawaysAccordingToRules) - Returns a list of games created not according to given rules. Response example: https://imgur.com/a/kK1WL
 * [UserCheckFirstGiveaway](http://18.217.222.235:8080/SGMT/UserCheckFirstGiveaway)  - Check if users comply with first giveaway rules (according to defined rules). Response example: https://imgur.com/a/afSBB
 * [UserFullGiveawaysHistory](http://18.217.222.235:8080/SGMT/UserFullGiveawaysHistory)  - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.). Response example: https://imgur.com/a/FQaqz 
 * [GroupUsersSummary](http://18.217.222.235:8080/SGMT/GroupUsersSummary)  - For a given group, return summary of all giveaways created, entered and won by members. Response example: https://imgur.com/a/WSkt1 
