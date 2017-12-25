@@ -505,7 +505,10 @@ def add_new_group(group_webpage, cookies):
     group_name = SteamGiftsScrapingUtils.get_group_name(group_webpage)
     if not cookies:
         cookies = common_cookies
-    games = update_group_data(group_webpage, cookies, Group(group_name=group_name, group_webpage=group_webpage, cookies=cookies), force_full_run=True)
+        user_cookies = ''
+    else:
+        user_cookies = cookies
+    games = update_group_data(group_webpage, cookies, Group(group_name=group_name, group_webpage=group_webpage, cookies=user_cookies), force_full_run=True)
     update_games_data(games)
 
 
@@ -580,7 +583,7 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False):
                 LogUtils.log_error('Cannot add additional data for user: ' + group_user.user_name + ' ERROR: ' + str(sys.exc_info()[0]))
 
     group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run)
-    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways), existing_users, group)
+    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways, group_webpage=group_webpage, cookies=group.cookies, group_name=group.group_name), existing_users, group)
 
     return games
 

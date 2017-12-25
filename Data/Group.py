@@ -12,3 +12,6 @@ class Group(object):
     def __init__(self, group_users=dict(), group_giveaways=dict(), group_name='', group_webpage='', cookies=''):
         self.group_users = group_users
         self.group_giveaways = group_giveaways
+        self.group_name = group_name
+        self.group_webpage = group_webpage
+        self.cookies = cookies
