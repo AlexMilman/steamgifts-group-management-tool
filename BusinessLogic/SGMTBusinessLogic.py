@@ -371,7 +371,7 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
     group = MySqlConnector.load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, start_time_str=addition_date)
     if not group:
         return None
-    response = ''
+    response = u''
     users_list = users.split(',')
     user_to_end_time=dict()
     user_addition_day = int(addition_date.split('-')[2])
@@ -392,8 +392,9 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
             if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value,alt_min_num_of_reviews, alt_min_score):
                 if user_name not in user_to_end_time or group_giveaway.end_time < user_to_end_time[user_name]:
                     user_to_end_time[user_name] = group_giveaway.end_time
+                #TODO: Move printouts to service
                 response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user_name) + '">' + user_name + '</A> ' \
-                            'first giveaway: <A HREF="' + group_giveaway.link + '">' + game_name + '</A> ' \
+                            'first giveaway: <A HREF="' + group_giveaway.link + '">' + game_name.decode('utf-8') + '</A> ' \
                             ' (Steam Value: ' + str(game_data.value) + ', Steam Score: ' + str(game_data.steam_score) + ', Num Of Reviews: ' + str(game_data.num_of_reviews) +')' \
                             ' Ends on: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.end_time) + '\n'
 
@@ -413,7 +414,7 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
                         and (len(group_giveaway.groups) == 1 or not SteamGiftsScrapingUtils.user_in_group(user, filter(lambda x: x != partial_group_webpage, group_giveaway.groups))):
                     #TODO: Add "Whitelist detected" warning
                     response += 'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + '</A> ' \
-                                'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + '</A> ' \
+                                'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name.decode('utf-8') + '</A> ' \
                                '(Entry date: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.entries[user].entry_time) + ')'
                     response += '\n'
 
