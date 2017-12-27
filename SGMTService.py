@@ -41,8 +41,8 @@ def check_monthly():
                'alt_min_game_value - Alternative minimal game value (in $) allowed<BR>' \
                'alt_min_steam_num_of_reviews - Alternative minimal number of Steam reviews allowed for a game<BR>' \
                'alt_min_steam_score - Alternative Minimal Steam score allowed for a game<BR>' \
-               '<BR><BR>' \
-               'Example:<BR> /SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80'
+               '<BR>' \
+               '<A HREF="/SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80">Request Example</A>'
 
     response = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score)
     return response.replace('\n','<BR>')
@@ -73,8 +73,8 @@ def check_all_giveaways():
                'alt_min_game_value - Alternative minimal game value (in $) allowed<BR>' \
                'alt_min_steam_num_of_reviews - Alternative minimal number of Steam reviews allowed for a game<BR>' \
                'alt_min_steam_score - Alternative Minimal Steam score allowed for a game<BR>' \
-               '<BR><BR>' \
-               'Example:<BR> /SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80'
+               '<BR>' \
+               '<A HREF="/SGMT/CheckAllGiveawaysAccordingToRules?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&start_date=2017-11-01&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80">Request Example</A>'
 
     invalid_giveaways, games = SGMTBusinessLogic.check_giveaways_valid(group_webpage, start_date, min_days, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score)
     response = u'<B>Invalid Giveaways:</B>'
@@ -110,12 +110,23 @@ def user_check_first_giveaway():
 
     if not group_webpage or not users:
         return 'UserCheckFirstGiveaway  - Check if users comply with first giveaway rules:<BR>' \
-               'Creates a giveaway unique to the group. Creates the giveaway within X days of entering the group. Creates the giveaway for a minimum of X days.' \
-               'Usage: /SGMT/UserCheckFirstGiveaway?group_webpage=[steamgifts group webpage]&users=[steamgifts usernames seperated by comma] ' \
-               '(Optional: &addition_date=[date from which the user entered the group: YYYY-MM-DD]&days_to_create_ga=[within how many days since entering the group should the GA be created]&min_ga_time=[min GA running time (in days)]' \
-               '&min_game_value=[Minimal game value (in $) allowed]&min_steam_num_of_reviews=[Minimal number of Steam reviews allowed for a game]&min_steam_score=[Minimal Steam score allowed for a game])<BR><BR>' \
-               '&alt_min_game_value=[Alt. Minimal game value (in $) allowed]&alt_min_steam_num_of_reviews=[Alt. Minimal number of Steam reviews allowed for a game]&alt_min_steam_score=[Alt. Minimal Steam score allowed for a game])&check_entered_giveaways=[Check if user entered any group GAs while his first GA is active]<BR><BR>' \
-               'Example:<BR> /SGMT/UserCheckFirstGiveaway?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&users=User1,User2&addition_date=2017-12-01&days_to_create_ga=2&min_ga_time=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80&check_entered_giveaways=True'
+                'For Example: Creates a giveaway unique to the group. Creates the giveaway within X days of entering the group. Creates the giveaway for a minimum of X days. Etc.<BR><BR>' \
+               '<B>Params:</B><BR> ' \
+               'group_webpage - SteamGifts group webpage<BR>' \
+               'users - A list of SteamGifts users (seperated by commas) <BR>' \
+               '<B>Optional Params:</B> <BR>' \
+               'addition_date=YYYY-MM-DD - The date from which the user was added to the group <BR>' \
+               'days_to_create_ga - Within how many days of entering the group should the first GA be created<BR>' \
+               'min_ga_time - Minimum number of days of a GA to run<BR>' \
+               'min_game_value - Minimal game value (in $) allowed<BR>' \
+               'min_steam_num_of_reviews - Minimal number of Steam reviews allowed for a game<BR>' \
+               'min_steam_score - Minimal Steam score allowed for a game<BR>' \
+               'alt_min_game_value - Alternative minimal game value (in $) allowed<BR>' \
+               'alt_min_steam_num_of_reviews - Alternative minimal number of Steam reviews allowed for a game<BR>' \
+               'alt_min_steam_score - Alternative Minimal Steam score allowed for a game<BR>' \
+               'check_entered_giveaways=True/False - Check if user entered any group GAs while his first GA is active<BR>' \
+               '<BR>' \
+               '<A HREF="/SGMT/UserCheckFirstGiveaway?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&users=Vlmbcn,7Years&addition_date=2017-12-01&days_to_create_ga=2&min_ga_time=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80&check_entered_giveaways=True">Request Example</A>'
 
     response = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, users, addition_date, days_to_create_ga, min_ga_time, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, check_entered_giveaways)
     return response.replace('\n','<BR>')
@@ -128,9 +139,14 @@ def user_full_giveaways_history():
     start_date = request.args.get('start_date')
 
     if not group_webpage or not user:
-        return 'UserFullGiveawaysHistory  - For a single user, show a list of all giveaways he either created or participated in.<BR>' \
-               'Usage: /SGMT/UserFullGiveawaysHistory?group_webpage=[steamgifts group webpage]&start_date=[date from which you want to check: YYYY-MM-DD]<BR> ' \
-               'Example: /SGMT/UserFullGiveawaysHistory?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&start_date=2017-12-01'
+        return 'UserFullGiveawaysHistory  - For a single user, show a list of all giveaways he either created or participated in.<BR><BR>' \
+               '<B>Params:</B><BR> ' \
+               'group_webpage - SteamGifts group webpage<BR>' \
+               'user - A SteamGift user name <BR>' \
+               '<B>Optional Params:</B> <BR>' \
+               'start_date=YYYY-MM-DD - The date from which to fetch the data <BR>' \
+               '<BR>'\
+               '<A HREF="/SGMT/UserFullGiveawaysHistory?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&start_date=2017-12-01&user=Mdk25">Request Example</A>'
 
     created_giveaways, entered_giveaways, games = SGMTBusinessLogic.get_user_all_giveways(group_webpage, user, start_date)
     response = u''
@@ -190,9 +206,13 @@ def group_users_summary():
     start_date = request.args.get('start_date')
 
     if not group_webpage:
-        return 'GroupUsersSummary  - For a given group, return summary of all giveaways created, entered and won by members.<BR>' \
-               'Usage: /SGMT/GroupUsersSummary?group_webpage=[steamgifts group webpage]&start_date=[date from which you want to check: YYYY-MM-DD] ' \
-               'Example: /SGMT/GroupUsersSummary?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&start_date=2017-12-01'
+        return 'GroupUsersSummary  - For a given group, return summary of all giveaways created, entered and won by members.<BR><BR>' \
+               '<B>Params:</B><BR> ' \
+               'group_webpage - SteamGifts group webpage<BR>' \
+               '<B>Optional Params:</B> <BR>' \
+               'start_date=YYYY-MM-DD - The date starting from which to fetch the data <BR>' \
+               '<BR>'\
+               '<A HREF="/SGMT/GroupUsersSummary?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&start_date=2017-12-01">Request Example</A>'
 
     total_group_data, users_data = SGMTBusinessLogic.get_group_summary(group_webpage, start_date)
 
@@ -257,17 +277,19 @@ def user_check_rules():
     check_steamrep = request.args.get('check_steamrep')
 
     if not users:
-        return 'UserCheckRules - Check if a user complies to group rules.<BR>' \
-               'Usage: /SGMT/UserCheckRules?&users=[steamgifts users separated by comma]&[options]<BR>' \
-                'Options:<BR>' \
-                'check_nonactivated=True/False - Check user doesn\'t have non activated games<BR>'\
-                'check_multiple_wins=True/False - Check user doesn\'t have multiple wins<BR>'\
-                'check_real_cv_value=True/False - Check user has positive real CV ratio<BR>'\
-                'check_steamgifts_ratio=True/False - Check user has positive SteamGifts global ratio<BR>'\
-                'check_steamrep=True/Faalse - Check user has no SteamRep bans and his profile is public<BR>'\
-                'check_level=True/Faalse - Check user is above certain level<BR>'\
-                'level=# - Check user is above certain level<BR>'\
-               'Example: /SGMT/UserCheckRules?user=Mdk25&check_nonactivated=True&check_multiple_wins=True&check_real_cv_value=True&check_steamgifts_ratio=True&check_steamrep=True&check_level=True&level=1'
+        return 'UserCheckRules - Check if a user complies to group rules.<BR><BR>' \
+               '<B>Params:</B><BR> ' \
+               'users - SteamGifts users to check<BR>' \
+               '<B>Optional Params:</B> <BR>' \
+               'check_nonactivated=True/False - Check user doesn\'t have non activated games<BR>' \
+               'check_multiple_wins=True/False - Check user doesn\'t have multiple wins<BR>' \
+               'check_real_cv_value=True/False - Check user has positive real CV ratio<BR>' \
+               'check_steamgifts_ratio=True/False - Check user has positive SteamGifts global ratio<BR>' \
+               'check_steamrep=True/Faalse - Check user has no SteamRep bans and his profile is public<BR>' \
+               'check_level=True/Faalse - Check user is above certain level<BR>' \
+               'level=# - Check user is above certain level<BR>' \
+               '<BR>'\
+               '<A HREF="/SGMT/UserCheckRules?user=Mdk25&check_nonactivated=True&check_multiple_wins=True&check_real_cv_value=True&check_steamgifts_ratio=True&check_steamrep=True&check_level=True&level=1">Request Example</A>'
 
     response_object = SGMTBusinessLogic.user_check_rules(users, check_nonactivated, check_multiple_wins, check_real_cv_value, check_steamgifts_ratio, check_level, level, check_steamrep)
     response = ''
@@ -285,8 +307,17 @@ def lazy_add_group():
 
     if not group_webpage:
         return 'AddNewGroup - Check if a user complies to group rules.<BR>' \
-               'Usage: /SGMT/UserCheckRules?&users=[steamgifts users separated by comma]&group_webpage=[steamgifts group webpage]&cookies=[your steamgifts cookies]<BR>' \
-               'Example: /SGMT/GroupUsersSummary?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group'
+               'There are 2 ways to process a SteamGifts group:<BR>' \
+               '1. Basic: It can be processed by an "anonymous" user. Which means it will not have access to the list of giveaway entries, and can only see up to 3 winners in each giveaway<BR>' \
+               '2. Recomended: It can be processed by a user who is a member of the SteamGifts group. Which means it will have full access to all available group data<BR>' \
+               'In order to benefit from the full abilities of the SGMT tool, it is recommended you provide the cookies of a registered group user, when adding your group.' \
+               'Your cookies can be seen under "Cookies" section of the <A HREF="https://www.mkyong.com/computer-tips/how-to-view-http-headers-in-google-chrome/">HTTP request</A> while browing SteamGifts<BR>' \
+               '<B>Params:</B><BR> ' \
+               'group_webpage - SteamGifts group webpage<BR>' \
+               '<B>Optional Params:</B> <BR>' \
+               'cookies - Your SteamGifts cookies<BR>' \
+               '<BR>'\
+               '<A HREF="/SGMT/AddNewGroup?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group">Request Example</A>'
 
     group_name = SGMTBusinessLogic.lazy_add_group(group_webpage, cookies)
     return 'Succesfully added group <A HREF="' + group_webpage + '">' + group_name + '</A>.<BR> ' \
@@ -307,6 +338,7 @@ def get_groups():
 
     return results
 
+# --- Internal Admin Commands ---
 
 @app.route('/SGMT-Admin/AddNewGroup', methods=['GET'])
 def add_new_group():
