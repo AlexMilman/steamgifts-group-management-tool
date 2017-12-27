@@ -86,7 +86,8 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
         current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
         if current_page_num and current_page_num != str(page_index):
             break
-        LogUtils.log_info('Processing giveaways page #' + str(current_page_num))
+        if current_page_num:
+            LogUtils.log_info('Processing giveaways page ' + get_page_num_str(current_page_num))
 
         giveaway_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
         for giveaway_elem in giveaway_elements:
@@ -98,7 +99,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
                 continue
             partial_giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
             giveaway_link = SteamGiftsConsts.get_giveaway_link(partial_giveaway_link)
-            LogUtils.log_info('Processing: ' + giveaway_link)
+            LogUtils.log_info('Processing ' + giveaway_link)
             game_name = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/text()').encode('utf-8')
             winners = WebUtils.get_items_by_xpath(giveaway_elem, u'.//div[@class="giveaway__column--positive"]/a/text()')
             poster = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__username"]/text()')
@@ -112,19 +113,53 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
             if winners:
                 reached_ended_giveaways = True
 
+            if len(winners) >= 3:
+                winners_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_winners_link(partial_giveaway_link), cookies=cookies)
+                if winners_content is not None:
+                    error_message = WebUtils.get_item_by_xpath(winners_content, u'.//div[@class="page__heading__breadcrumbs"]/text()')
+                    if not error_message or error_message != 'Error':
+                        current_winners_page_num = WebUtils.get_item_by_xpath(winners_content, u'.//a[@class="is-selected"]/span/text()')
+                        LogUtils.log_info('Processing ' + giveaway_link + ' winners page ' + get_page_num_str(current_winners_page_num))
+                        winners.extend(WebUtils.get_items_by_xpath(winners_content, u'.//p[@class="table__column__heading"]/a/text()'))
+
+                        if current_winners_page_num:
+                            winners_page_index = 2
+                            while True:
+                                winners_url = SteamGiftsConsts.get_giveaway_winners_link(partial_giveaway_link) + SteamGiftsConsts.STEAMGIFTS_SEARCH_PAGE + str(winners_page_index)
+                                winners_content = WebUtils.get_html_page(winners_url, cookies=cookies)
+                                if winners_content is None:
+                                    LogUtils.log_error('Cannot process page: ' + winners_url)
+                                    break
+                                current_winners_page_num = WebUtils.get_item_by_xpath(winners_content, u'.//a[@class="is-selected"]/span/text()')
+                                if current_winners_page_num and current_winners_page_num != str(winners_page_index):
+                                    break
+                                LogUtils.log_info('Processing ' + giveaway_link + ' winners page ' + get_page_num_str(current_winners_page_num))
+                                winners.extend(WebUtils.get_items_by_xpath(winners_content, u'.//p[@class="table__column__heading"]/a/text()'))
+                                winners_page_index += 1
+
             giveaway_entries=dict()
-            giveaway_entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(partial_giveaway_link), cookies=cookies)
-            if giveaway_entries_content is not None:
-                error_message = WebUtils.get_item_by_xpath(giveaway_entries_content, u'.//div[@class="page__heading__breadcrumbs"]/text()')
+            entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(partial_giveaway_link), cookies=cookies)
+            if entries_content is not None:
+                error_message = WebUtils.get_item_by_xpath(entries_content, u'.//div[@class="page__heading__breadcrumbs"]/text()')
                 if not error_message or error_message != 'Error':
-                    giveaway_entries_elements = WebUtils.get_items_by_xpath(giveaway_entries_content, u'.//div[@class="table__row-inner-wrap"]')
-                    for entry_element in giveaway_entries_elements:
-                        entry_user = WebUtils.get_item_by_xpath(entry_element, u'.//a[@class="table__column__heading"]/text()').encode('utf-8')
-                        entry_time = time.gmtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(entry_element, u'.//div[@class="table__column--width-small text-center"]/span/@data-timestamp')))
-                        winner = False
-                        if entry_user in winners:
-                            winner = True
-                        giveaway_entries[entry_user] = GiveawayEntry(entry_user, entry_time, winner=winner)
+                    current_entries_page_num = WebUtils.get_item_by_xpath(entries_content, u'.//a[@class="is-selected"]/span/text()')
+                    LogUtils.log_info('Processing ' + giveaway_link + ' entries page ' + get_page_num_str(current_entries_page_num))
+                    process_entries(entries_content, giveaway_entries, winners)
+
+                    if current_entries_page_num:
+                        entries_page_index = 2
+                        while True:
+                            entries_url = SteamGiftsConsts.get_giveaway_entries_link(partial_giveaway_link) + SteamGiftsConsts.STEAMGIFTS_SEARCH_PAGE + str(entries_page_index)
+                            entries_content = WebUtils.get_html_page(entries_url, cookies=cookies)
+                            if entries_content is None:
+                                LogUtils.log_error('Cannot process page: ' + entries_url)
+                                break
+                            current_entries_page_num = WebUtils.get_item_by_xpath(entries_content, u'.//a[@class="is-selected"]/span/text()')
+                            if current_entries_page_num and current_entries_page_num != str(entries_page_index):
+                                break
+                            LogUtils.log_info('Processing ' + giveaway_link + ' entries page ' + get_page_num_str(current_entries_page_num))
+                            process_entries(entries_content, giveaway_entries, winners)
+                            entries_page_index += 1
                 else:
                     LogUtils.log_warning('Unable to process entries for ' + giveaway_link)
                     # We can't access the GA data, but we can still know who won
@@ -159,6 +194,23 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
 
     LogUtils.log_info('Finished processing giveaways for group ' + group_webpage)
     return group_giveaways, games
+
+
+def process_entries(entries_content, giveaway_entries, winners):
+    entries_elements = WebUtils.get_items_by_xpath(entries_content, u'.//div[@class="table__row-inner-wrap"]')
+    for entry_element in entries_elements:
+        entry_user = WebUtils.get_item_by_xpath(entry_element, u'.//a[@class="table__column__heading"]/text()').encode('utf-8')
+        entry_time = time.gmtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(entry_element, u'.//div[@class="table__column--width-small text-center"]/span/@data-timestamp')))
+        winner = False
+        if entry_user in winners:
+            winner = True
+        giveaway_entries[entry_user] = GiveawayEntry(entry_user, entry_time, winner=winner)
+
+
+def get_page_num_str(page_num):
+    if page_num:
+        return '#' + str(page_num)
+    return ''
 
 
 def get_monthly_posters(group_webpage, month, max_pages=0):

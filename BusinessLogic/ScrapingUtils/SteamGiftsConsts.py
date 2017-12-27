@@ -17,6 +17,10 @@ def get_giveaway_entries_link(partial_giveaway_link):
     return get_giveaway_link(partial_giveaway_link) + '/entries'
 
 
+def get_giveaway_winners_link(partial_giveaway_link):
+    return get_giveaway_link(partial_giveaway_link) + '/winners'
+
+
 def get_giveaway_groups_link(partial_giveaway_link):
     return get_giveaway_link(partial_giveaway_link) + '/groups'
 
