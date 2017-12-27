@@ -1,24 +1,23 @@
 import httplib
-import logging
+import time
 import urllib2
 
-import time
 from lxml import html
+from BusinessLogic.Utils import LogUtils
 
 # WebUtils module responsible for web page downloads, and xpath traversal
 # Copyright (C) 2017  Alex Milman
-from BusinessLogic.Utils import LogUtils
 
 
-def get_items_by_xpath(image_data, xpath_param, default=None):
-    xpath_value = image_data.xpath(xpath_param)
+def get_items_by_xpath(data, xpath_param, default=None):
+    xpath_value = data.xpath(xpath_param)
     if xpath_value is not None:
         return xpath_value
     return default
 
 
-def get_item_by_xpath(image_data, xpath_param, default=None):
-    xpath_value = image_data.xpath(xpath_param)
+def get_item_by_xpath(data, xpath_param, default=None):
+    xpath_value = data.xpath(xpath_param)
     if isinstance(xpath_value, list):
         if len(xpath_value) > 0:
             return xpath_value[0]
