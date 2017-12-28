@@ -2,11 +2,11 @@ import getopt
 import sys
 
 from BusinessLogic import SGMTBusinessLogic
+from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SteamConsts
 
 
 # Standalone CLI implementation of the SGMT functionality
 # Copyright (C) 2017  Alex Milman
-from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SteamConsts
 
 PURPLE = '\033[95m'
 CYAN = '\033[96m'
@@ -31,7 +31,6 @@ def main(argv):
     user = ''
     cookies = ''
     addition_date = None
-    max_pages = 0
     show_warranty=False
     show_conditions=False
     check_nonactivated=False
@@ -154,17 +153,12 @@ def main(argv):
     elif feature == 'UserCheckFirstGiveaway':
         response = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, user, addition_date, days, min_time, min_game_value, min_steam_num_of_reviews, min_steam_score)
         print response
-    #TODO: Add CheckAllGiveawaysAccordingToRules
     elif feature == 'Test':
         SGMTBusinessLogic.test(group_webpage)
     else:
         print 'INVALID FEATURE: ' +  feature + '\n'
         print_usage()
         sys.exit(2)
-
-
-    #TODO Optional: max_pages - ???
-    #TODO Optional: ignore_users
 
     sys.exit(0)
 

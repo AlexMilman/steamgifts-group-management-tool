@@ -8,17 +8,7 @@ The tool is currently deployed on a web server, and can be accessed through [her
 In order for the tool to be usable for any specific group, this group needs to be added. Contact me for details.
 
 ### Current Features
-The tool currently implements the following features:
-##### Group Administration
-* [CheckMonthly](http://18.217.222.235:8080/SGMT/CheckMonthly) - Returns a list of all users who didn\'t create a "monthyl" giveaway in a given month (according to defined rules). Response example: https://imgur.com/a/4RsM9
-* [CheckAllGiveawaysAccordingToRules](http://18.217.222.235:8080/SGMT/CheckAllGiveawaysAccordingToRules) - Returns a list of games created not according to given rules. Response example: https://imgur.com/a/kK1WL
-* [UserCheckFirstGiveaway](http://18.217.222.235:8080/SGMT/UserCheckFirstGiveaway)  - Check if users comply with first giveaway rules (according to defined rules). Response example: https://imgur.com/a/afSBB
-* [UserFullGiveawaysHistory](http://18.217.222.235:8080/SGMT/UserFullGiveawaysHistory)  - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.). Response example: https://imgur.com/a/FQaqz 
-* [GroupUsersSummary](http://18.217.222.235:8080/SGMT/GroupUsersSummary)  - For a given group, return summary of all giveaways created, entered and won by members. Response example: https://imgur.com/a/WSkt1 
-* [UserCheckRules](http://18.217.222.235:8080/SGMT/UserCheckRules) - Check if a user complies to group rules. Response example: https://imgur.com/a/oCL3N
-##### Tool Administration
-* [AddNewGroup](http://18.217.222.235:8080/SGMT/AddNewGroup) - Add new SteamGifts group to be processed at the next available opportunity (tipically within 24 hours)
-* [GetAvailableGroups](http://18.217.222.235:8080/SGMT/GetAvailableGroups) - List all SteamGifts groups available in the tool at the moment
+The up-to-date features and their functionality can be seen on the live server, in the link above.
 
 ## How to Install and Run
 ### Python
@@ -62,18 +52,17 @@ I chose Python as the programming language to implement this tool, for the follo
 5. Python code is lightweight and runs fast.
 
 ### Why no parallelism
-I chose to write the tool synchronously at the moment for 2 reasons:
+I chose to write the tool synchronously at the moment for 3 reasons:
 1. It would take more time to write it to run asynchronously
 2. Most of the commands are running against data saved in the DB, so there is no need for async run. The only part that can actually benefit from it, is the update-group-data part.
 3. It may add a significant load to the web servers it uses.
 Steam may not care about a couple of hundred concurrent requests. But for SteamGifts or SGTools this might be a hug of death, which will either crash their server, or get your IP blocked from it.
-So for now this tool will run slowly, but safely.
+So for now this tool's automatic nightly update will run slowly, but safely.
 
 ### Future plans
 * Create a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies - Opened a ticket to SteamGifts Admins. Waiting for their response...
 
 ### TODO
-* Add main page with usage instructions and links to service API: Separate into commands that need cookies, and don't
 * Add main admin page with usage instructions and links to admin API
 * Create separate module to prepare HTML response from BL responses, that are to be returned by the service
 * Add Whitelist data to giveaways

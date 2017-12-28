@@ -16,6 +16,22 @@ from BusinessLogic.Utils import LogUtils
 app = Flask(__name__)
 
 
+@app.route('/SGMT/', methods=['GET'])
+def main_page():
+    response = '<B>Group Management</B><BR><BR>'
+    response += '<A HREF="/SGMT/UserCheckRules">UserCheckRules</A> - Check if a user complies to group rules.<BR><BR>'
+    response += '<A HREF="/SGMT/CheckMonthly">CheckMonthly</A> - Returns a list of all users who didn\'t create a giveaway in a given month.<BR><BR>'
+    response += '<A HREF="/SGMT/CheckAllGiveawaysAccordingToRules">CheckAllGiveawaysAccordingToRules</A> - Returns a list of games created not according to given rules.<BR><BR>'
+    response += '<A HREF="/SGMT/UserCheckFirstGiveaway">UserCheckFirstGiveaway</A> - Check if users comply with first giveaway rules (according to defined rules).<BR><BR>'
+    response += '<A HREF="/SGMT/UserFullGiveawaysHistory">UserFullGiveawaysHistory</A> - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).<BR><BR>'
+    response += '<A HREF="/SGMT/GroupUsersSummary">GroupUsersSummary</A> - For a given group, return summary of all giveaways created, entered and won by members.<BR><BR>'
+    response += '<BR><BR><BR>'
+    response += '<B>Tool Management</B><BR><BR>'
+    response += '<A HREF="/SGMT/GetAvailableGroups">GetAvailableGroups</A> - List all SteamGifts groups available in the tool at the moment.<BR><BR>'
+    response += '<A HREF="/SGMT/AddNewGroup">AddNewGroup</A> - Add new SteamGifts group to be processed at the next available opportunity (tipically within 24 hours).<BR><BR>'
+
+    return response
+
 @app.route('/SGMT/CheckMonthly', methods=['GET'])
 def check_monthly():
     group_webpage = request.args.get('group_webpage')
@@ -312,6 +328,7 @@ def lazy_add_group():
                '2. Recomended: It can be processed by a user who is a member of the SteamGifts group. Which means it will have full access to all available group data<BR>' \
                'In order to benefit from the full abilities of the SGMT tool, it is recommended you provide the cookies of a registered group user, when adding your group.' \
                'Your cookies can be seen under "Cookies" section of the <A HREF="https://www.mkyong.com/computer-tips/how-to-view-http-headers-in-google-chrome/">HTTP request</A> while browing SteamGifts<BR>' \
+               'Without cookies, the following commands will only give partial results: UserCheckFirstGiveaway, UserFullGiveawaysHistory, GroupUsersSummary<BR>' \
                '<B>Params:</B><BR> ' \
                'group_webpage - SteamGifts group webpage<BR>' \
                '<B>Optional Params:</B> <BR>' \
