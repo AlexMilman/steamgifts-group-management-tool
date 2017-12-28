@@ -63,7 +63,6 @@ So for now this tool's automatic nightly update will run slowly, but safely.
 * Create a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies - Opened a ticket to SteamGifts Admins. Waiting for their response...
 
 ### TODO
-* Add main admin page with usage instructions and links to admin API
 * Create separate module to prepare HTML response from BL responses, that are to be returned by the service
 * Add Whitelist data to giveaways
 * Check replacing the heaviest flow (UpdateAllGroups) with a lambda AWS process

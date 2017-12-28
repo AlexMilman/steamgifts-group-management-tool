@@ -32,6 +32,7 @@ def main_page():
 
     return response
 
+
 @app.route('/SGMT/CheckMonthly', methods=['GET'])
 def check_monthly():
     group_webpage = request.args.get('group_webpage')
@@ -356,6 +357,16 @@ def get_groups():
     return results
 
 # --- Internal Admin Commands ---
+
+@app.route('/SGMT-Admin/', methods=['GET'])
+def amdin_main_page():
+    response = ''
+    response += '<A HREF="/SGMT/UpdateGroupData?group_webpage=">UpdateGroupData</A> - Partial update, single group.<BR><BR>'
+    response += '<A HREF="/SGMT/AddNewGroup?group_webpage=">AddNewGroup</A> - Reload from scratch, single group.<BR><BR>'
+    response += '<A HREF="/SGMT/UpdateAllGroups">UpdateAllGroups</A> - Partial update, all groups. Reload from scratch, all users, all games.<BR><BR>'
+
+    return response
+
 
 @app.route('/SGMT-Admin/AddNewGroup', methods=['GET'])
 def add_new_group():
