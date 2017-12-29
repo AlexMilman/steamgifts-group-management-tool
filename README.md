@@ -5,8 +5,6 @@ The tool is built to run as a Service, and uses a MySql DB to store all collecte
 ### Using the tool
 The tool is currently deployed on a web server, and can be accessed through [here](http://18.217.222.235:8080/SGMT/)
 
-In order for the tool to be usable for any specific group, this group needs to be added. Contact me for details.
-
 ### Current Features
 The up-to-date features and their functionality can be seen on the live server, in the link above.
 
@@ -64,6 +62,7 @@ So for now this tool's automatic nightly update will run slowly, but safely.
 
 ### TODO
 * Create separate module to prepare HTML response from BL responses, that are to be returned by the service
+* Move preparation of response from SGMTBusinessLogic into HtmlResponseGenerationService
 * Add Whitelist data to giveaways
 * Check replacing the heaviest flow (UpdateAllGroups) with a lambda AWS process
 * Add handling large data quantities: Giveaways, Users, Games (separate into smaller chunks)
