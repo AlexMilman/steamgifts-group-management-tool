@@ -445,7 +445,7 @@ def game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, 
         return True
     return False
 
-
+#TODO: Convert to single user. What calls it need to know to call it multiple times. Printouts should move to HtmlResponseGenerationService.
 def user_check_rules(users, check_nonactivated=False, check_multiple_wins=False, check_real_cv_ratio=False, check_steamgifts_ratio=False, check_level=False, min_level=0, check_steamrep=False):
     broken_rules = dict()
     users_list = users.split(',')
