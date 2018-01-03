@@ -61,7 +61,6 @@ So for now this tool's automatic nightly update will run slowly, but safely.
 * Create a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies - Opened a ticket to SteamGifts Admins. Waiting for their response...
 
 ### TODO
-* Move preparation of response from SGMTBusinessLogic into HtmlResponseGenerationService
 * Add full details for entered game in single user full details
 * Add UI level above the API level, that will provide dropdowns to choose from (of groups, or users)
 * Add links to warranty + conditions to every page
@@ -69,3 +68,4 @@ So for now this tool's automatic nightly update will run slowly, but safely.
 * Check replacing the heaviest flow (UpdateAllGroups) with a lambda AWS process
 * Add handling large data quantities: Giveaways, Users, Games (separate into smaller chunks)
 * Handle TODO leftovers
+* Add remarks to code

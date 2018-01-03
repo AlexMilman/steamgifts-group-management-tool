@@ -2,7 +2,7 @@
 # Copyright (C) 2017  Alex Milman
 import time
 
-from BusinessLogic.ScrapingUtils import SteamGiftsConsts
+from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SGToolsConsts
 
 
 def generate_invalid_giveaways_response(games, invalid_giveaways):
@@ -17,7 +17,7 @@ def generate_invalid_giveaways_response(games, invalid_giveaways):
             if game_data:
                 response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(
                     game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
-            response += u' Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'\n'
+            response += u' Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'<BR>'
             response += u'<BR>'
     return response
 
@@ -48,7 +48,7 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
         response += u'<A HREF="' + giveaway.link + u'">' + game_name.decode('utf-8') + u'</A>'
         response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(
             game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
-        response += u' Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'\n'
+        response += u' Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'<BR>'
         response += u'<BR>'
     won = 0
     for giveaway in entered_giveaways:
@@ -61,10 +61,10 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
             float(won) / len(entered_giveaways) * 100) + u'%)<BR>'
     for giveaway in sorted(entered_giveaways, key=lambda x: x.end_time, reverse=True):
         response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name.decode('utf-8') + u'</A>'
-        response += u', Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'\n'
+        response += u', Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'<BR>'
         if giveaway.entries[user].entry_time:
             response += u', Entry date: ' + time.strftime(u'%Y-%m-%d %H:%M:%S',
-                                                          giveaway.entries[user].entry_time) + u'\n'
+                                                          giveaway.entries[user].entry_time) + u'<BR>'
         if user in giveaway.entries.keys() and giveaway.entries[user].winner:
             response += u' <B>(WINNER)</B>'
         response += u'<BR>'
@@ -119,13 +119,75 @@ def generate_group_users_summary_response(group_webpage, total_group_data, users
     return response
 
 
-def generate_user_check_rules_response(response_object):
-    response = ''
-    for user in response_object.keys():
-        response += u'<BR>User ' + user + u';<BR>'
-        for user_message in response_object[user]:
-            response += user_message + u'<BR>'
-    return response.replace('\n', u'<BR>')
+def generate_check_monthly_response(users, monthly_posters, monthly_unfinished):
+    response = u'<BR><BR>Users with unfinished monthly GAs:<BR>'
+    for user, giveaways in monthly_unfinished.iteritems():
+        if user not in monthly_posters:
+            response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A> giveaways: '
+            if giveaways and len(giveaways) > 0:
+                for giveaway in giveaways:
+                    response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name + u'</A>, '
+                response = response[:-2]
+
+    response += u'<BR><BR>Users without monthly giveaways:<BR>'
+    for user in users:
+        if user not in monthly_posters and user not in monthly_unfinished.keys():
+            response += u'<A HREF="'+ SteamGiftsConsts.get_user_link(str(user)) + u'">' + str(user) + u'</A><BR>'
+    return response
+
+
+def generate_check_user_first_giveaway_response(user_first_giveaway, user_no_giveaway, user_entered_giveaway, time_to_create_over):
+    response = u''
+    for user_name in user_first_giveaway.keys():
+        for group_giveaway, game_data in user_first_giveaway[user_name]:
+            response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user_name) + u'">' + user_name + u'</A> ' \
+                        u'first giveaway: <A HREF="' + group_giveaway.link + u'">' + group_giveaway.game_name.decode('utf-8') + u'</A> ' \
+                        u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')' \
+                        u' Ends on: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.end_time) + u'<BR>'
+        
+    response += u'<BR>'
+    for user in user_no_giveaway:
+        response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + u'</A> did not create a GA yet!<BR>'
+    
+    response += u'<BR>'
+    for user in user_entered_giveaway:
+        group_giveaway = user_entered_giveaway[user]
+        response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A> ' \
+                    u'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name.decode('utf-8') + u'</A> ' \
+                    u'(Entry date: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.entries[user].entry_time) + u')<BR>'
+        
+    if time_to_create_over:        
+        response += u'<BR>Time to create first GA ended.<BR>'
+
+    return response
+
+
+def generate_user_check_rules_response(user, nonactivated, multiple_wins, real_cv_ratio, steamgifts_ratio, level, steamrep):
+    response=u''
+    response += u'<BR>User ' + user + u':<BR>'
+    if nonactivated:
+        response += u'Has non-activated games: ' + SGToolsConsts.SGTOOLS_CHECK_NONACTIVATED_LINK + user + u':<BR>'
+    
+    if multiple_wins:
+        response += u'Has multiple wins: ' + SGToolsConsts.SGTOOLS_CHECK_MULTIPLE_WINS_LINK + user + u':<BR>'
+        
+    if real_cv_ratio:
+        response += u'Won more than Sent (Real CV value).<BR>' \
+                    u'Real CV Won: ' + SGToolsConsts.SGTOOLS_CHECK_WON_LINK + user + u'<BR>' \
+                    u'Real CV Sent: ' + SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user + u':<BR>'
+
+    if steamgifts_ratio is not None:
+        response += u'Won more than sent in SteamGifts:<BR>' \
+                    u'Won: ' + steamgifts_ratio[0] + '<BR>' \
+                    u'Sent: ' + steamgifts_ratio[1] + u':<BR>'
+        
+    if level is not None:
+        response += u'User level is less than ' + level + u':<BR>'
+        
+    if steamrep is not None:
+        response += u'User is not public or banned: ' + steamrep + u':<BR>'
+    
+    return response
 
 
 def generate_get_groups_response(empty_groups, groups):
@@ -151,3 +213,5 @@ def float_to_str(float_value):
         if after_decimal_point > 2:
             return float_str[:-after_decimal_point + 2]
     return float_str
+
+

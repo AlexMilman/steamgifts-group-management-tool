@@ -61,8 +61,9 @@ def check_monthly():
                '<BR>' \
                '<A HREF="/SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80">Request Example</A>'
 
-    response = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score)
-    return response.replace('\n','<BR>')
+    users, monthly_posters, monthly_unfinished = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score)
+    response = HtmlResponseGenerationService.generate_check_monthly_response(users, monthly_posters, monthly_unfinished)
+    return response
 
 
 @app.route('/SGMT/CheckAllGiveawaysAccordingToRules', methods=['GET'])
@@ -133,8 +134,9 @@ def user_check_first_giveaway():
                '<BR>' \
                '<A HREF="/SGMT/UserCheckFirstGiveaway?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&users=Vlmbcn,7Years&addition_date=2017-12-01&days_to_create_ga=2&min_ga_time=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80&check_entered_giveaways=True">Request Example</A>'
 
-    response = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, users, addition_date, days_to_create_ga, min_ga_time, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, check_entered_giveaways)
-    return response.replace('\n','<BR>')
+    user_first_giveaway, user_no_giveaway, user_entered_giveaway, time_to_create_over = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, users, addition_date, days_to_create_ga, min_ga_time, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, check_entered_giveaways)
+    response = HtmlResponseGenerationService.generate_check_user_first_giveaway_response(user_first_giveaway, user_no_giveaway, user_entered_giveaway, time_to_create_over)
+    return response
 
 
 @app.route('/SGMT/UserFullGiveawaysHistory', methods=['GET'])
@@ -203,8 +205,12 @@ def user_check_rules():
                '<BR>'\
                '<A HREF="/SGMT/UserCheckRules?user=Mdk25&check_nonactivated=True&check_multiple_wins=True&check_real_cv_value=True&check_steamgifts_ratio=True&check_steamrep=True&check_level=True&level=1">Request Example</A>'
 
-    response_object = SGMTBusinessLogic.user_check_rules(users, check_nonactivated, check_multiple_wins, check_real_cv_value, check_steamgifts_ratio, check_level, level, check_steamrep)
-    return HtmlResponseGenerationService.generate_user_check_rules_response(response_object)
+    response = u''
+    users_list = users.split(',')
+    for user in users_list:
+        nonactivated, multiple_wins, real_cv_ratio, steamgifts_ratio, level, steamrep = SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_steamgifts_ratio, check_level, level, check_steamrep)
+        response += HtmlResponseGenerationService.generate_user_check_rules_response(user, nonactivated, multiple_wins, real_cv_ratio, steamgifts_ratio, level, steamrep)
+    return response
 
 
 @app.route('/SGMT/AddNewGroup', methods=['GET'])
