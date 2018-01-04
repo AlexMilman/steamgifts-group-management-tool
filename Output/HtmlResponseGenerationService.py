@@ -23,8 +23,7 @@ def generate_invalid_giveaways_response(games, invalid_giveaways):
 
 
 def generate_user_full_history_response(created_giveaways, entered_giveaways, games, user):
-    response = u''
-    response += u'<BR>User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A>:<BR>'
+    response = u'<BR>User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A>:<BR>'
     total_value = 0
     total_score = 0.0
     total_num_of_reviews = 0.0
@@ -46,9 +45,8 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
         game_name = giveaway.game_name
         game_data = games[game_name]
         response += u'<A HREF="' + giveaway.link + u'">' + game_name.decode('utf-8') + u'</A>'
-        response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(
-            game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
-        response += u' Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'<BR>'
+        response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
+        response += u' Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time)
         response += u'<BR>'
     won = 0
     for giveaway in entered_giveaways:
@@ -61,10 +59,10 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
             float(won) / len(entered_giveaways) * 100) + u'%)<BR>'
     for giveaway in sorted(entered_giveaways, key=lambda x: x.end_time, reverse=True):
         response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name.decode('utf-8') + u'</A>'
-        response += u', Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'<BR>'
+        response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
+        response += u', Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time)
         if giveaway.entries[user].entry_time:
-            response += u', Entry date: ' + time.strftime(u'%Y-%m-%d %H:%M:%S',
-                                                          giveaway.entries[user].entry_time) + u'<BR>'
+            response += u', Entry date: ' + time.strftime(u'%Y-%m-%d %H:%M:%S',giveaway.entries[user].entry_time)
         if user in giveaway.entries.keys() and giveaway.entries[user].winner:
             response += u' <B>(WINNER)</B>'
         response += u'<BR>'
