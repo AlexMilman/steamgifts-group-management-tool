@@ -15,9 +15,8 @@ def generate_invalid_giveaways_response(games, invalid_giveaways):
             game_data = games[game_name]
             response += u'<A HREF="' + giveaway.link + u'">' + game_name.decode('utf-8') + u'</A>'
             if game_data:
-                response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(
-                    game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
-            response += u' Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time) + u'<BR>'
+                response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
+            response += u' Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time)
             response += u'<BR>'
     return response
 
@@ -55,9 +54,9 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
     response += u'<BR>User entered ' + str(len(entered_giveaways)) + u' giveaways:<BR>'
     if won > 0:
         response = response[:-4]
-        response += u' (Won ' + str(won) + u', Winning percentage: ' + str(
-            float(won) / len(entered_giveaways) * 100) + u'%)<BR>'
+        response += u' (Won ' + str(won) + u', Winning percentage: ' + str(float(won) / len(entered_giveaways) * 100) + u'%)<BR>'
     for giveaway in sorted(entered_giveaways, key=lambda x: x.end_time, reverse=True):
+        game_data = games[giveaway.game_name]
         response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name.decode('utf-8') + u'</A>'
         response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
         response += u', Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time)
@@ -118,7 +117,7 @@ def generate_group_users_summary_response(group_webpage, total_group_data, users
 
 
 def generate_check_monthly_response(users, monthly_posters, monthly_unfinished):
-    response = u'<BR><BR>Users with unfinished monthly GAs:<BR>'
+    response = u'<BR>Users with unfinished monthly GAs:<BR>'
     for user, giveaways in monthly_unfinished.iteritems():
         if user not in monthly_posters:
             response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A> giveaways: '

@@ -200,7 +200,7 @@ def user_check_rules():
                'check_real_cv_value=True/False - Check user has positive real CV ratio<BR>' \
                'check_steamgifts_ratio=True/False - Check user has positive SteamGifts global ratio<BR>' \
                'check_steamrep=True/Faalse - Check user has no SteamRep bans and his profile is public<BR>' \
-               'check_level=True/Faalse - Check user is above certain level<BR>' \
+               'check_level=True/False - Check user is above certain level<BR>' \
                'level=# - Check user is above certain level<BR>' \
                '<BR>'\
                '<A HREF="/SGMT/UserCheckRules?user=Mdk25&check_nonactivated=True&check_multiple_wins=True&check_real_cv_value=True&check_steamgifts_ratio=True&check_steamrep=True&check_level=True&level=1">Request Example</A>'
@@ -208,8 +208,8 @@ def user_check_rules():
     response = u''
     users_list = users.split(',')
     for user in users_list:
-        nonactivated, multiple_wins, real_cv_ratio, steamgifts_ratio, level, steamrep = SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_steamgifts_ratio, check_level, level, check_steamrep)
-        response += HtmlResponseGenerationService.generate_user_check_rules_response(user, nonactivated, multiple_wins, real_cv_ratio, steamgifts_ratio, level, steamrep)
+        nonactivated, multiple_wins, real_cv_ratio, steamgifts_ratio, is_level, steamrep = SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_steamgifts_ratio, check_level, level, check_steamrep)
+        response += HtmlResponseGenerationService.generate_user_check_rules_response(user, nonactivated, multiple_wins, real_cv_ratio, steamgifts_ratio, is_level, steamrep)
     return response
 
 
@@ -253,6 +253,7 @@ def amdin_main_page():
     response += '<A HREF="/SGMT/UpdateGroupData?group_webpage=">UpdateGroupData</A> - Partial update, single group.<BR><BR>'
     response += '<A HREF="/SGMT/AddNewGroup?group_webpage=">AddNewGroup</A> - Reload from scratch, single group.<BR><BR>'
     response += '<A HREF="/SGMT/UpdateAllGroups">UpdateAllGroups</A> - Partial update, all groups. Reload from scratch, all users, all games.<BR><BR>'
+    response += '<A HREF="/SGMT/GroupUsersCheckRules">GroupUsersCheckRules</A> - Check accordance to rules of an entire SG group.<BR><BR>'
 
     return response
 
@@ -284,6 +285,41 @@ def update_all_groups():
     SGMTBusinessLogic.update_all_db_groups()
     LogUtils.log_info('UpdateAllGroups took ' + str(time.time() - start_time) +  ' seconds')
     return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
+
+
+@app.route('/SGMT-Admin/GroupUsersCheckRules', methods=['GET'])
+def group_users_check_rules():
+    group_webpage = request.args.get('group_webpage')
+    check_nonactivated = request.args.get('check_nonactivated')
+    check_multiple_wins = request.args.get('check_multiple_wins')
+    check_real_cv_value = request.args.get('check_real_cv_value')
+    check_steamgifts_ratio = request.args.get('check_steamgifts_ratio')
+    check_level = request.args.get('check_level')
+    level = get_optional_int_param('level')
+    check_steamrep = request.args.get('check_steamrep')
+
+    if not group_webpage:
+        return 'GroupUsersCheckRules - Check if a user complies to group rules.<BR><BR>' \
+               '<B>Params:</B><BR> ' \
+               'group_webpage - SteamGifts group webpage<BR>' \
+               '<B>Optional Params:</B> <BR>' \
+               'check_nonactivated=True/False - Check user doesn\'t have non activated games<BR>' \
+               'check_multiple_wins=True/False - Check user doesn\'t have multiple wins<BR>' \
+               'check_real_cv_value=True/False - Check user has positive real CV ratio<BR>' \
+               'check_steamgifts_ratio=True/False - Check user has positive SteamGifts global ratio<BR>' \
+               'check_steamrep=True/Faalse - Check user has no SteamRep bans and his profile is public<BR>' \
+               'check_level=True/False - Check user is above certain level<BR>' \
+               'level=# - Check user is above certain level<BR>' \
+               '<BR>'\
+               '<A HREF="/SGMT/GroupUsersCheckRules?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&check_nonactivated=True&check_multiple_wins=True&check_real_cv_value=True&check_steamgifts_ratio=True&check_steamrep=True&check_level=True&level=1">Request Example</A>'
+
+    response = u''
+    group_users_rules = SGMTBusinessLogic.group_users_check_rules(group_webpage, check_nonactivated, check_multiple_wins, check_real_cv_value, check_steamgifts_ratio, check_level, level, check_steamrep)
+    for user, rules in group_users_rules.items():
+        user_response = HtmlResponseGenerationService.generate_user_check_rules_response(user, rules[0], rules[1], rules[2],rules[3], rules[4], rules[5])
+        LogUtils.log_info(user_response)
+        response += user_response
+    return response
 
 
 @app.route('/SGMT/warranty', methods=['GET'])

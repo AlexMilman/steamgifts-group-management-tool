@@ -234,7 +234,6 @@ def get_user_all_giveways(group_webpage, user, start_time):
                 entered_giveaways.append(group_giveaway)
                 games[game_name] = MySqlConnector.get_game_data(game_name)
 
-
     return created_giveaways, entered_giveaways, games
 
 
@@ -434,6 +433,17 @@ def game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, 
     return False
 
 
+def group_users_check_rules(group_webpage, check_nonactivated=False, check_multiple_wins=False, check_real_cv_ratio=False, check_steamgifts_ratio=False, check_level=False, min_level=0, check_steamrep=False):
+    group = MySqlConnector.load_group(group_webpage, load_giveaway_data=False)
+    if not group:
+        return None
+    result=dict()
+    for user_name in group.group_users.keys():
+        nonactivated, multiple_wins, real_cv_ratio, steamgifts_ratio, level, steamrep = user_check_rules(user_name, check_nonactivated, check_multiple_wins, check_real_cv_ratio, check_steamgifts_ratio, check_level, min_level, check_steamrep)
+        result[user_name] = (nonactivated, multiple_wins, real_cv_ratio, steamgifts_ratio, level, steamrep)
+    return result
+
+
 def user_check_rules(user_name, check_nonactivated=False, check_multiple_wins=False, check_real_cv_ratio=False, check_steamgifts_ratio=False, check_level=False, min_level=0, check_steamrep=False):
     nonactivated=False
     multiple_wins=False
@@ -442,26 +452,36 @@ def user_check_rules(user_name, check_nonactivated=False, check_multiple_wins=Fa
     level=None
     steamrep=None
     group_user=None
-    if check_nonactivated and SGToolsScrapingUtils.check_nonactivated(user_name):
-        nonactivated=True
 
-    if check_multiple_wins and SGToolsScrapingUtils.check_multiple_wins(user_name):
-        multiple_wins=True
+    if check_nonactivated:
+        LogUtils.log_info('Checking user ' + user_name + ' for non-activated games')
+        if SGToolsScrapingUtils.check_nonactivated(user_name):
+            nonactivated=True
 
-    if check_real_cv_ratio and SGToolsScrapingUtils.check_real_cv_RATIO(user_name):
-        real_cv_ratio=True
+    if check_multiple_wins:
+        LogUtils.log_info('Checking user ' + user_name + ' for multiple wins')
+        if SGToolsScrapingUtils.check_multiple_wins(user_name):
+            multiple_wins=True
+
+    if check_real_cv_ratio:
+        LogUtils.log_info('Checking user ' + user_name + ' for Real CV ratio')
+        if SGToolsScrapingUtils.check_real_cv_RATIO(user_name):
+            real_cv_ratio=True
 
     if check_steamgifts_ratio:
+        LogUtils.log_info('Checking user ' + user_name + ' for SteamGifts Global ratio')
         group_user = load_user(group_user, user_name)
         if group_user.global_won > group_user.global_sent:
             steamgifts_ratio = (str(group_user.global_won), str(group_user.global_sent))
 
     if check_level and min_level > 0:
+        LogUtils.log_info('Checking user ' + user_name + ' for minimal level')
         group_user = load_user(group_user, user_name)
         if group_user.level < float(min_level):
             level=str(min_level)
 
     if check_steamrep:
+        LogUtils.log_info('Checking user ' + user_name + ' in SteamRep')
         user_steam_id = SteamGiftsScrapingUtils.get_user_steam_id(user_name)
         if user_steam_id and not SteamRepScrapingUtils.check_user_not_public_or_banned(user_steam_id):
             steamrep=SteamRepConsts.get_steamrep_link(user_steam_id)
