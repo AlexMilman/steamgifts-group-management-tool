@@ -10,7 +10,6 @@ from flask import Flask
 from flask import request
 
 from BusinessLogic import SGMTBusinessLogic
-from BusinessLogic.ScrapingUtils import G2AGameScraper
 from BusinessLogic.Utils import LogUtils
 from Output import HtmlResponseGenerationService
 
