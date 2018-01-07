@@ -27,10 +27,13 @@ def get_item_by_xpath(data, xpath_param, default=None):
         return xpath_value.extract()
 
 
-def get_html_page(page_url, cookies=None, retries=3):
+def get_html_page(page_url, cookies=None, retries=3, https=False):
     while retries > 0:
         try:
-            return html.fromstring(get_page_content(page_url, cookies))
+            if https:
+                return html.fromstring(get_https_page_content(page_url))
+            else:
+                return html.fromstring(get_page_content(page_url, cookies))
         except:
             if retries > 0:
                 LogUtils.log_error('Error downloading page ' + page_url + '. ' + str(retries) + ' retries left. retyring...')
@@ -49,6 +52,25 @@ def get_page_content(page_url, cookies=None):
     if cookies:
         opener.addheaders.append(('Cookie', cookies))
     response = opener.open(page_url)
+
+    while 1:
+        try:
+            data = response.read()
+        except httplib.IncompleteRead, e:
+            content = e.partial
+            break
+        if not data:
+            break
+        content += data
+
+    return content
+
+
+def get_https_page_content(page_url):
+    page_url = page_url.encode('utf-8')
+    content = ''
+    request = urllib2.Request(page_url, headers={'User-Agent': "Magic Browser"})
+    response = urllib2.urlopen(request)
 
     while 1:
         try:

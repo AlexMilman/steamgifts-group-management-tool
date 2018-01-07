@@ -499,7 +499,7 @@ def load_user(group_user, user_name):
     return group_user
 
 
-def test(group_webpage):
+def test():
     WebUtils.get_html_page('https://www.steamgifts.com/giveaway/OCir9/plank-not-included/groups1')
     # group = add_new_group(group_webpage, '')
     # MySqlConnector.save_group(group_webpage, group)
@@ -511,12 +511,12 @@ def test(group_webpage):
     #         print message
     #     if group_user.global_won > group_user.global_sent:
     #         print 'User ' + group_user.user_name + ' has negative global gifts ratio'
-    # game = GameData('Chroma Squad', 'http://store.steampowered.com/app/251130/', 15)
-    #
-    # try:
-    #     SteamScrapingUtils.update_game_additional_data(game)
-    # except:
-    #     SteamDBScrapingUtils.update_game_additional_data(game)
+    game = GameData('Chroma Squad', 'http://store.steampowered.com/app/251130/', 15)
+
+    try:
+        SteamScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
+    except:
+        SteamDBScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
     pass
 
 
@@ -575,7 +575,10 @@ def update_game_data(game):
     game_name = game.game_name
     try:
         if game_link.startswith(SteamConsts.STEAM_GAME_LINK):
-            steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name, game_link)
+            try:
+                steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name, game_link)
+            except:
+                steam_score, num_of_reviews = SteamDBScrapingUtils.get_game_additional_data(game_name, game_link)
             game.steam_score = steam_score
             game.num_of_reviews = num_of_reviews
         elif game_link.startswith(SteamConsts.STEAM_PACKAGE_LINK):
@@ -585,7 +588,10 @@ def update_game_data(game):
             i = 0
             for package_url in package_games:
                 tmp_game_name = game_name + ' - package #' + str(i)
-                steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(tmp_game_name, package_url)
+                try:
+                    steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(tmp_game_name, package_url)
+                except:
+                    steam_score, num_of_reviews = SteamDBScrapingUtils.get_game_additional_data(tmp_game_name, package_url)
                 if num_of_reviews > chosen_num_of_reviews:
                     chosem_score = steam_score
                     chosen_num_of_reviews = num_of_reviews
@@ -595,7 +601,6 @@ def update_game_data(game):
         else:
             LogUtils.log_error('Don\'t know how to handle game: ' + game_name + ' at ' + game_link)
     except:
-        # TODO: Add fallback from elsewhere (for example: SteamDB)
         LogUtils.log_error('Cannot add additional data for game: ' + game_name + ' ERROR: ' + str(sys.exc_info()[0]))
 
 

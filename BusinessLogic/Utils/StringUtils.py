@@ -11,5 +11,5 @@ def normalize_int(int_str):
     return int(int_str.replace(',', ''))
 
 
-def get_hashed_id(group_website):
-    return hashlib.md5(group_website).hexdigest()
+def get_hashed_id(string):
+    return hashlib.md5(string).hexdigest()

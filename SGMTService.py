@@ -10,6 +10,7 @@ from flask import Flask
 from flask import request
 
 from BusinessLogic import SGMTBusinessLogic
+from BusinessLogic.ScrapingUtils import G2AGameScraper
 from BusinessLogic.Utils import LogUtils
 from Output import HtmlResponseGenerationService
 
@@ -319,6 +320,13 @@ def group_users_check_rules():
         user_response = HtmlResponseGenerationService.generate_user_check_rules_response(user, rules[0], rules[1], rules[2],rules[3], rules[4], rules[5])
         LogUtils.log_info(user_response)
         response += user_response
+    return response
+
+
+@app.route('/SGMT-Admin/Test', methods=['GET'])
+def test():
+    response = u''
+    SGMTBusinessLogic.test()
     return response
 
 
