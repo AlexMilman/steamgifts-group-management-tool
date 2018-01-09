@@ -11,7 +11,11 @@ class GroupGiveaway(object):
     entries=dict()
     groups=[]
 
-    def __init__(self, link, game_name='', creator='', start_time=None, end_time=None, entries=dict(), groups=[]):
+    def __init__(self, link, game_name='', creator='', start_time=None, end_time=None, entries=None, groups=None):
+        if groups is None:
+            groups = []
+        if entries is None:
+            entries = dict()
         self.link = link
         self.game_name = game_name
         self.creator = creator.encode('utf-8')
