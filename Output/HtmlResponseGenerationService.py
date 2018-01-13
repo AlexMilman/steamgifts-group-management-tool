@@ -123,8 +123,9 @@ def generate_check_monthly_response(users, monthly_posters, monthly_unfinished):
             response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A> giveaways: '
             if giveaways and len(giveaways) > 0:
                 for giveaway in giveaways:
-                    response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name + u'</A>, '
+                    response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name.decode('utf-8') + u'</A>, '
                 response = response[:-2]
+                response += '<BR>'
 
     response += u'<BR><BR>Users without monthly giveaways:<BR>'
     for user in users:
