@@ -500,7 +500,7 @@ def load_user(group_user, user_name):
 
 
 def test():
-    WebUtils.get_html_page('https://www.steamgifts.com/giveaway/OCir9/plank-not-included/groups1')
+    # WebUtils.get_html_page('https://www.steamgifts.com/giveaway/OCir9/plank-not-included/groups1')
     # group = add_new_group(group_webpage, '')
     # MySqlConnector.save_group(group_webpage, group)
     # group = MySqlConnector.MySqlConnector.load_group(group_webpage)
@@ -511,7 +511,7 @@ def test():
     #         print message
     #     if group_user.global_won > group_user.global_sent:
     #         print 'User ' + group_user.user_name + ' has negative global gifts ratio'
-    game = GameData('Chroma Squad', 'http://store.steampowered.com/app/251130/', 15)
+    game = GameData('Batman: Arkham Origins - Black Mask Challenge Pack', 'http://store.steampowered.com/app/237618/', 2)
 
     try:
         SteamScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
