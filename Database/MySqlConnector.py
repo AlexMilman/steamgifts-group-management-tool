@@ -25,7 +25,7 @@ db_schema = config.get('MySql', 'DBSchema')
 
 def save_group(group_website, group, users_to_ignore, existing_group_data=None):
     start_time = time.time()
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     # Insert Giveaways
@@ -88,7 +88,7 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
 
 def load_group(group_website, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time_str=None, end_time_str=None):
     start_time = time.time()
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     # Load Group
@@ -157,7 +157,7 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
 
 def get_all_groups():
     start_time = time.time()
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     groups = dict()
@@ -174,7 +174,7 @@ def get_all_groups():
 
 
 def check_existing_users(users_list):
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     existing_users = []
@@ -192,7 +192,7 @@ def check_existing_users(users_list):
 
 def get_user_data(user_name):
     group_user = None
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     cursor.execute('SELECT * FROM Users WHERE UserName = "' + user_name + '"')
@@ -207,7 +207,7 @@ def get_user_data(user_name):
 
 
 def save_user(group_user):
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     cursor.execute('INSERT INTO Users (UserName,SteamId,GlobalWon,GlobalSent,Level) '
@@ -222,7 +222,7 @@ def save_user(group_user):
 def get_all_users():
     start_time = time.time()
     all_users = []
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     cursor.execute('SELECT * FROM Users')
@@ -241,7 +241,7 @@ def get_all_users():
 
 def update_existing_users(users):
     start_time = time.time()
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     users_data = []
@@ -257,7 +257,7 @@ def update_existing_users(users):
 
 
 def get_existing_games_data(games_list):
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     existing_games_data = dict()
@@ -278,7 +278,7 @@ def get_existing_games_data(games_list):
 
 def save_games(games):
     start_time = time.time()
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     games_data = []
@@ -296,7 +296,7 @@ def save_games(games):
 
 def update_existing_games(games):
     start_time = time.time()
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     games_data = []
@@ -313,7 +313,7 @@ def update_existing_games(games):
 
 def get_game_data(game_name):
     game_data = None
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     cursor.execute('SELECT * FROM Games WHERE Name = "' + game_name + '"')
@@ -330,7 +330,7 @@ def get_game_data(game_name):
 def get_all_games():
     start_time = time.time()
     all_games = []
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     cursor.execute('SELECT * FROM Games')
@@ -348,7 +348,7 @@ def get_all_games():
 
 
 def save_empty_group(group_name, group_webpage, cookies):
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     cursor.execute('INSERT IGNORE INTO Groups (GroupID,Users,Giveaways,Name,Webpage,Cookies) '
@@ -362,7 +362,7 @@ def save_empty_group(group_name, group_webpage, cookies):
 
 def get_all_empty_groups():
     start_time = time.time()
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema)
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     groups = dict()
@@ -385,6 +385,7 @@ def parse_list(list, prefix=''):
     for item in list:
         result += '"' + prefix + item + '",'
 
+    return result[:-1]
     return result[:-1]
 
 
