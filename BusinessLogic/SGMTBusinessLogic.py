@@ -511,7 +511,7 @@ def test():
     #         print message
     #     if group_user.global_won > group_user.global_sent:
     #         print 'User ' + group_user.user_name + ' has negative global gifts ratio'
-    game = GameData('Batman: Arkham Origins - Black Mask Challenge Pack', 'http://store.steampowered.com/app/237618/', 2)
+    game = GameData('Strategy & Tactics: Wargame...', 'http://store.steampowered.com/app/536740/', 2)
 
     try:
         SteamScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
@@ -556,7 +556,7 @@ def update_games_data(games, update_value=False):
     games_to_update_value = []
     existing_games = MySqlConnector.get_existing_games_data(games.keys())
     for game in games.values():
-        game_name = game.game_name
+        game_name = game.game_name.decode('utf-8')
         if game_name not in existing_games.keys():
             update_game_data(game)
             games_to_add.append(game)
