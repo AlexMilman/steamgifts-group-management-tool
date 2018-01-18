@@ -100,7 +100,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
             partial_giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
             giveaway_link = SteamGiftsConsts.get_giveaway_link(partial_giveaway_link)
             LogUtils.log_info('Processing ' + giveaway_link)
-            game_name = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/text()').encode('utf-8')
+            game_name = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/text()', default='').encode('utf-8')
             winners = WebUtils.get_items_by_xpath(giveaway_elem, u'.//div[@class="giveaway__column--positive"]/a/text()')
             poster = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__username"]/text()')
             timestamps = WebUtils.get_items_by_xpath(giveaway_elem, u'.//span/@data-timestamp')
