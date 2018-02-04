@@ -44,6 +44,9 @@ def check_monthly():
     alt_min_game_value = get_optional_float_param('alt_min_game_value')
     alt_min_steam_num_of_reviews = get_optional_int_param('alt_min_steam_num_of_reviews')
     alt_min_steam_score = get_optional_int_param('alt_min_steam_score')
+    alt2_min_game_value = get_optional_float_param('alt2_min_game_value')
+    alt2_min_steam_num_of_reviews = get_optional_int_param('alt2_min_steam_num_of_reviews')
+    alt2_min_steam_score = get_optional_int_param('alt2_min_steam_score')
 
     if not group_webpage or not year_month:
         return 'CheckMonthly - Returns a list of all users who didn\'t create a giveaway in a given month<BR><BR>' \
@@ -58,10 +61,13 @@ def check_monthly():
                'alt_min_game_value - Alternative minimal game value (in $) allowed<BR>' \
                'alt_min_steam_num_of_reviews - Alternative minimal number of Steam reviews allowed for a game<BR>' \
                'alt_min_steam_score - Alternative Minimal Steam score allowed for a game<BR>' \
+               'alt2_min_game_value - 2nd Alternative minimal game value (in $) allowed<BR>' \
+               'alt2_min_steam_num_of_reviews - 2nd Alternative minimal number of Steam reviews allowed for a game<BR>' \
+               'alt2_min_steam_score - 2nd Alternative Minimal Steam score allowed for a game<BR>' \
                '<BR>' \
                '<A HREF="/SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80">Request Example</A>'
 
-    users, monthly_posters, monthly_unfinished = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score)
+    users, monthly_posters, monthly_unfinished = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score)
     response = HtmlResponseGenerationService.generate_check_monthly_response(users, monthly_posters, monthly_unfinished)
     return response
 
@@ -112,6 +118,9 @@ def user_check_first_giveaway():
     alt_min_game_value = get_optional_float_param('alt_min_game_value')
     alt_min_steam_num_of_reviews = get_optional_int_param('alt_min_steam_num_of_reviews')
     alt_min_steam_score = get_optional_int_param('alt_min_steam_score')
+    alt2_min_game_value = get_optional_float_param('alt2_min_game_value')
+    alt2_min_steam_num_of_reviews = get_optional_int_param('alt2_min_steam_num_of_reviews')
+    alt2_min_steam_score = get_optional_int_param('alt2_min_steam_score')
     check_entered_giveaways = request.args.get('check_entered_giveaways')
 
     if not group_webpage or not users:
@@ -130,11 +139,14 @@ def user_check_first_giveaway():
                'alt_min_game_value - Alternative minimal game value (in $) allowed<BR>' \
                'alt_min_steam_num_of_reviews - Alternative minimal number of Steam reviews allowed for a game<BR>' \
                'alt_min_steam_score - Alternative Minimal Steam score allowed for a game<BR>' \
+               'alt2_min_game_value - 2nd Alternative minimal game value (in $) allowed<BR>' \
+               'alt2_min_steam_num_of_reviews - 2nd Alternative minimal number of Steam reviews allowed for a game<BR>' \
+               'alt2_min_steam_score - 2nd Alternative Minimal Steam score allowed for a game<BR>' \
                'check_entered_giveaways=True/False - Check if user entered any group GAs while his first GA is active<BR>' \
                '<BR>' \
                '<A HREF="/SGMT/UserCheckFirstGiveaway?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&users=Vlmbcn,7Years&addition_date=2017-12-01&days_to_create_ga=2&min_ga_time=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80&check_entered_giveaways=True">Request Example</A>'
 
-    user_first_giveaway, user_no_giveaway, user_entered_giveaway, time_to_create_over = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, users, addition_date, days_to_create_ga, min_ga_time, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, check_entered_giveaways)
+    user_first_giveaway, user_no_giveaway, user_entered_giveaway, time_to_create_over = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, users, addition_date, days_to_create_ga, min_ga_time, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score, check_entered_giveaways)
     response = HtmlResponseGenerationService.generate_check_user_first_giveaway_response(user_first_giveaway, user_no_giveaway, user_entered_giveaway, time_to_create_over)
     return response
 
@@ -234,7 +246,7 @@ def lazy_add_group():
                '<A HREF="/SGMT/AddNewGroup?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group">Request Example</A>'
 
     group_name = SGMTBusinessLogic.lazy_add_group(group_webpage, cookies)
-    return 'Succesfully added group <A HREF="' + group_webpage + '">' + group_name + '</A>.<BR> ' \
+    return 'Succesfully added group <A HREF="' + group_webpage + '">' + group_name.replace('<','&lt;') + '</A>.<BR> ' \
           ' Please allow up to 24 hours for the group to be processed.'
 
 
@@ -263,7 +275,8 @@ def add_new_group():
     start_time = time.time()
     group_webpage = request.args.get('group_webpage')
     cookies = request.args.get('cookies')
-    SGMTBusinessLogic.add_new_group(group_webpage, cookies)
+    start_date = request.args.get('start_date')
+    SGMTBusinessLogic.add_new_group(group_webpage, cookies, start_date)
     LogUtils.log_info('AddNewGroup ' + group_webpage + ' took ' + str(time.time() - start_time) +  ' seconds')
     return json.dumps({'success': True, 'timestamp':datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
 

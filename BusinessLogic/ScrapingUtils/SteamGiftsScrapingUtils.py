@@ -67,7 +67,9 @@ def update_user_additional_data(user):
             user.level = StringUtils.normalize_float(user_level_item.split('name" : "')[2].split('", "color')[0])
 
 
-def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force_full_run=False):
+def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_full_run=False, start_date=None):
+    if existing_giveaways is None:
+        existing_giveaways = dict()
     LogUtils.log_info('Starting to process giveaways for group ' + group_webpage)
     group_giveaways=dict()
     games=dict()
@@ -183,9 +185,9 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=dict(), force
                 giveaways_changed = True
                 group_giveaways[giveaway_link] = group_giveaway
 
-            # if earliest_date and time.strftime('%Y-%m-%d', end_time) < earliest_date:
-            #     reached_end = True
-            #     break
+            if start_date and time.strftime('%Y-%m-%d', end_time) < start_date:
+                reached_end = True
+                break
 
         if not current_page_num or reached_end:
             break
@@ -256,8 +258,8 @@ def get_steam_game_link(steamgifts_link, cookies):
     return WebUtils.get_item_by_xpath(html_content, u'.//a[@class="global__image-outer-wrap global__image-outer-wrap--game-large"]/@href')
 
 
-def get_group_name(group_webpage):
-    html_content = WebUtils.get_html_page(group_webpage)
+def get_group_name(group_webpage, cookies=None):
+    html_content = WebUtils.get_html_page(group_webpage, cookies=cookies)
     return WebUtils.get_item_by_xpath(html_content, u'.//div[@class="featured__heading__medium"]/text()')
 
 

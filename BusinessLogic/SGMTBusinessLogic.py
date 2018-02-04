@@ -2,11 +2,13 @@ import ConfigParser
 import time
 import sys
 
-from datetime import datetime
+import datetime
+
+from dateutil.relativedelta import relativedelta
 
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
-    SteamScrapingUtils, SGToolsConsts, SteamGiftsConsts, SteamRepConsts, SteamConsts, SteamDBScrapingUtils
-from BusinessLogic.Utils import LogUtils, WebUtils
+    SteamScrapingUtils, SteamGiftsConsts, SteamRepConsts, SteamConsts, SteamDBScrapingUtils
+from BusinessLogic.Utils import LogUtils
 from Data.GameData import GameData
 from Data.Group import Group
 from Data.GroupUser import GroupUser
@@ -109,7 +111,8 @@ def get_all_users_in_group(group_webpage):
 
 
 def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_of_reviews=0, min_score=0,
-                  alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0):
+                  alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0,
+                  alt2_min_value=0.0, alt2_min_num_of_reviews=0, alt2_min_score=0):
     split_date = year_month.split('-')
     month = int(split_date[1])
     if month == 1:
@@ -145,7 +148,7 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
             game_name = group_giveaway.game_name
             game_data = MySqlConnector.get_game_data(game_name)
             check_game_data(game_data, game_name)
-            if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score):
+            if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score, alt2_min_value, alt2_min_num_of_reviews, alt2_min_score):
                 if group_giveaway.has_winners():
                     monthly_posters.add(creator)
                 else:
@@ -171,7 +174,7 @@ def check_giveaways_valid(group_webpage, start_date, min_days=0, min_value=0.0, 
             game_data = MySqlConnector.get_game_data(game_name)
             check_game_data(game_data, game_name)
             if not game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score)\
-                    or (datetime.fromtimestamp(time.mktime(group_giveaway.end_time)) - datetime.fromtimestamp(time.mktime(group_giveaway.start_time))).days < min_days:
+                    or (datetime.datetime.fromtimestamp(time.mktime(group_giveaway.end_time)) - datetime.datetime.fromtimestamp(time.mktime(group_giveaway.start_time))).days < min_days:
                 if creator not in invalid_giveaways:
                     invalid_giveaways[creator] = set()
                 invalid_giveaways[creator].add(group_giveaway)
@@ -355,8 +358,10 @@ def get_group_summary(group_webpage, start_time):
 
 
 def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_create_ga=0, min_ga_time=0,
-                              min_value=0.0, min_num_of_reviews=0, min_score=0, alt_min_value=0.0,
-                              alt_min_num_of_reviews=0, alt_min_score=0, check_entered_giveaways=False):
+                              min_value=0.0, min_num_of_reviews=0, min_score=0,
+                              alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0,
+                              alt2_min_game_value=0, alt2_min_steam_num_of_reviews=0, alt2_min_steam_score=0,
+                              check_entered_giveaways=False):
     group = MySqlConnector.load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, start_time_str=addition_date)
     if not group:
         return None
@@ -376,10 +381,10 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
                 or (addition_date and days_to_create_ga > 0 and group_giveaway.start_time.tm_mday <= user_addition_day + days_to_create_ga))
             and
                 (min_ga_time == 0
-                or (min_ga_time > 0 and group_giveaway.end_time.tm_mday - group_giveaway.start_time.tm_mday >= min_ga_time))):
+                or (min_ga_time > 0 and datetime.datetime.fromtimestamp(time.mktime(group_giveaway.end_time)) - datetime.datetime.fromtimestamp(time.mktime(group_giveaway.start_time)) >= datetime.timedelta(days=min_ga_time - 1)))):
             game_data = MySqlConnector.get_game_data(game_name)
             check_game_data(game_data, game_name)
-            if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value,alt_min_num_of_reviews, alt_min_score):
+            if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score):
                 if user_name not in user_end_time or group_giveaway.end_time < user_end_time[user_name]:
                     user_end_time[user_name] = group_giveaway.end_time
                 if user_name not in user_first_giveaway:
@@ -418,7 +423,7 @@ def check_game_data(game_data, game_name):
         LogUtils.log_error(u'Could not load full game data: ' + game_name)
 
 
-def game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score):
+def game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score, alt2_min_value=0, alt2_min_num_of_reviews=0, alt2_min_score=0):
     if not game_data:
         return True
     if ((min_value == 0 or (game_data.value == 0 or game_data.value >= min_value))
@@ -426,9 +431,14 @@ def game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, 
          and (min_score == 0 or (game_data.steam_score == -1 or min_score <= game_data.steam_score))):
         return True
     if ((alt_min_value != 0 or alt_min_score != 0 or alt_min_num_of_reviews != 0)
-            and (alt_min_value == 0 or (game_data.value == 0 or game_data.value >= alt_min_value))
-            and (alt_min_num_of_reviews == 0 or (game_data.num_of_reviews == -1 or alt_min_num_of_reviews <= game_data.num_of_reviews))
-            and (alt_min_score == 0 or (game_data.steam_score == -1 or alt_min_score <= game_data.steam_score))):
+        and (alt_min_value == 0 or (game_data.value == 0 or game_data.value >= alt_min_value))
+        and (alt_min_num_of_reviews == 0 or (game_data.num_of_reviews == -1 or alt_min_num_of_reviews <= game_data.num_of_reviews))
+        and (alt_min_score == 0 or (game_data.steam_score == -1 or alt_min_score <= game_data.steam_score))):
+        return True
+    if ((alt2_min_value != 0 or alt2_min_score != 0 or alt2_min_num_of_reviews != 0)
+        and (alt2_min_value == 0 or (game_data.value == 0 or game_data.value >= alt2_min_value))
+        and (alt2_min_num_of_reviews == 0 or (game_data.num_of_reviews == -1 or alt2_min_num_of_reviews <= game_data.num_of_reviews))
+        and (alt2_min_score == 0 or (game_data.steam_score == -1 or alt2_min_score <= game_data.steam_score))):
         return True
     return False
 
@@ -521,27 +531,27 @@ def test():
 
 
 def lazy_add_group(group_webpage, cookies):
-    group_name = SteamGiftsScrapingUtils.get_group_name(group_webpage)
+    group_name = SteamGiftsScrapingUtils.get_group_name(group_webpage, cookies)
     MySqlConnector.save_empty_group(group_name, group_webpage, cookies)
     return group_name
 
 
-def add_new_group(group_webpage, cookies):
+def add_new_group(group_webpage, cookies, start_date=None):
     group_name = SteamGiftsScrapingUtils.get_group_name(group_webpage)
     if not cookies:
         cookies = common_cookies
-    games = update_group_data(group_webpage, cookies, Group(group_name=group_name, group_webpage=group_webpage, cookies=cookies), force_full_run=True)
+    games = update_group_data(group_webpage, cookies, Group(group_name=group_name, group_webpage=group_webpage, cookies=cookies), force_full_run=True, start_date=start_date)
     update_games_data(games)
 
 
-def update_existing_group(group_webpage):
+def update_existing_group(group_webpage, start_date=None):
     group = MySqlConnector.load_group(group_webpage)
     if not group:
         return None
     cookies = common_cookies
     if group.cookies:
         cookies = group.cookies
-    games = update_group_data(group_webpage, cookies, group)
+    games = update_group_data(group_webpage, cookies, group, start_date=start_date)
     update_games_data(games, update_value=True)
 
 
@@ -604,7 +614,7 @@ def update_game_data(game):
         LogUtils.log_error('Cannot add additional data for game: ' + game_name + ' ERROR: ' + str(sys.exc_info()[0]))
 
 
-def update_group_data(group_webpage, cookies, group, force_full_run=False):
+def update_group_data(group_webpage, cookies, group, force_full_run=False, start_date=None):
     group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
     existing_users = MySqlConnector.check_existing_users(group_users.keys())
     for group_user in group_users.values():
@@ -614,7 +624,7 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False):
             except:
                 LogUtils.log_error('Cannot add additional data for user: ' + group_user.user_name + ' ERROR: ' + str(sys.exc_info()[0]))
 
-    group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run)
+    group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run=force_full_run, start_date=start_date)
     MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways, group_webpage=group_webpage, cookies=group.cookies, group_name=group.group_name), existing_users, group)
 
     return games
@@ -624,9 +634,10 @@ def update_all_db_groups():
     #Load list of all groups from DB
     groups = MySqlConnector.get_all_groups()
     #For each group, run: update_group_data
+    start_date = (datetime.datetime.now() - relativedelta(months=1)).replace(day=1).strftime('%Y-%m-%d')
     for group_url in groups.values():
         try:
-            update_existing_group(group_url)
+            update_existing_group(group_url, start_date=start_date)
         except:
             LogUtils.log_error('Cannot update data for group: ' + group_url + ' ERROR: ' + str(sys.exc_info()[0]))
 
