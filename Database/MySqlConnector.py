@@ -352,7 +352,7 @@ def save_empty_group(group_name, group_webpage, cookies):
     cursor = connection.cursor()
 
     cursor.execute('INSERT IGNORE INTO Groups (GroupID,Users,Giveaways,Name,Webpage,Cookies) '
-                   'VALUES ("' + StringUtils.get_hashed_id(group_webpage) + '","[]","[]","' + group_name + '","' + group_webpage + '","' + to_str(cookies) + '")')
+                   'VALUES ("' + StringUtils.get_hashed_id(group_webpage) + '","[]","[]","' + group_name + '","' + group_webpage + '","' + to_str(cookies.replace('"','')) + '")')
 
     connection.commit()  # you need to call commit() method to save your changes to the database
 
