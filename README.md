@@ -63,6 +63,7 @@ So for now this tool's automatic nightly update will run slowly, but safely.
 ### TODO
 * Add UI level above the API level, that will provide dropdowns to choose from (of groups, or users)
 * Add links to warranty + conditions to every page
+* Convert all time to datetime
 * Add Whitelist data to giveaways
 * Fix logger not printing out time + thread info
 * Fix logger to printout errors on server error
