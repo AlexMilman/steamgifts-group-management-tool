@@ -193,12 +193,12 @@ def generate_get_groups_response(empty_groups, groups):
     response = u'<B>Available Groups:</B><BR>'
     for group_name in groups.keys():
         if group_name not in empty_groups.keys():
-            response += u'<BR> - <A HREF="' + groups[group_name] + '">' + group_name + u'</A><BR>'
+            response += u'<BR> - <A HREF="' + groups[group_name] + '">' + group_name.replace('<','&lt;') + u'</A><BR>'
 
     response += u'<BR><BR>'
     response += u'<B>Groups awaiting processing:</B><BR>'
     for group_name in empty_groups.keys():
-        response += u'<BR> - <A HREF="' + empty_groups[group_name] + u'">' + group_name + u'</A><BR>'
+        response += u'<BR> - <A HREF="' + empty_groups[group_name] + u'">' + group_name.replace('<','&lt;') + u'</A><BR>'
     return response
 
 
