@@ -362,14 +362,23 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
                               alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0,
                               alt2_min_game_value=0, alt2_min_steam_num_of_reviews=0, alt2_min_steam_score=0,
                               check_entered_giveaways=False):
-    group = MySqlConnector.load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, start_time_str=addition_date)
+    addition_date_split = addition_date.split('-')
+    year = int(addition_date_split[0])
+    user_addition_month = int(addition_date_split[1])
+    if user_addition_month == 1:
+        prev_month = 12
+        year -= 1
+    else:
+        prev_month = user_addition_month - 1
+    user_addition_day = int(addition_date_split[2])
+    month_ago_str = str(year) + '-' + str(prev_month) + '-' + str(user_addition_day)
+    group = MySqlConnector.load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, start_time_str=month_ago_str)
     if not group:
         return None
     users_list = users.split(',')
     user_end_time=dict()
     user_first_giveaway=dict()
     user_no_giveaway=set()
-    user_addition_day = int(addition_date.split('-')[2])
     for group_giveaway in group.group_giveaways.values():
         game_name = group_giveaway.game_name
         user_name = group_giveaway.creator
