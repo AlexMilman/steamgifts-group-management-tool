@@ -63,10 +63,12 @@ So for now this tool's automatic nightly update will run slowly, but safely.
 ### TODO
 * Add UI level above the API level, that will provide dropdowns to choose from (of groups, or users)
 * Add links to warranty + conditions to every page
-* Convert all time to datetime
-* Add Whitelist data to giveaways
 * Fix logger not printing out time + thread info
 * Fix logger to printout errors on server error
+* Convert all time to datetime
+* Add Whitelist data to giveaways
+* Add "no minimum level" to optional params
+* Add "not region restricted" to optional params
 * Support giveaways with multiple copies + integrate into value calculation and summary printouts
 * Check replacing the heaviest flow (UpdateAllGroups) with a lambda AWS process
 * Add handling large data quantities: Giveaways, Users, Games (separate into smaller chunks)
