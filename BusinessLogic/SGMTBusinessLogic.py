@@ -114,18 +114,14 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
                   alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0,
                   alt2_min_value=0.0, alt2_min_num_of_reviews=0, alt2_min_score=0):
     split_date = year_month.split('-')
+    year = int(split_date[0])
     month = int(split_date[1])
-    if month == 1:
-        prev_month_start = str(int(split_date[0]) - 1) + '-12-01'
+    month_start = year_month + '-01'
+    if month == 12:
+        month_end = str(year + 1) + '-01-01'
     else:
-        prev_month_start = split_date[0] + '-' + str(month - 1) + '-01'
-
-    if month > 11:
-        month_end = str(int(split_date[0]) + 1) + '-' + str(month - 11) + '-01'
-    else:
-        month_end = split_date[0] + '-' + str(month + 1) + '-01'
-
-    group = MySqlConnector.load_group(group_webpage, limit_by_time=True, start_time_str=prev_month_start, end_time_str=month_end)
+        month_end = str(year) + '-' + str(month + 1) + '-01'
+    group = MySqlConnector.load_group(group_webpage, limit_by_time=True, ends_after_str=month_start, ends_before_str=month_end)
     if not group:
         return None
     users = group.group_users.keys()
@@ -161,7 +157,7 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
 
 def check_giveaways_valid(group_webpage, start_date, min_days=0, min_value=0.0, min_num_of_reviews=0, min_score=0,
                   alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0):
-    group = MySqlConnector.load_group(group_webpage, limit_by_time=True, start_time_str=start_date)
+    group = MySqlConnector.load_group(group_webpage, limit_by_time=True, starts_after_str=start_date)
     if not group:
         return None
     users = group.group_users.keys()
@@ -221,7 +217,7 @@ def get_user_entered_giveaways(group_webpage, users, addition_date):
 
 
 def get_user_all_giveways(group_webpage, user, start_time):
-    group = MySqlConnector.load_group(group_webpage, load_users_data=False, limit_by_time=start_time, start_time_str=start_time)
+    group = MySqlConnector.load_group(group_webpage, load_users_data=False, limit_by_time=start_time, starts_after_str=start_time)
     if not group:
         return None
     created_giveaways=[]
@@ -241,7 +237,7 @@ def get_user_all_giveways(group_webpage, user, start_time):
 
 
 def get_group_summary(group_webpage, start_time):
-    group = MySqlConnector.load_group(group_webpage, limit_by_time=start_time, start_time_str=start_time)
+    group = MySqlConnector.load_group(group_webpage, limit_by_time=start_time, starts_after_str=start_time)
     if not group:
         return None
     all_group_users = group.group_users.keys()
@@ -362,20 +358,11 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
                               alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0,
                               alt2_min_game_value=0, alt2_min_steam_num_of_reviews=0, alt2_min_steam_score=0,
                               check_entered_giveaways=False):
-    addition_date_split = addition_date.split('-')
-    year = int(addition_date_split[0])
-    user_addition_month = int(addition_date_split[1])
-    if user_addition_month == 1:
-        prev_month = 12
-        year -= 1
-    else:
-        prev_month = user_addition_month - 1
-    user_addition_day = int(addition_date_split[2])
-    month_ago_str = str(year) + '-' + str(prev_month) + '-' + str(user_addition_day)
-    group = MySqlConnector.load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, start_time_str=month_ago_str)
+    group = MySqlConnector.load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, ends_after_str=addition_date)
     if not group:
         return None
     users_list = users.split(',')
+    user_addition_day = int(addition_date.split('-')[2])
     user_end_time=dict()
     user_first_giveaway=dict()
     user_no_giveaway=set()

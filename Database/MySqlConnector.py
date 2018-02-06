@@ -86,7 +86,7 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
     LogUtils.log_info('Save Group ' + group_website + ' took ' + str(time.time() - start_time) + ' seconds')
 
 
-def load_group(group_website, load_users_data=True, load_giveaway_data=True, limit_by_time=False, start_time_str=None, end_time_str=None):
+def load_group(group_website, load_users_data=True, load_giveaway_data=True, limit_by_time=False, starts_after_str=None, ends_before_str=None, ends_after_str=None):
     start_time = time.time()
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
@@ -125,8 +125,9 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
             start_time_epoch = row[1]
             end_time_epoch = row[2]
             if limit_by_time and \
-                    ((start_time_str and to_epoch(time.strptime(start_time_str, "%Y-%m-%d")) > start_time_epoch)
-                     or (end_time_str and to_epoch(time.strptime(end_time_str, "%Y-%m-%d")) < end_time_epoch)):
+                    ((starts_after_str and start_time_epoch < to_epoch(time.strptime(starts_after_str, "%Y-%m-%d")) )
+                     or (ends_before_str and end_time_epoch > to_epoch(time.strptime(ends_before_str, "%Y-%m-%d")))
+                     or (ends_after_str and end_time_epoch < to_epoch(time.strptime(ends_after_str, "%Y-%m-%d")))):
                     continue
             # (giveaway_id, calendar.timegm(group_giveaway.start_time), calendar.timegm(group_giveaway.end_time))
             giveaway_id = row[0]
