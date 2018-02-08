@@ -185,6 +185,9 @@ def generate_user_check_rules_response(user, nonactivated, multiple_wins, real_c
         
     if steamrep is not None:
         response += u'User is not public or banned: ' + steamrep + u':<BR>'
+
+    if not nonactivated and not multiple_wins and not real_cv_ratio and steamgifts_ratio is None and level is None and steamrep is None:
+        response += u'User passed every test !!!'
     
     return response
 

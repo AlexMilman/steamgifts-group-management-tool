@@ -19,8 +19,8 @@ app = Flask(__name__)
 @app.route('/SGMT/', methods=['GET'])
 def main_page():
     response = '<B>Group Management</B><BR><BR>'
-    response += '<A HREF="/SGMT/UserCheckRules">UserCheckRules</A> - Check if a user complies to group rules.<BR><BR>'
-    response += '<A HREF="/SGMT/CheckMonthly">CheckMonthly</A> - Returns a list of all users who didn\'t create a giveaway in a given month.<BR><BR>'
+    response += '<A HREF="/SGMT/UserCheckRulesUI">UserCheckRules</A> - Check if a user complies to group rules.<BR><BR>'
+    response += '<A HREF="/SGMT/CheckMonthlyUI">CheckMonthly</A> - Returns a list of all users who didn\'t create a giveaway in a given month.<BR><BR>'
     response += '<A HREF="/SGMT/CheckAllGiveawaysAccordingToRules">CheckAllGiveawaysAccordingToRules</A> - Returns a list of games created not according to given rules.<BR><BR>'
     response += '<A HREF="/SGMT/UserCheckFirstGiveaway">UserCheckFirstGiveaway</A> - Check if users comply with first giveaway rules (according to defined rules).<BR><BR>'
     response += '<A HREF="/SGMT/UserFullGiveawaysHistory">UserFullGiveawaysHistory</A> - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).<BR><BR>'
@@ -200,6 +200,12 @@ def group_users_summary():
 
     total_group_data, users_data = SGMTBusinessLogic.get_group_summary(group_webpage, start_date)
     response = HtmlResponseGenerationService.generate_group_users_summary_response(group_webpage, total_group_data, users_data)
+    return response
+
+
+@app.route('/SGMT/UserCheckRulesUI', methods=['GET'])
+def user_check_rules_ui():
+    response = HtmlUIGenerationService.get_user_check_rules_ui()
     return response
 
 
