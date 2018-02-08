@@ -286,7 +286,7 @@ def save_games(games):
     for game in games:
         games_data.append((game.game_name, game.game_link, game.value, game.steam_score, game.num_of_reviews))
 
-    cursor.executemany("INSERT INTO Games (Name,LinkURL,Value,Score,NumOfReviews) VALUES (%s, %s, %s, %s, %s)", games_data)
+    cursor.executemany("INSERT IGNORE INTO Games (Name,LinkURL,Value,Score,NumOfReviews) VALUES (%s, %s, %s, %s, %s)", games_data)
 
     connection.commit()  # you need to call commit() method to save your changes to the database
 
@@ -380,13 +380,12 @@ def get_all_empty_groups():
 
 
 def parse_list(list, prefix=''):
-    result = ''
+    result = '""'
     if not list or len(list) == 0:
         return result
     for item in list:
         result += '"' + prefix + item + '",'
 
-    return result[:-1]
     return result[:-1]
 
 
