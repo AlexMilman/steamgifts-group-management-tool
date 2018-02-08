@@ -150,7 +150,7 @@ def generate_check_user_first_giveaway_response(user_first_giveaway, user_no_giv
     response += u'<BR>'
     for user in user_entered_giveaway:
         group_giveaways = user_entered_giveaway[user]
-        for group_giveaway in group_giveaways:
+        for group_giveaway in sorted(group_giveaways, key=lambda x: x.entries[user].entry_time, reverse=True):
             response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A> ' \
                         u'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + u'</A> ' \
                         u'(Entry date: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.entries[user].entry_time) + u')<BR>'
