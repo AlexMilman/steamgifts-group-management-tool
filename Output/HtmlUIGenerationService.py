@@ -3,7 +3,7 @@
 
 def generate_check_monthly_ui(groups):
     response = get_header('CheckMonthly - Returns a list of all users who didn\'t create a giveaway in a given month.','CheckMonthly')
-    response += get_groups_dropdown(groups)
+    response += get_groups_dropdown(groups.values())
 
     response += 'Year:&nbsp; &nbsp;<select name="year">'
     response += '<option value="2017">2017</option>'
@@ -36,7 +36,7 @@ def generate_user_check_rules_ui():
 
 def generate_check_all_giveaways_ui(groups):
     response = get_header('CheckAllGiveawaysAccordingToRules - Returns a list of games created not according to given rules.', 'CheckAllGiveawaysAccordingToRules')
-    response += get_groups_dropdown(groups)
+    response += get_groups_dropdown(groups.values())
 
     response += get_optional_label()
     response += 'Start date (dash separated) from which to check giveaways (e.g. 2017-12-31) : <input type="text" name="start_date" size=10><BR><BR>'
@@ -45,9 +45,28 @@ def generate_check_all_giveaways_ui(groups):
     return response
 
 
+def generate_user_check_first_giveaway_ui(groups):
+    response = get_header('UserCheckFirstGiveaway - Check if users comply with first giveaway rules (according to defined rules).', 'UserCheckFirstGiveaway')
+    response += get_groups_dropdown(groups.values())
+    response += 'Users (comma-separated, e.g. Amy,Beck,Clark): <input type="text" name="users"><BR><BR>'
+    response += 'The date from which the user was added to the group (e.g. 2017-12-31) : <input type="text" name="addition_date" size=10><BR><BR>'
+
+    response += get_optional_label()
+    response += 'Within how many days of entering the group should the first GA be created: <input type="text" name="days_to_create_ga" size=2><BR><BR>'
+    response += 'Minimum number of days of a GA to run: <input type="text" name="min_ga_time" size=2><BR><BR>'
+    response += get_game_stats()
+    response += get_footer('Check First Giveaway')
+    return response
+
+
 def get_min_days_with_game_stats():
     response = 'Minimum number of days of a GA: <input type="text" name="min_days" size=2><BR><BR>'
-    response += 'Minimal game value (in $) allowed: <input type="text" name="min_game_value" size=3><BR><BR>'
+    response += get_game_stats()
+    return response
+
+
+def get_game_stats():
+    response = 'Minimal game value (in $) allowed: <input type="text" name="min_game_value" size=3><BR><BR>'
     response += 'Minimal number of Steam reviews allowed for a game: <input type="text" name="min_steam_num_of_reviews" size=6><BR><BR>'
     response += 'Minimal Steam score allowed for a game: <input type="text" name="min_steam_score" size=3><BR><BR>'
     return response
@@ -59,8 +78,8 @@ def get_optional_label():
 
 def get_groups_dropdown(groups):
     response = 'Group:&nbsp; &nbsp;<select name="group_webpage">'
-    for group_name, group_webpage in groups.items():
-        response += '<option value="' + group_webpage + '">' + group_name.replace('<', '&lt;') + '</option>'
+    for group in groups:
+        response += '<option value="' + group.group_webpage + '">' + group.group_name.replace('<', '&lt;') + '</option>'
     response += '</select><BR><BR>'
     return response
 

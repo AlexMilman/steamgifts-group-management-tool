@@ -22,7 +22,7 @@ def main_page():
     response += '<A HREF="/SGMT/UserCheckRulesUI">UserCheckRules</A> - Check if a user complies to group rules.<BR><BR>'
     response += '<A HREF="/SGMT/CheckMonthlyUI">CheckMonthly</A> - Returns a list of all users who didn\'t create a giveaway in a given month.<BR><BR>'
     response += '<A HREF="/SGMT/CheckAllGiveawaysAccordingToRulesUI">CheckAllGiveawaysAccordingToRules</A> - Returns a list of games created not according to given rules.<BR><BR>'
-    response += '<A HREF="/SGMT/UserCheckFirstGiveaway">UserCheckFirstGiveaway</A> - Check if users comply with first giveaway rules (according to defined rules).<BR><BR>'
+    response += '<A HREF="/SGMT/UserCheckFirstGiveawayUI">UserCheckFirstGiveaway</A> - Check if users comply with first giveaway rules (according to defined rules).<BR><BR>'
     response += '<A HREF="/SGMT/UserFullGiveawaysHistory">UserFullGiveawaysHistory</A> - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).<BR><BR>'
     response += '<A HREF="/SGMT/GroupUsersSummary">GroupUsersSummary</A> - For a given group, return summary of all giveaways created, entered and won by members.<BR><BR>'
     response += '<BR><BR><BR>'
@@ -35,7 +35,7 @@ def main_page():
 
 @app.route('/SGMT/CheckMonthlyUI', methods=['GET'])
 def check_monthly_ui():
-    groups, empty_groups = SGMTBusinessLogic.get_groups()
+    groups = SGMTBusinessLogic.get_groups_with_users()
     response = HtmlUIGenerationService.generate_check_monthly_ui(groups)
     return response
 
@@ -86,7 +86,7 @@ def check_monthly():
 
 @app.route('/SGMT/CheckAllGiveawaysAccordingToRulesUI', methods=['GET'])
 def check_all_giveaways_ui():
-    groups, empty_groups = SGMTBusinessLogic.get_groups()
+    groups = SGMTBusinessLogic.get_groups_with_users()
     response = HtmlUIGenerationService.generate_check_all_giveaways_ui(groups)
     return response
 
@@ -124,6 +124,13 @@ def check_all_giveaways():
     return response
 
 
+@app.route('/SGMT/UserCheckFirstGiveawayUI', methods=['GET'])
+def user_check_first_giveaway_ui():
+    groups = SGMTBusinessLogic.get_groups_with_users()
+    response = HtmlUIGenerationService.generate_user_check_first_giveaway_ui(groups)
+    return response
+
+
 @app.route('/SGMT/UserCheckFirstGiveaway', methods=['GET'])
 def user_check_first_giveaway():
     group_webpage = request.args.get('group_webpage')
@@ -142,7 +149,7 @@ def user_check_first_giveaway():
     alt2_min_steam_score = get_optional_int_param('alt2_min_steam_score')
     check_entered_giveaways = request.args.get('check_entered_giveaways')
 
-    if not group_webpage or not users:
+    if not group_webpage or not users or not addition_date:
         return 'UserCheckFirstGiveaway  - Check if users comply with first giveaway rules:<BR>' \
                 'For Example: Creates a giveaway unique to the group. Creates the giveaway within X days of entering the group. Creates the giveaway for a minimum of X days. Etc.<BR><BR>' \
                '<B>Params:</B><BR> ' \

@@ -174,6 +174,24 @@ def get_all_groups():
     return groups
 
 
+def get_all_groups_with_users():
+    start_time = time.time()
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
+    cursor = connection.cursor()
+
+    groups = dict()
+    cursor.execute("SELECT Name,Webpage,Users FROM Groups WHERE Users<>'[]'")
+    data = cursor.fetchall()
+    for row in data:
+        groups[row[0]] = Group(group_name=row[0], group_webpage=row[1], group_users=json.loads(row[2]))
+
+    cursor.close()
+    connection.close()
+
+    LogUtils.log_info('Get all groups took ' + str(time.time() - start_time) + ' seconds')
+    return groups
+
+
 def check_existing_users(users_list):
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()

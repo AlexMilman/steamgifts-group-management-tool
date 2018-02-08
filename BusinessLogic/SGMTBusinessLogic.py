@@ -155,9 +155,9 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
     return users, monthly_posters, monthly_unfinished
 
 
-def check_giveaways_valid(group_webpage, start_date, min_days=0, min_value=0.0, min_num_of_reviews=0, min_score=0,
+def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_value=0.0, min_num_of_reviews=0, min_score=0,
                   alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0):
-    group = MySqlConnector.load_group(group_webpage, limit_by_time=True, starts_after_str=start_date)
+    group = MySqlConnector.load_group(group_webpage, limit_by_time=start_date, starts_after_str=start_date)
     if not group:
         return None
     users = group.group_users.keys()
@@ -555,6 +555,10 @@ def get_groups():
     groups = MySqlConnector.get_all_groups()
     empty_groups = MySqlConnector.get_all_empty_groups()
     return groups, empty_groups
+
+
+def get_groups_with_users():
+    return MySqlConnector.get_all_groups_with_users()
 
 
 def update_games_data(games, update_value=False):
