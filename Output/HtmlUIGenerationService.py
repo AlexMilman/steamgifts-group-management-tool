@@ -1,12 +1,9 @@
 # HTML response generation service of SGMT
 # Copyright (C) 2017  Alex Milman
 
-def get_check_monthly_ui(groups):
-    response = get_header('CheckMonthly')
-    response += 'Group:&nbsp; &nbsp;<select name="group_webpage">'
-    for group_name, group_webpage in groups.items():
-        response += '<option value="' + group_webpage + '">' + group_name.replace('<','&lt;') + '</option>'
-    response += '</select><BR><BR>'
+def generate_check_monthly_ui(groups):
+    response = get_header('CheckMonthly - Returns a list of all users who didn\'t create a giveaway in a given month.','CheckMonthly')
+    response += get_groups_dropdown(groups)
 
     response += 'Year:&nbsp; &nbsp;<select name="year">'
     response += '<option value="2017">2017</option>'
@@ -19,16 +16,13 @@ def get_check_monthly_ui(groups):
     response += '</select><BR><BR>'
 
     response += '<BR><B>Optional:</B><BR><BR>'
-    response += 'Minimum number of days of a GA: <input type="text" name="min_days" size=2><BR><BR>'
-    response += 'Minimal game value (in $) allowed: <input type="text" name="min_game_value" size=3><BR><BR>'
-    response += 'Minimal number of Steam reviews allowed for a game: <input type="text" name="min_steam_num_of_reviews" size=6><BR><BR>'
-    response += 'Minimal Steam score allowed for a game: <input type="text" name="min_steam_score" size=3><BR><BR>'
+    response += get_min_days_with_game_stats()
     response += get_footer('Get Monthly GAs')
     return response
 
 
-def get_user_check_rules_ui():
-    response = get_header('UserCheckRules')
+def generate_user_check_rules_ui():
+    response = get_header('UserCheckRules - Check if a user complies to group rules.', 'UserCheckRules')
     response += 'User: <input type="text" name="users"><BR><BR>'
     response += '<input type="checkbox" name="check_nonactivated" value="true">Check user doesn\'t have non activated games<BR>'
     response += '<input type="checkbox" name="check_multiple_wins" value="true">Check user doesn\'t have multiple wins<BR>'
@@ -40,6 +34,37 @@ def get_user_check_rules_ui():
     return response
 
 
+def generate_check_all_giveaways_ui(groups):
+    response = get_header('CheckAllGiveawaysAccordingToRules - Returns a list of games created not according to given rules.', 'CheckAllGiveawaysAccordingToRules')
+    response += get_groups_dropdown(groups)
+
+    response += get_optional_label()
+    response += 'Start date (dash separated) from which to check giveaways (e.g. 2017-12-31) : <input type="text" name="start_date" size=10><BR><BR>'
+    response += get_min_days_with_game_stats()
+    response += get_footer('Check Giveaways')
+    return response
+
+
+def get_min_days_with_game_stats():
+    response = 'Minimum number of days of a GA: <input type="text" name="min_days" size=2><BR><BR>'
+    response += 'Minimal game value (in $) allowed: <input type="text" name="min_game_value" size=3><BR><BR>'
+    response += 'Minimal number of Steam reviews allowed for a game: <input type="text" name="min_steam_num_of_reviews" size=6><BR><BR>'
+    response += 'Minimal Steam score allowed for a game: <input type="text" name="min_steam_score" size=3><BR><BR>'
+    return response
+
+
+def get_optional_label():
+    return '<BR><B>Optional:</B><BR><BR>'
+
+
+def get_groups_dropdown(groups):
+    response = 'Group:&nbsp; &nbsp;<select name="group_webpage">'
+    for group_name, group_webpage in groups.items():
+        response += '<option value="' + group_webpage + '">' + group_name.replace('<', '&lt;') + '</option>'
+    response += '</select><BR><BR>'
+    return response
+
+
 def get_footer(button_text):
     response = '<BR>'
     response += '<input type="submit" value="' + button_text + '"></form>'
@@ -47,7 +72,8 @@ def get_footer(button_text):
     return response
 
 
-def get_header(action):
+def get_header(title, action):
     response = '<!DOCTYPE html><html><body>'
+    response += '<B>' + title + '</B><BR><BR>'
     response += '<form action="/SGMT/' + action + '">'
     return response

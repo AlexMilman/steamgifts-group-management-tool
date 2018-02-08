@@ -6,6 +6,9 @@ from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SGToolsConsts
 
 
 def generate_invalid_giveaways_response(games, invalid_giveaways):
+    if not invalid_giveaways:
+        return u'<B>No Invalid Giveaways found !</B>'
+
     response = u'<B>Invalid Giveaways:</B>'
     for user, user_giveaways in invalid_giveaways.iteritems():
         response += u'<BR>User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A>:<BR>'
