@@ -11,7 +11,7 @@ from flask import request
 
 from BusinessLogic import SGMTBusinessLogic
 from BusinessLogic.Utils import LogUtils
-from Output import HtmlResponseGenerationService
+from Output import HtmlResponseGenerationService, HtmlUIGenerationService
 
 app = Flask(__name__)
 
@@ -33,10 +33,22 @@ def main_page():
     return response
 
 
+@app.route('/SGMT/CheckMonthlyUI', methods=['GET'])
+def check_monthly_ui():
+    groups, empty_groups = SGMTBusinessLogic.get_groups()
+    response = HtmlUIGenerationService.get_check_monthly_ui(groups)
+    return response
+
+
+#TODO: Add group-only-ga flag + UI
 @app.route('/SGMT/CheckMonthly', methods=['GET'])
 def check_monthly():
     group_webpage = request.args.get('group_webpage')
     year_month = request.args.get('year_month')
+    year = request.args.get('year')
+    month = request.args.get('month')
+    if not year_month and year and month:
+        year_month = year + '-' + month
     min_days = get_optional_int_param('min_days')
     min_game_value = get_optional_float_param('min_game_value')
     min_steam_num_of_reviews = get_optional_int_param('min_steam_num_of_reviews')
