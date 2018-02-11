@@ -183,7 +183,11 @@ def get_all_groups_with_users():
     cursor.execute("SELECT Name,Webpage,Users FROM Groups WHERE Users<>'[]'")
     data = cursor.fetchall()
     for row in data:
-        groups[row[0]] = Group(group_name=row[0], group_webpage=row[1], group_users=json.loads(row[2]))
+        users = set()
+        for user_data in json.loads(row[2]):
+            # (group_user.user_name, group_user.group_won, group_user.group_sent)
+            users.add(user_data[0])
+        groups[row[0]] = Group(group_name=row[0], group_webpage=row[1], group_users=users)
 
     cursor.close()
     connection.close()

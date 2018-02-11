@@ -23,8 +23,8 @@ def main_page():
     response += '<A HREF="/SGMT/CheckMonthlyUI">CheckMonthly</A> - Returns a list of all users who didn\'t create a giveaway in a given month.<BR><BR>'
     response += '<A HREF="/SGMT/CheckAllGiveawaysAccordingToRulesUI">CheckAllGiveawaysAccordingToRules</A> - Returns a list of games created not according to given rules.<BR><BR>'
     response += '<A HREF="/SGMT/UserCheckFirstGiveawayUI">UserCheckFirstGiveaway</A> - Check if users comply with first giveaway rules (according to defined rules).<BR><BR>'
-    response += '<A HREF="/SGMT/GroupUsersSummary">GroupUsersSummary</A> - For a given group, return summary of all giveaways created, entered and won by members.<BR><BR>'
-    response += '<A HREF="/SGMT/UserFullGiveawaysHistory">UserFullGiveawaysHistory</A> - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).<BR><BR>'
+    response += '<A HREF="/SGMT/GroupUsersSummaryUI">GroupUsersSummary</A> - For a given group, return summary of all giveaways created, entered and won by members.<BR><BR>'
+    response += '<A HREF="/SGMT/UserFullGiveawaysHistoryUI">UserFullGiveawaysHistory</A> - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).<BR><BR>'
     response += '<BR><BR><BR>'
     response += '<B>Tool Management</B><BR><BR>'
     response += '<A HREF="/SGMT/GetAvailableGroups">GetAvailableGroups</A> - List all SteamGifts groups available in the tool at the moment.<BR><BR>'
@@ -174,6 +174,13 @@ def user_check_first_giveaway():
 
     user_first_giveaway, user_no_giveaway, user_entered_giveaway, time_to_create_over = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, users, addition_date, days_to_create_ga, min_ga_time, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score, check_entered_giveaways)
     response = HtmlResponseGenerationService.generate_check_user_first_giveaway_response(user_first_giveaway, user_no_giveaway, user_entered_giveaway, time_to_create_over)
+    return response
+
+
+@app.route('/SGMT/UserFullGiveawaysHistoryUI', methods=['GET'])
+def user_full_giveaways_history_ui():
+    groups = SGMTBusinessLogic.get_groups_with_users()
+    response = HtmlUIGenerationService.generate_user_full_giveaways_history_ui(groups)
     return response
 
 

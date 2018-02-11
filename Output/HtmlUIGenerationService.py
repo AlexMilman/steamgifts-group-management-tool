@@ -39,7 +39,7 @@ def generate_check_all_giveaways_ui(groups):
     response += get_groups_dropdown(groups.values())
 
     response += get_optional_label()
-    response += 'Start date (dash separated) from which to check giveaways (e.g. 2017-12-31) : <input type="text" name="start_date" size=10><BR><BR>'
+    response += get_start_date()
     response += get_min_days_with_game_stats()
     response += get_footer('Check Giveaways')
     return response
@@ -64,8 +64,36 @@ def generate_group_users_summary_ui(groups):
     response += get_groups_dropdown(groups.values())
 
     response += get_optional_label()
-    response += 'Start date (dash separated) from which to fetch giveaways (e.g. 2017-12-31) : <input type="text" name="start_date" size=10><BR><BR>'
+    response += get_start_date()
     response += get_footer('Get Users Summary')
+    return response
+
+
+def generate_user_full_giveaways_history_ui(groups):
+    response = '<!DOCTYPE html><head><script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script></head><body>'
+    response += '<B>UserFullGiveawaysHistory - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).</B><BR><BR>'
+    response += '<form action="/SGMT/UserFullGiveawaysHistory">'
+
+    response += get_groups_dropdown(groups.values())
+    response += 'User:&nbsp; &nbsp;<select id="user" name="user">'
+    response += '</select><BR><BR>'
+
+    response += get_optional_label()
+    response += get_start_date()
+    response += get_footer('Get User History')
+
+    response += '<script>' + '\n'
+    response += '$(\'#group_webpage\').on(\'change\', function() {' + '\n'
+    response += ' $(\'#user\').html(\'\');' + '\n'
+    response += ' switch($(\'#group_webpage\').val()) {' + '\n'
+    for group in groups.values():
+        response += '  case "' + group.group_webpage + '":' + '\n'
+        for user in group.group_users:
+          response += '   $(\'#user\').append(\'<option value="' + user + '">' + user + '</option>\');' + '\n'
+        response += '   break;' + '\n'
+    response += '  }});' + '\n'
+    response += '</script>'
+
     return response
 
 
@@ -86,8 +114,13 @@ def get_optional_label():
     return '<BR><B>Optional:</B><BR><BR>'
 
 
+def get_start_date():
+    return 'Start date (dash separated) from which to check data (e.g. 2017-12-31) : <input type="text" name="start_date" size=10><BR><BR>'
+
+
 def get_groups_dropdown(groups):
-    response = 'Group:&nbsp; &nbsp;<select name="group_webpage">'
+    response = 'Group:&nbsp; &nbsp;<select id="group_webpage" name="group_webpage">'
+    response += '<option/>'
     for group in groups:
         response += '<option value="' + group.group_webpage + '">' + group.group_name.replace('<', '&lt;') + '</option>'
     response += '</select><BR><BR>'
@@ -106,3 +139,4 @@ def get_header(title, action):
     response += '<B>' + title + '</B><BR><BR>'
     response += '<form action="/SGMT/' + action + '">'
     return response
+
