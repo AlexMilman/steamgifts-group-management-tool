@@ -386,17 +386,13 @@ def test():
     return response
 
 
-@app.route('/SGMT/warranty', methods=['GET'])
+@app.route('/SGMT/legal', methods=['GET'])
 def warranty():
-    return 'This program is distributed in the hope that it will be useful,<BR>' \
+    return '<B>Warranty</B> - This program is distributed in the hope that it will be useful,<BR>' \
            'but WITHOUT ANY WARRANTY; without even the implied warranty of<BR>' \
            'MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<BR>' \
-           'GNU General Public License for more details.'
-
-
-@app.route('/SGMT/conditions', methods=['GET'])
-def conditions():
-    return 'This program is free software: you can redistribute it and/or modify<BR>' \
+           'GNU General Public License for more details.<BR><BR>' \
+            '<B>Conditions</B> - This program is free software: you can redistribute it and/or modify<BR>' \
            'it under the terms of the GNU General Public License as published by<BR>' \
            'the Free Software Foundation, either version 3 of the License, or<BR>' \
            '(at your option) any later version.'

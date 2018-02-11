@@ -141,6 +141,7 @@ def get_groups_dropdown(groups):
 def get_footer(button_text):
     response = '<BR>'
     response += '<input type="submit" value="' + button_text + '"></form>'
+    response += '<BR><BR><BR><BR><small><A HREF="/SGMT/legal">legal</A></small>'
     response += '</body></html>'
     return response
 
