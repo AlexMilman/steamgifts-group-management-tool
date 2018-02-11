@@ -28,7 +28,7 @@ def main_page():
     response += '<BR><BR><BR>'
     response += '<B>Tool Management</B><BR><BR>'
     response += '<A HREF="/SGMT/GetAvailableGroups">GetAvailableGroups</A> - List all SteamGifts groups available in the tool at the moment.<BR><BR>'
-    response += '<A HREF="/SGMT/AddNewGroup">AddNewGroup</A> - Add new SteamGifts group to be processed at the next available opportunity (tipically within 24 hours).<BR><BR>'
+    response += '<A HREF="/SGMT/AddNewGroupUI">AddNewGroup</A> - Add new SteamGifts group to be processed at the next available opportunity (tipically within 24 hours).<BR><BR>'
 
     return response
 
@@ -271,23 +271,21 @@ def user_check_rules():
     return response
 
 
+@app.route('/SGMT/AddNewGroupUI', methods=['GET'])
+def ulazy_add_group_ui():
+    response = HtmlUIGenerationService.generate_lazy_add_group_ui()
+    return response
+
+
 @app.route('/SGMT/AddNewGroup', methods=['GET'])
 def lazy_add_group():
     group_webpage = request.args.get('group_webpage')
     cookies = request.args.get('cookies')
 
     if not group_webpage:
-        return 'AddNewGroup - Check if a user complies to group rules.<BR>' \
-               'There are 2 ways to process a SteamGifts group:<BR>' \
-               '1. Basic: It can be processed by an "anonymous" user. Which means it will not have access to the list of giveaway entries, and can only see up to 3 winners in each giveaway<BR>' \
-               '2. Recomended: It can be processed by a user who is a member of the SteamGifts group. Which means it will have full access to all available group data<BR>' \
-               'In order to benefit from the full abilities of the SGMT tool, it is recommended you provide the cookies of a registered group user, when adding your group.' \
-               'Your cookies can be seen under "Cookies" section of the <A HREF="https://www.mkyong.com/computer-tips/how-to-view-http-headers-in-google-chrome/">HTTP request</A> while browing SteamGifts<BR>' \
-               'Without cookies, the following commands will only give partial results: UserCheckFirstGiveaway, UserFullGiveawaysHistory, GroupUsersSummary<BR>' \
+        return 'AddNewGroup - Add new group to SteamGifts Group Management Tool (SGMT).<BR>' \
                '<B>Params:</B><BR> ' \
                'group_webpage - SteamGifts group webpage<BR>' \
-               '<B>Optional Params:</B> <BR>' \
-               'cookies - Your SteamGifts cookies<BR>' \
                '<BR>'\
                '<A HREF="/SGMT/AddNewGroup?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group">Request Example</A>'
 
@@ -308,10 +306,10 @@ def get_groups():
 @app.route('/SGMT-Admin/', methods=['GET'])
 def amdin_main_page():
     response = ''
-    response += '<A HREF="/SGMT/UpdateGroupData?group_webpage=">UpdateGroupData</A> - Partial update, single group.<BR><BR>'
-    response += '<A HREF="/SGMT/AddNewGroup?group_webpage=">AddNewGroup</A> - Reload from scratch, single group.<BR><BR>'
-    response += '<A HREF="/SGMT/UpdateAllGroups">UpdateAllGroups</A> - Partial update, all groups. Reload from scratch, all users, all games.<BR><BR>'
-    response += '<A HREF="/SGMT/GroupUsersCheckRules">GroupUsersCheckRules</A> - Check accordance to rules of an entire SG group.<BR><BR>'
+    response += '<A HREF="/SGMT-Admin/UpdateGroupData?group_webpage=">UpdateGroupData</A> - Partial update, single group.<BR><BR>'
+    response += '<A HREF="/SGMT-Admin/AddNewGroup?group_webpage=">AddNewGroup</A> - Reload from scratch, single group.<BR><BR>'
+    response += '<A HREF="/SGMT-Admin/UpdateAllGroups">UpdateAllGroups</A> - Partial update, all groups. Reload from scratch, all users, all games.<BR><BR>'
+    response += '<A HREF="/SGMT-Admin/GroupUsersCheckRules">GroupUsersCheckRules</A> - Check accordance to rules of an entire SG group.<BR><BR>'
 
     return response
 
