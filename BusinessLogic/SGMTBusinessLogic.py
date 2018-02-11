@@ -353,7 +353,6 @@ def get_group_summary(group_webpage, start_time):
     return total_group_data, users_data
 
 
-#TODO: Add ability to check number of entries on ended GAs
 def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_create_ga=0, min_ga_time=0,
                               min_value=0.0, min_num_of_reviews=0, min_score=0,
                               alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0,
@@ -382,7 +381,6 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
             game_data = MySqlConnector.get_game_data(game_name)
             check_game_data(game_data, game_name)
             if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score):
-                #TODO: Mark giveaways when they are over
                 if user_name not in user_end_time or group_giveaway.end_time < user_end_time[user_name]:
                     user_end_time[user_name] = group_giveaway.end_time
                 if user_name not in user_first_giveaway:

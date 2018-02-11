@@ -65,8 +65,10 @@ So for now this tool's automatic nightly update will run slowly, but safely.
 * Fix logger to printout errors on server error
 * Convert all time to datetime
 * Add Whitelist data to giveaways
-* Add "no minimum level" to optional params
-* Add "not region restricted" to optional params
+* CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "no minimum level" to optional params
+* CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "not region restricted" to optional params
+* UserCheckFirstGiveaway: Add ability to check number of entries on ended GAs (for first time )
+* UserCheckFirstGiveaway: Mark giveaways when they are over
 * Support giveaways with multiple copies + integrate into value calculation and summary printouts
 * Check replacing the heaviest flow (UpdateAllGroups) with a lambda AWS process
 * Add handling large data quantities: Giveaways, Users, Games (separate into smaller chunks)
