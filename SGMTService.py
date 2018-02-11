@@ -23,8 +23,8 @@ def main_page():
     response += '<A HREF="/SGMT/CheckMonthlyUI">CheckMonthly</A> - Returns a list of all users who didn\'t create a giveaway in a given month.<BR><BR>'
     response += '<A HREF="/SGMT/CheckAllGiveawaysAccordingToRulesUI">CheckAllGiveawaysAccordingToRules</A> - Returns a list of games created not according to given rules.<BR><BR>'
     response += '<A HREF="/SGMT/UserCheckFirstGiveawayUI">UserCheckFirstGiveaway</A> - Check if users comply with first giveaway rules (according to defined rules).<BR><BR>'
-    response += '<A HREF="/SGMT/UserFullGiveawaysHistory">UserFullGiveawaysHistory</A> - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).<BR><BR>'
     response += '<A HREF="/SGMT/GroupUsersSummary">GroupUsersSummary</A> - For a given group, return summary of all giveaways created, entered and won by members.<BR><BR>'
+    response += '<A HREF="/SGMT/UserFullGiveawaysHistory">UserFullGiveawaysHistory</A> - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).<BR><BR>'
     response += '<BR><BR><BR>'
     response += '<B>Tool Management</B><BR><BR>'
     response += '<A HREF="/SGMT/GetAvailableGroups">GetAvailableGroups</A> - List all SteamGifts groups available in the tool at the moment.<BR><BR>'
@@ -198,6 +198,13 @@ def user_full_giveaways_history():
     return response
 
 
+@app.route('/SGMT/GroupUsersSummaryUI', methods=['GET'])
+def group_users_summary_ui():
+    groups = SGMTBusinessLogic.get_groups_with_users()
+    response = HtmlUIGenerationService.generate_group_users_summary_ui(groups)
+    return response
+
+
 @app.route('/SGMT/GroupUsersSummary', methods=['GET'])
 def group_users_summary():
     group_webpage = request.args.get('group_webpage')
@@ -213,7 +220,7 @@ def group_users_summary():
                '<A HREF="/SGMT/GroupUsersSummary?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&start_date=2017-12-01">Request Example</A>'
 
     total_group_data, users_data = SGMTBusinessLogic.get_group_summary(group_webpage, start_date)
-    response = HtmlResponseGenerationService.generate_group_users_summary_response(group_webpage, total_group_data, users_data)
+    response = HtmlResponseGenerationService.generate_group_users_summary_response(group_webpage, total_group_data, users_data, start_date)
     return response
 
 

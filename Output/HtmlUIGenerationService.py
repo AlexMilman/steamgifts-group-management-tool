@@ -59,6 +59,16 @@ def generate_user_check_first_giveaway_ui(groups):
     return response
 
 
+def generate_group_users_summary_ui(groups):
+    response = get_header('GroupUsersSummary  - For a given group, return summary of all giveaways created, entered and won by members.', 'GroupUsersSummary')
+    response += get_groups_dropdown(groups.values())
+
+    response += get_optional_label()
+    response += 'Start date (dash separated) from which to fetch giveaways (e.g. 2017-12-31) : <input type="text" name="start_date" size=10><BR><BR>'
+    response += get_footer('Get Users Summary')
+    return response
+
+
 def get_min_days_with_game_stats():
     response = 'Minimum number of days of a GA: <input type="text" name="min_days" size=2><BR><BR>'
     response += get_game_stats()
