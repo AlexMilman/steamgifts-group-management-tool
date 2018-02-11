@@ -71,7 +71,7 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
     return response
 
 
-def generate_group_users_summary_response(group_webpage, total_group_data, users_data):
+def generate_group_users_summary_response(group_webpage, total_group_data, users_data, start_date):
     response = u'Summary for group ' + group_webpage + u':<BR><BR>'
     # Total Games Value, Average games value, Average Game Score, Average Game NumOfReviews, Average number of created per user, Average number of entrered per user, Average number of won per user
     response += u'Total value of games given away in group: $' + float_to_str(total_group_data[0]) + u'<BR>'
@@ -84,7 +84,7 @@ def generate_group_users_summary_response(group_webpage, total_group_data, users
     response += u'<BR><BR>Summaries for all group users:<BR>'
     for user_name in sorted(users_data.keys(), key=lambda x: users_data[x][1], reverse=True):
         user_data = users_data[user_name]
-        response += u'<BR>User <A HREF="' + SteamGiftsConsts.get_user_link(user_name) + u'">' + user_name + u'</A>:<BR>'
+        response += u'<BR>User <A HREF="' + generate_full_data_link(group_webpage, start_date, user_name) + u'">' + user_name + u'</A>:<BR>'
         # Number of created GAs, Total Value, Average Value, Average Score, Average NumOfReviews
         user_created = user_data[0]
         if user_created:
@@ -117,6 +117,10 @@ def generate_group_users_summary_response(group_webpage, total_group_data, users
                         + u', Average GA Steam game score: ' + float_to_str(user_won[4]) \
                         + u', Average GA Steam number of reviews: ' + float_to_str(user_won[5]) + u'<BR>'
     return response
+
+
+def generate_full_data_link(group_webpage, start_date, user_name):
+    return u'/SGMT/UserFullGiveawaysHistory?group_webpage=' + group_webpage + u'&user=' + user_name + u'&start_date=' + start_date
 
 
 def generate_check_monthly_response(users, monthly_posters, monthly_unfinished):
