@@ -170,31 +170,35 @@ def generate_user_check_rules_response(user, nonactivated, multiple_wins, real_c
     response=u''
     response += u'<BR>User ' + user + u':<BR>'
     if nonactivated:
-        response += u'Has non-activated games: ' + SGToolsConsts.SGTOOLS_CHECK_NONACTIVATED_LINK + user + u':<BR>'
+        response += u'Has non-activated games: ' + linkify(SGToolsConsts.SGTOOLS_CHECK_NONACTIVATED_LINK + user) + u'<BR>'
     
     if multiple_wins:
-        response += u'Has multiple wins: ' + SGToolsConsts.SGTOOLS_CHECK_MULTIPLE_WINS_LINK + user + u':<BR>'
+        response += u'Has multiple wins: ' + linkify(SGToolsConsts.SGTOOLS_CHECK_MULTIPLE_WINS_LINK + user) + u'<BR>'
         
     if real_cv_ratio:
         response += u'Won more than Sent (Real CV value).<BR>' \
-                    u'Real CV Won: ' + SGToolsConsts.SGTOOLS_CHECK_WON_LINK + user + u'<BR>' \
-                    u'Real CV Sent: ' + SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user + u':<BR>'
+                    u'Real CV Won: ' + linkify(SGToolsConsts.SGTOOLS_CHECK_WON_LINK + user) + u'<BR>' \
+                    u'Real CV Sent: ' + linkify(SGToolsConsts.SGTOOLS_CHECK_SENT_LINK + user) + u'<BR>'
 
     if steamgifts_ratio is not None:
         response += u'Won more than sent in SteamGifts:<BR>' \
                     u'Won: ' + steamgifts_ratio[0] + '<BR>' \
-                    u'Sent: ' + steamgifts_ratio[1] + u':<BR>'
+                    u'Sent: ' + steamgifts_ratio[1] + u'<BR>'
         
     if level is not None:
-        response += u'User level is less than ' + level + u':<BR>'
+        response += u'User level is less than ' + level + u'<BR>'
         
     if steamrep is not None:
-        response += u'User is not public or banned: ' + steamrep + u':<BR>'
+        response += u'User is not public or banned: ' + linkify(steamrep) + u' ()<BR>'
 
     if not nonactivated and not multiple_wins and not real_cv_ratio and steamgifts_ratio is None and level is None and steamrep is None:
         response += u'User passed every test !!!'
     
     return response
+
+
+def linkify(url):
+    return u'<A HREF="' + url + '">' + url + '</A>'
 
 
 def generate_get_groups_response(empty_groups, groups):

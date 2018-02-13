@@ -40,7 +40,8 @@ def generate_check_monthly_ui(groups):
 
 
 def generate_user_check_rules_ui():
-    response = get_header('UserCheckRules - Check if a user complies to group rules.', 'UserCheckRules')
+    response = get_header('UserCheckRules - Check if a user (not necessetily belonging to your group) complies to general rules (wins, level, etc.).', 'UserCheckRules')
+    response += 'Warning: Please be patient, because it requires a connection to various external tools, this process may take some time.<BR><BR>'
     response += 'User: <input type="text" name="users"><BR><BR>'
     response += '<input type="checkbox" name="check_nonactivated" value="true">Check user doesn\'t have non activated games<BR>'
     response += '<input type="checkbox" name="check_multiple_wins" value="true">Check user doesn\'t have multiple wins<BR>'
