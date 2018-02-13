@@ -18,19 +18,7 @@ app = Flask(__name__)
 
 @app.route('/SGMT/', methods=['GET'])
 def main_page():
-    response = '<B>Group Management</B><BR><BR>'
-    response += '<A HREF="/SGMT/UserCheckRulesUI">UserCheckRules</A> - Check if a user complies to group rules.<BR><BR>'
-    response += '<A HREF="/SGMT/CheckMonthlyUI">CheckMonthly</A> - Returns a list of all users who didn\'t create a giveaway in a given month.<BR><BR>'
-    response += '<A HREF="/SGMT/CheckAllGiveawaysAccordingToRulesUI">CheckAllGiveawaysAccordingToRules</A> - Returns a list of games created not according to given rules.<BR><BR>'
-    response += '<A HREF="/SGMT/UserCheckFirstGiveawayUI">UserCheckFirstGiveaway</A> - Check if users comply with first giveaway rules (according to defined rules).<BR><BR>'
-    response += '<A HREF="/SGMT/GroupUsersSummaryUI">GroupUsersSummary</A> - For a given group, return summary of all giveaways created, entered and won by members.<BR><BR>'
-    response += '<A HREF="/SGMT/UserFullGiveawaysHistoryUI">UserFullGiveawaysHistory</A> - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).<BR><BR>'
-    response += '<BR><BR><BR>'
-    response += '<B>Tool Management</B><BR><BR>'
-    response += '<A HREF="/SGMT/GetAvailableGroups">GetAvailableGroups</A> - List all SteamGifts groups available in the tool at the moment.<BR><BR>'
-    response += '<A HREF="/SGMT/AddNewGroupUI">AddNewGroup</A> - Add new SteamGifts group to be processed at the next available opportunity (tipically within 24 hours).<BR><BR>'
-
-    return response
+    return HtmlUIGenerationService.generate_main_page_ui()
 
 
 @app.route('/SGMT/CheckMonthlyUI', methods=['GET'])
@@ -40,7 +28,6 @@ def check_monthly_ui():
     return response
 
 
-#TODO: Add group-only-ga flag + UI
 @app.route('/SGMT/CheckMonthly', methods=['GET'])
 def check_monthly():
     group_webpage = request.args.get('group_webpage')

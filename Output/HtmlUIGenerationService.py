@@ -1,6 +1,23 @@
 # HTML response generation service of SGMT
 # Copyright (C) 2017  Alex Milman
 
+
+def generate_main_page_ui():
+    response = get_header('SteamGifts Group Management Tool (SGMT)')
+    response += '<A HREF="/SGMT/UserCheckRulesUI">UserCheckRules</A> - Check if a user (not necessetily belonging to your group) complies to general rules (wins, level, etc.).<BR><BR>'
+    response += '<A HREF="/SGMT/CheckMonthlyUI">CheckMonthly</A> - Returns a list of all users who didn\'t create a giveaway in a given month.<BR><BR>'
+    response += '<A HREF="/SGMT/CheckAllGiveawaysAccordingToRulesUI">CheckAllGiveawaysAccordingToRules</A> - Returns a list of games created not according to given rules.<BR><BR>'
+    response += '<A HREF="/SGMT/UserCheckFirstGiveawayUI">UserCheckFirstGiveaway</A> - Check if users comply with first giveaway rules (according to defined rules).<BR><BR>'
+    response += '<A HREF="/SGMT/GroupUsersSummaryUI">GroupUsersSummary</A> - For a given group, return summary of all giveaways created, entered and won by members.<BR><BR>'
+    response += '<A HREF="/SGMT/UserFullGiveawaysHistoryUI">UserFullGiveawaysHistory</A> - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).<BR><BR>'
+    response += '<BR><BR><BR>'
+    response += '<B>Tool Management</B><BR><BR>'
+    response += '<A HREF="/SGMT/GetAvailableGroups">GetAvailableGroups</A> - List all SteamGifts groups available in the tool at the moment.<BR><BR>'
+    response += '<A HREF="/SGMT/AddNewGroupUI">AddNewGroup</A> - Add new SteamGifts group to be processed at the next available opportunity (tipically within 24 hours).<BR><BR>'
+    response += get_footer()
+    return response
+
+
 def generate_check_monthly_ui(groups):
     response = get_header('CheckMonthly - Returns a list of all users who didn\'t create a giveaway in a given month.','CheckMonthly')
     response += get_groups_dropdown(groups.values())
@@ -82,16 +99,16 @@ def generate_user_full_giveaways_history_ui(groups):
     response += get_start_date()
     response += get_footer('Get User History')
 
-    response += '<script>' + '\n'
-    response += '$(\'#group_webpage\').on(\'change\', function() {' + '\n'
-    response += ' $(\'#user\').html(\'\');' + '\n'
-    response += ' switch($(\'#group_webpage\').val()) {' + '\n'
+    response += '<script>'
+    response += '$(\'#group_webpage\').on(\'change\', function() {'
+    response += '$(\'#user\').html(\'\');'
+    response += 'switch($(\'#group_webpage\').val()) {'
     for group in groups.values():
-        response += '  case "' + group.group_webpage + '":' + '\n'
+        response += 'case "' + group.group_webpage + '":'
         for user in group.group_users:
-          response += '   $(\'#user\').append(\'<option value="' + user + '">' + user + '</option>\');' + '\n'
-        response += '   break;' + '\n'
-    response += '  }});' + '\n'
+          response += '$(\'#user\').append(\'<option value="' + user + '">' + user + '</option>\');'
+        response += 'break;'
+    response += '}});'
     response += '</script>'
 
     return response
@@ -138,17 +155,29 @@ def get_groups_dropdown(groups):
     return response
 
 
-def get_footer(button_text):
-    response = '<BR>'
-    response += '<input type="submit" value="' + button_text + '"></form>'
-    response += '<BR><BR><BR><BR><small><A HREF="/SGMT/legal">legal</A></small>'
+def get_footer(button_text=None):
+    response = ''
+    if button_text:
+        response += '<BR>'
+        response += '<input type="submit" value="' + button_text + '"></form>'
+    response += '<BR><BR><BR><BR><small><A HREF="/SGMT/legal">Legal</A>,  &nbsp; Support on: <A HREF="mailto:sgmt.suport@gmail.com">sgmt.suport@gmail.com</A></small>'
     response += '</body></html>'
     return response
 
 
-def get_header(title, action):
+def get_header(title, action=None):
+    space = ' &nbsp; '
     response = '<!DOCTYPE html><html><body>'
-    response += '<B>' + title + '</B><BR><BR>'
-    response += '<form action="/SGMT/' + action + '">'
+    response += '<A HREF="/SGMT/">Home</A>' + space
+    response += '<A HREF="/SGMT/UserCheckRulesUI">UserCheckRules</A>'  + space
+    response += '<A HREF="/SGMT/CheckMonthlyUI">CheckMonthly</A>'  + space
+    response += '<A HREF="/SGMT/CheckAllGiveawaysAccordingToRulesUI">CheckAllGiveawaysAccordingToRules</A>'  + space
+    response += '<A HREF="/SGMT/UserCheckFirstGiveawayUI">UserCheckFirstGiveaway</A>'  + space
+    response += '<A HREF="/SGMT/GroupUsersSummaryUI">GroupUsersSummary</A>'  + space
+    response += '<A HREF="/SGMT/UserFullGiveawaysHistoryUI">UserFullGiveawaysHistory</A>'  + space
+    # response += '<A HREF="/SGMT/CheckMonthlyUI">CheckMonthly</A> &nbsp; '
+    response += '<BR><BR><B>' + title + '</B><BR><BR><BR>'
+    if action:
+        response += '<form action="/SGMT/' + action + '">'
     return response
 
