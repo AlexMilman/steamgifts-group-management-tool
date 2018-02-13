@@ -4,6 +4,7 @@
 
 def generate_main_page_ui():
     response = get_header('SteamGifts Group Management Tool (SGMT)')
+    response += '<B>Group Management</B><BR><BR>'
     response += '<A HREF="/SGMT/UserCheckRulesUI">UserCheckRules</A> - Check if a user (not necessetily belonging to your group) complies to general rules (wins, level, etc.).<BR><BR>'
     response += '<A HREF="/SGMT/CheckMonthlyUI">CheckMonthly</A> - Returns a list of all users who didn\'t create a giveaway in a given month.<BR><BR>'
     response += '<A HREF="/SGMT/CheckAllGiveawaysAccordingToRulesUI">CheckAllGiveawaysAccordingToRules</A> - Returns a list of games created not according to given rules.<BR><BR>'
@@ -87,9 +88,7 @@ def generate_group_users_summary_ui(groups):
 
 
 def generate_user_full_giveaways_history_ui(groups):
-    response = '<!DOCTYPE html><head><script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script></head><body>'
-    response += '<B>UserFullGiveawaysHistory - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).</B><BR><BR>'
-    response += '<form action="/SGMT/UserFullGiveawaysHistory">'
+    response = get_header('UserFullGiveawaysHistory - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).', 'UserFullGiveawaysHistory', '<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>')
 
     response += get_groups_dropdown(groups.values())
     response += 'User:&nbsp; &nbsp;<select id="user" name="user">'
@@ -165,9 +164,13 @@ def get_footer(button_text=None):
     return response
 
 
-def get_header(title, action=None):
+def get_header(title, action=None, head=None):
     space = ' &nbsp; '
-    response = '<!DOCTYPE html><html><body>'
+    response = '<!DOCTYPE html><html>'
+    if head:
+        response += '<head>' + head + '</head>'
+    response += '<body>'
+    response += '<small>'
     response += '<A HREF="/SGMT/">Home</A>' + space
     response += '<A HREF="/SGMT/UserCheckRulesUI">UserCheckRules</A>'  + space
     response += '<A HREF="/SGMT/CheckMonthlyUI">CheckMonthly</A>'  + space
@@ -175,8 +178,11 @@ def get_header(title, action=None):
     response += '<A HREF="/SGMT/UserCheckFirstGiveawayUI">UserCheckFirstGiveaway</A>'  + space
     response += '<A HREF="/SGMT/GroupUsersSummaryUI">GroupUsersSummary</A>'  + space
     response += '<A HREF="/SGMT/UserFullGiveawaysHistoryUI">UserFullGiveawaysHistory</A>'  + space
-    # response += '<A HREF="/SGMT/CheckMonthlyUI">CheckMonthly</A> &nbsp; '
-    response += '<BR><BR><B>' + title + '</B><BR><BR><BR>'
+    response += space + '<B>Advanced Actions:</B>'  + space
+    response += '<A HREF="/SGMT/GetAvailableGroups">GetAvailableGroups</A>'  + space
+    response += '<A HREF="/SGMT/AddNewGroupUI">AddNewGroup</A>'  + space
+    response += '</small>'
+    response += '<H3>' + title + '</H3>'
     if action:
         response += '<form action="/SGMT/' + action + '">'
     return response
