@@ -2,6 +2,8 @@
 # Copyright (C) 2017  Alex Milman
 import calendar
 import json
+
+import datetime
 import pymysql
 import ConfigParser
 
@@ -125,9 +127,9 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
             start_time_epoch = row[1]
             end_time_epoch = row[2]
             if limit_by_time and \
-                    ((starts_after_str and start_time_epoch < to_epoch(time.strptime(starts_after_str, "%Y-%m-%d")) )
-                     or (ends_before_str and end_time_epoch > to_epoch(time.strptime(ends_before_str, "%Y-%m-%d")))
-                     or (ends_after_str and end_time_epoch < to_epoch(time.strptime(ends_after_str, "%Y-%m-%d")))):
+                    ((starts_after_str and datetime.datetime.utcfromtimestamp(start_time_epoch) < datetime.datetime.strptime(starts_after_str, '%Y-%m-%d'))
+                     or (ends_before_str and datetime.datetime.utcfromtimestamp(end_time_epoch) > datetime.datetime.strptime(ends_before_str, "%Y-%m-%d"))
+                     or (ends_after_str and datetime.datetime.utcfromtimestamp(end_time_epoch) < datetime.datetime.strptime(ends_after_str, "%Y-%m-%d"))):
                     continue
             # (giveaway_id, calendar.timegm(group_giveaway.start_time), calendar.timegm(group_giveaway.end_time))
             giveaway_id = row[0]
@@ -411,15 +413,15 @@ def parse_list(list, prefix=''):
     return result[:-1]
 
 
-def to_epoch(time_object):
-    if time_object:
-        return calendar.timegm(time_object)
+def to_epoch(datetime_object):
+    if datetime_object:
+        return (datetime_object - datetime.datetime(1970, 1, 1)).total_seconds()
     return None
 
 
 def from_epoch(time_in_epoch):
-    if time_in_epoch:
-        return time.gmtime(time_in_epoch)
+    if time_in_epoch or time_in_epoch == 0:
+        return datetime.datetime.utcfromtimestamp(float(time_in_epoch))
     return None
 
 

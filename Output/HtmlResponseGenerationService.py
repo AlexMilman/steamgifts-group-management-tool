@@ -1,7 +1,5 @@
 # HTML response generation service of SGMT
 # Copyright (C) 2017  Alex Milman
-import time
-
 from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SGToolsConsts
 
 
@@ -19,7 +17,7 @@ def generate_invalid_giveaways_response(games, invalid_giveaways):
             response += u'<A HREF="' + giveaway.link + u'">' + game_name + u'</A>'
             if game_data:
                 response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
-            response += u' Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time)
+            response += u' Ends on: ' + giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
             response += u'<BR>'
     return response
 
@@ -48,7 +46,7 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
         game_data = games[game_name]
         response += u'<A HREF="' + giveaway.link + u'">' + game_name + u'</A>'
         response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
-        response += u' Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time)
+        response += u' Ends on: ' + giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
         response += u'<BR>'
     won = 0
     for giveaway in entered_giveaways:
@@ -62,9 +60,9 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
         game_data = games[giveaway.game_name]
         response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name + u'</A>'
         response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
-        response += u', Ends on: ' + time.strftime(u'%Y-%m-%d %H:%M:%S', giveaway.end_time)
+        response += u', Ends on: ' + giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
         if giveaway.entries[user].entry_time:
-            response += u', Entry date: ' + time.strftime(u'%Y-%m-%d %H:%M:%S',giveaway.entries[user].entry_time)
+            response += u', Entry date: ' + giveaway.entries[user].entry_time.strftime('%Y-%m-%d %H:%M:%S')
         if user in giveaway.entries.keys() and giveaway.entries[user].winner:
             response += u' <B>(WINNER)</B>'
         response += u'<BR>'
@@ -148,7 +146,7 @@ def generate_check_user_first_giveaway_response(user_first_giveaway, user_no_giv
             response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user_name) + u'">' + user_name + u'</A> ' \
                         u'first giveaway: <A HREF="' + group_giveaway.link + u'">' + group_giveaway.game_name + u'</A> ' \
                         u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')' \
-                        u' Ends on: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.end_time) + u'<BR>'
+                        u' Ends on: ' + group_giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S') + u'<BR>'
         
     response += u'<BR>'
     for user in user_no_giveaway:
@@ -160,7 +158,7 @@ def generate_check_user_first_giveaway_response(user_first_giveaway, user_no_giv
         for group_giveaway in sorted(group_giveaways, key=lambda x: x.entries[user].entry_time, reverse=True):
             response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A> ' \
                         u'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + u'</A> ' \
-                        u'(Entry date: ' + time.strftime('%Y-%m-%d %H:%M:%S', group_giveaway.entries[user].entry_time) + u')<BR>'
+                        u'(Entry date: ' + group_giveaway.entries[user].entry_time.strftime('%Y-%m-%d %H:%M:%S') + u')<BR>'
 
     if time_to_create_over:        
         response += u'<BR>Time to create first GA ended.<BR>'

@@ -1,5 +1,4 @@
 import ConfigParser
-import time
 import sys
 
 import datetime
@@ -128,15 +127,15 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
     monthly_posters = set()
     monthly_unfinished = dict()
     for group_giveaway in group.group_giveaways.values():
-        end_month = group_giveaway.end_time.tm_mon
-        start_month = group_giveaway.start_time.tm_mon
+        end_month = group_giveaway.end_time.month
+        start_month = group_giveaway.start_time.month
         # If GA started in previous month, mark it as started on the 1th of the month
         if start_month == month - 1 and end_month == month:
             start_day = 1
             start_month = month
         else:
-            start_day = group_giveaway.start_time.tm_mday
-        end_day = group_giveaway.end_time.tm_mday
+            start_day = group_giveaway.start_time.day
+        end_day = group_giveaway.end_time.day
         creator = group_giveaway.creator
         if creator in users and len(group_giveaway.groups) == 1\
                 and start_month == month and end_month == month\
@@ -170,7 +169,7 @@ def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_value=
             game_data = MySqlConnector.get_game_data(game_name)
             check_game_data(game_data, game_name)
             if not game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score)\
-                    or (datetime.datetime.fromtimestamp(time.mktime(group_giveaway.end_time)) - datetime.datetime.fromtimestamp(time.mktime(group_giveaway.start_time))).days < min_days:
+                    or (group_giveaway.end_time - group_giveaway.start_time).days < min_days:
                 if creator not in invalid_giveaways:
                     invalid_giveaways[creator] = set()
                 invalid_giveaways[creator].add(group_giveaway)
@@ -209,7 +208,7 @@ def get_user_entered_giveaways(group_webpage, users, addition_date):
     users_list = users.split(',')
     for group_giveaway in group.group_giveaways.values():
         # Go over all giveaways not closed before "addition_date"
-        if not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time):
+        if not addition_date or addition_date < group_giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S'):
             for user in users_list:
                 if user in group_giveaway.entries:
                     response += 'User ' + user + ' entered giveaway: ' + group_giveaway.link + '\n'
@@ -224,7 +223,7 @@ def get_user_all_giveways(group_webpage, user, start_time):
     entered_giveaways=[]
     games=dict()
     for group_giveaway in group.group_giveaways.values():
-        if not start_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.end_time):
+        if not start_time or start_time <= group_giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S'):
             game_name = group_giveaway.game_name
             if group_giveaway.creator == user:
                 created_giveaways.append(group_giveaway)
@@ -256,7 +255,7 @@ def get_group_summary(group_webpage, start_time):
         if creator not in all_group_users:
             continue
         # Go over all giveaways started after "addition_date"
-        if not start_time or start_time <= time.strftime('%Y-%m-%d', group_giveaway.end_time):
+        if not start_time or start_time <= group_giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S'):
             group_games_count += 1
             game_data = MySqlConnector.get_game_data(group_giveaway.game_name)
             value = game_data.value
@@ -353,16 +352,16 @@ def get_group_summary(group_webpage, start_time):
     return total_group_data, users_data
 
 
-def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_create_ga=0, min_ga_time=0,
+def check_user_first_giveaway(group_webpage, users, addition_date, days_to_create_ga=0, min_ga_time=0,
                               min_value=0.0, min_num_of_reviews=0, min_score=0,
                               alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0,
                               alt2_min_game_value=0, alt2_min_steam_num_of_reviews=0, alt2_min_steam_score=0,
                               check_entered_giveaways=False):
-    group = MySqlConnector.load_group(group_webpage, load_users_data=False, limit_by_time=addition_date, ends_after_str=addition_date)
+    group = MySqlConnector.load_group(group_webpage, load_users_data=False, limit_by_time=True, ends_after_str=addition_date)
     if not group:
         return None
     users_list = users.split(',')
-    user_addition_day = int(addition_date.split('-')[2])
+    user_added_time = datetime.datetime.strptime(addition_date, '%Y-%m-%d')
     user_end_time=dict()
     user_first_giveaway=dict()
     user_no_giveaway=set()
@@ -373,11 +372,10 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
             and
                 len(group_giveaway.groups) == 1
             and
-                ((not addition_date or days_to_create_ga == 0)
-                or (addition_date and days_to_create_ga > 0 and group_giveaway.start_time.tm_mday <= user_addition_day + days_to_create_ga))
+                (days_to_create_ga == 0 or group_giveaway.start_time <= user_added_time + datetime.timedelta(days=days_to_create_ga + 1))
             and
                 (min_ga_time == 0
-                or (min_ga_time > 0 and datetime.datetime.fromtimestamp(time.mktime(group_giveaway.end_time)) - datetime.datetime.fromtimestamp(time.mktime(group_giveaway.start_time)) >= datetime.timedelta(days=min_ga_time - 1)))):
+                or (min_ga_time > 0 and group_giveaway.end_time - group_giveaway.start_time >= datetime.timedelta(days=min_ga_time - 1)))):
             game_data = MySqlConnector.get_game_data(game_name)
             check_game_data(game_data, game_name)
             if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score):
@@ -394,10 +392,10 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
     partial_group_webpage = group_webpage.split(SteamGiftsConsts.STEAMGIFTS_LINK)[1]
     user_entered_giveaway=dict()
     for group_giveaway in group.group_giveaways.values():
-        if check_entered_giveaways and (not addition_date or addition_date < time.strftime('%Y-%m-%d', group_giveaway.end_time)):
+        if check_entered_giveaways and user_added_time < group_giveaway.end_time:
             for user in users_list:
                 if user in group_giveaway.entries \
-                        and group_giveaway.entries[user].entry_time.tm_mday >= user_addition_day \
+                        and group_giveaway.entries[user].entry_time >= user_added_time \
                         and (user not in user_end_time or group_giveaway.entries[user].entry_time < user_end_time[user])\
                         and (len(group_giveaway.groups) == 1 or not SteamGiftsScrapingUtils.user_in_group(user, filter(lambda x: x != partial_group_webpage, group_giveaway.groups))):
                     #TODO: Add "Whitelist detected" warning
@@ -406,7 +404,7 @@ def check_user_first_giveaway(group_webpage, users, addition_date=None, days_to_
                     user_entered_giveaway[user].add(group_giveaway)
 
     time_to_create_over = False
-    if addition_date and days_to_create_ga > 0 and time.gmtime().tm_mday > user_addition_day + days_to_create_ga:
+    if days_to_create_ga > 0 and datetime.date.today() > user_added_time.date() + datetime.timedelta(days=days_to_create_ga + 1):
         time_to_create_over = True
 
     return user_first_giveaway, user_no_giveaway, user_entered_giveaway, time_to_create_over

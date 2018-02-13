@@ -1,4 +1,4 @@
-import time
+from datetime import datetime
 import requests
 
 from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SteamConsts
@@ -109,8 +109,8 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
             creation_time=None
             end_time=None
             if len(timestamps) >= 2:
-                end_time = time.gmtime(StringUtils.normalize_float(timestamps[0]))
-                creation_time = time.gmtime(StringUtils.normalize_float(timestamps[1]))
+                end_time = datetime.utcfromtimestamp(StringUtils.normalize_float(timestamps[0]))
+                creation_time = datetime.utcfromtimestamp(StringUtils.normalize_float(timestamps[1]))
 
             if winners:
                 reached_ended_giveaways = True
@@ -166,7 +166,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
                     LogUtils.log_warning('Unable to process entries for ' + giveaway_link)
                     # We can't access the GA data, but we can still know who won
                     for entry_user in winners:
-                        giveaway_entries[entry_user] = GiveawayEntry(entry_user, time.gmtime(0), winner=True)
+                        giveaway_entries[entry_user] = GiveawayEntry(entry_user, datetime.utcfromtimestamp(0), winner=True)
 
             giveaway_groups = []
             giveaway_groups_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_groups_link(partial_giveaway_link), cookies=cookies)
@@ -185,9 +185,10 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
                 giveaways_changed = True
                 group_giveaways[giveaway_link] = group_giveaway
 
-            if start_date and time.strftime('%Y-%m-%d', end_time) < start_date:
-                reached_end = True
-                break
+            if start_date:
+                if end_time < datetime.strptime(start_date, '%Y-%m-%d'):
+                    reached_end = True
+                    break
 
         if not current_page_num or reached_end:
             break
@@ -202,7 +203,8 @@ def process_entries(entries_content, giveaway_entries, winners):
     entries_elements = WebUtils.get_items_by_xpath(entries_content, u'.//div[@class="table__row-inner-wrap"]')
     for entry_element in entries_elements:
         entry_user = WebUtils.get_item_by_xpath(entry_element, u'.//a[@class="table__column__heading"]/text()').encode('utf-8')
-        entry_time = time.gmtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(entry_element, u'.//div[@class="table__column--width-small text-center"]/span/@data-timestamp')))
+        entry_timestamp = WebUtils.get_item_by_xpath(entry_element,u'.//div[@class="table__column--width-small text-center"]/span/@data-timestamp')
+        entry_time = datetime.utcfromtimestamp(StringUtils.normalize_float(entry_timestamp))
         winner = False
         if entry_user in winners:
             winner = True
@@ -213,34 +215,6 @@ def get_page_num_str(page_num):
     if page_num:
         return '#' + str(page_num)
     return ''
-
-
-def get_monthly_posters(group_webpage, month, max_pages=0):
-    monthly_giveaways=dict()
-    posters=set()
-    page_index = 1
-    while page_index < max_pages or max_pages == 0:
-        html_content = WebUtils.get_html_page(group_webpage + SteamGiftsConsts.STEAMGIFTS_SEARCH_PAGE + str(page_index))
-        current_page_num = WebUtils.get_item_by_xpath(html_content, u'.//a[@class="is-selected"]/span/text()')
-        if current_page_num and current_page_num != str(page_index):
-            break
-
-        giveaway_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
-        for giveaway_elem in giveaway_elements:
-            post_month = time.gmtime(StringUtils.normalize_float(WebUtils.get_item_by_xpath(giveaway_elem, u'.//span/@Data-timestamp'))).tm_mon
-            if post_month == month:
-                giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
-                poster = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__username"]/text()')
-                if not monthly_giveaways[poster]:
-                    monthly_giveaways[poster] = set()
-                monthly_giveaways[poster].add(giveaway_link)
-
-        if not current_page_num:
-            break
-
-        page_index += 1
-
-    return posters
 
 
 def test(cookies):
