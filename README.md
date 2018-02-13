@@ -58,16 +58,19 @@ Steam may not care about a couple of hundred concurrent requests. But for SteamG
 So for now this tool's automatic nightly update will run slowly, but safely.
 
 ### Future plans
-* Create a SteamGifts user for the tool, then anyone wanting to use the tool, will not need to give the tool his own cookies, but instead will need to add the tool's user to his group, and the tool will use it's own user's cookies - Opened a ticket to SteamGifts Admins. Waiting for their response...
+* Better UI
 
 ### TODO
-* Add Whitelist data to giveaways
+* UserCheckFirstGiveaway: Add ability to check number of entries on ended GAs
+* UserCheckFirstGiveaway: In UI mark giveaways when they are over
+* Add to Giveaways DB: MinimumLevel, Whitelist, RegionRestricted
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "no minimum level" to optional params
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "not region restricted" to optional params
-* UserCheckFirstGiveaway: Add ability to check number of entries on ended GAs (for first time )
-* UserCheckFirstGiveaway: Mark giveaways when they are over
+* CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "not whitelist" to optional params
+* CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "group only" to optional params
 * Fix logger to printout errors on server error
 * Support giveaways with multiple copies + integrate into value calculation and summary printouts
+* Check replacing UserCheckRules with lambda AWS process
 * Check replacing the heaviest flow (UpdateAllGroups) with a lambda AWS process
 * Add handling large data quantities: Giveaways, Users, Games (separate into smaller chunks)
 * Handle TODO leftovers
