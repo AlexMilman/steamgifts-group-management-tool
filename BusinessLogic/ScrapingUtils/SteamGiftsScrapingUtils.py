@@ -199,6 +199,16 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
     return group_giveaways, games
 
 
+def is_giveaway_deleted(giveaway_link, cookies):
+    LogUtils.log_info('Checking if giveaway was deleted: ' + giveaway_link)
+    giveaway_content = WebUtils.get_html_page(giveaway_link, cookies=cookies)
+    if giveaway_content is not None:
+        error_messages = WebUtils.get_items_by_xpath(giveaway_content,u'.//div[@class="table__column--width-fill"]/text()')
+        if error_messages and len(error_messages) >= 4 and error_messages[0].startswith('Deleted'):
+            return True
+    return False
+
+
 def process_entries(entries_content, giveaway_entries, winners):
     entries_elements = WebUtils.get_items_by_xpath(entries_content, u'.//div[@class="table__row-inner-wrap"]')
     for entry_element in entries_elements:

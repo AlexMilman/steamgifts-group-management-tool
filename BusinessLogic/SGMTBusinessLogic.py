@@ -146,7 +146,7 @@ def check_monthly(group_webpage, year_month, min_days=0, min_value=0.0, min_num_
             if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score, alt2_min_value, alt2_min_num_of_reviews, alt2_min_score):
                 if group_giveaway.has_winners():
                     monthly_posters.add(creator)
-                else:
+                elif group_giveaway.end_time > datetime.datetime.now() or len(group_giveaway.entries) > 0:
                     if creator not in monthly_unfinished:
                         monthly_unfinished[creator] = set()
                     monthly_unfinished[creator].add(group_giveaway)
@@ -623,9 +623,21 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False, start
                 LogUtils.log_error('Cannot add additional data for user: ' + group_user.user_name + ' ERROR: ' + str(sys.exc_info()[0]))
 
     group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run=force_full_run, start_date=start_date)
-    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways, group_webpage=group_webpage, cookies=group.cookies, group_name=group.group_name), existing_users, group)
+    remove_deleted_giveaways(cookies, group, group_giveaways)
+    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways, group_webpage=group_webpage, cookies=cookies, group_name=group.group_name), existing_users, group)
 
     return games
+
+
+def remove_deleted_giveaways(cookies, group, group_giveaways):
+    # If any existing GA is missing from newly parsed data - remove it from group giveaways.
+    earliest_giveaway_end_time = sorted(group_giveaways.values(), key=lambda x: x.end_time)[0].end_time
+    for giveaway in sorted(group.group_giveaways.values(), key=lambda x: x.end_time, reverse=True):
+        if giveaway.end_time < earliest_giveaway_end_time:
+            break
+        if giveaway.link not in group_giveaways and not giveaway.has_winners() and SteamGiftsScrapingUtils.is_giveaway_deleted(giveaway.link, cookies):
+            LogUtils.log_info('Removing deleted giveaway: ' + giveaway.link)
+            group.group_giveaways.pop(giveaway.link, None)
 
 
 def update_all_db_groups():
