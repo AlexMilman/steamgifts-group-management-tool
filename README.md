@@ -61,8 +61,6 @@ So for now this tool's automatic nightly update will run slowly, but safely.
 * Better UI
 
 ### TODO
-* UserCheckFirstGiveaway: Add ability to check number of entries on ended GAs
-* UserCheckFirstGiveaway: In UI mark giveaways when they are over
 * Add to Giveaways DB: MinimumLevel, Whitelist, RegionRestricted
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "no minimum level" to optional params
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "not region restricted" to optional params

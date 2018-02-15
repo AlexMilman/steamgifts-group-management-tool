@@ -1,5 +1,7 @@
 # HTML response generation service of SGMT
 # Copyright (C) 2017  Alex Milman
+from datetime import datetime
+
 from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SGToolsConsts
 
 
@@ -139,14 +141,20 @@ def generate_check_monthly_response(users, monthly_posters, monthly_unfinished):
     return response
 
 
-def generate_check_user_first_giveaway_response(user_first_giveaway, user_no_giveaway, user_entered_giveaway, time_to_create_over):
+def generate_check_user_first_giveaway_response(user_first_giveaway, succesfully_ended, user_no_giveaway, user_entered_giveaway, time_to_create_over):
     response = u''
     for user_name in user_first_giveaway.keys():
         for group_giveaway, game_data in user_first_giveaway[user_name]:
             response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user_name) + u'">' + user_name + u'</A> ' \
                         u'first giveaway: <A HREF="' + group_giveaway.link + u'">' + group_giveaway.game_name + u'</A> ' \
-                        u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')' \
-                        u' Ends on: ' + group_giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S') + u'<BR>'
+                        u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
+            if user_name in succesfully_ended and group_giveaway.link in succesfully_ended[user_name]:
+                response += u'<B> - Finished succesfully !!!</B>'
+            elif datetime.now() <= group_giveaway.end_time:
+                response += u' - Ends on: ' + group_giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                response += u' - Ended'
+            response += u'<BR>'
         
     response += u'<BR>'
     for user in user_no_giveaway:

@@ -37,6 +37,7 @@ def check_monthly():
     if not year_month and year and month:
         year_month = year + '-' + month
     min_days = get_optional_int_param('min_days')
+    min_entries = get_optional_int_param('min_entries')
     min_game_value = get_optional_float_param('min_game_value')
     min_steam_num_of_reviews = get_optional_int_param('min_steam_num_of_reviews')
     min_steam_score = get_optional_int_param('min_steam_score')
@@ -54,6 +55,7 @@ def check_monthly():
                'year_month=YYYY-MM Year+Month for which you want to check  <BR>' \
                '<B>Optional Params:</B> <BR>' \
                'min_days - Minimum number of days of a GA<BR>' \
+               'min_entries - Minimum number entries when GA ends<BR>' \
                'min_game_value - Minimal game value (in $) allowed<BR>' \
                'min_steam_num_of_reviews - Minimal number of Steam reviews allowed for a game<BR>' \
                'min_steam_score - Minimal Steam score allowed for a game<BR>' \
@@ -66,7 +68,7 @@ def check_monthly():
                '<BR>' \
                '<A HREF="/SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80">Request Example</A>'
 
-    users, monthly_posters, monthly_unfinished = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score)
+    users, monthly_posters, monthly_unfinished = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_entries, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score)
     response = HtmlResponseGenerationService.generate_check_monthly_response(users, monthly_posters, monthly_unfinished)
     return response
 
@@ -83,6 +85,7 @@ def check_all_giveaways():
     group_webpage = request.args.get('group_webpage')
     start_date = request.args.get('start_date')
     min_days = get_optional_int_param('min_days')
+    min_entries = get_optional_int_param('min_entries')
     min_game_value = get_optional_float_param('min_game_value')
     min_steam_num_of_reviews = get_optional_int_param('min_steam_num_of_reviews')
     min_steam_score = get_optional_int_param('min_steam_score')
@@ -97,6 +100,7 @@ def check_all_giveaways():
                '<B>Optional Params:</B> <BR>' \
                'start_date=YYYY-MM-DD Start date from which to check giveaways <BR>' \
                'min_days - Minimum number of days of a GA<BR>' \
+               'min_entries - Minimum number entries when GA ends<BR>' \
                'min_game_value - Minimal game value (in $) allowed<BR>' \
                'min_steam_num_of_reviews - Minimal number of Steam reviews allowed for a game<BR>' \
                'min_steam_score - Minimal Steam score allowed for a game<BR>' \
@@ -106,7 +110,7 @@ def check_all_giveaways():
                '<BR>' \
                '<A HREF="/SGMT/CheckAllGiveawaysAccordingToRules?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&start_date=2017-11-01&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80">Request Example</A>'
 
-    invalid_giveaways, games = SGMTBusinessLogic.check_giveaways_valid(group_webpage, start_date, min_days, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score)
+    invalid_giveaways, games = SGMTBusinessLogic.check_giveaways_valid(group_webpage, start_date, min_days, min_entries, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score)
     response = HtmlResponseGenerationService.generate_invalid_giveaways_response(games, invalid_giveaways)
     return response
 
@@ -124,6 +128,7 @@ def user_check_first_giveaway():
     users = request.args.get('users')
     addition_date = request.args.get('addition_date')
     days_to_create_ga = get_optional_int_param('days_to_create_ga')
+    min_entries = get_optional_int_param('min_entries')
     min_ga_time = get_optional_int_param('min_ga_time')
     min_game_value = get_optional_float_param('min_game_value')
     min_steam_num_of_reviews = get_optional_int_param('min_steam_num_of_reviews')
@@ -145,6 +150,7 @@ def user_check_first_giveaway():
                '<B>Optional Params:</B> <BR>' \
                'addition_date=YYYY-MM-DD - The date from which the user was added to the group <BR>' \
                'days_to_create_ga - Within how many days of entering the group should the first GA be created<BR>' \
+               'min_entries - Minimum number of entries when GA ends<BR>' \
                'min_ga_time - Minimum number of days of a GA to run<BR>' \
                'min_game_value - Minimal game value (in $) allowed<BR>' \
                'min_steam_num_of_reviews - Minimal number of Steam reviews allowed for a game<BR>' \
@@ -159,8 +165,8 @@ def user_check_first_giveaway():
                '<BR>' \
                '<A HREF="/SGMT/UserCheckFirstGiveaway?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&users=Vlmbcn,7Years&addition_date=2017-12-01&days_to_create_ga=2&min_ga_time=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80&check_entered_giveaways=True">Request Example</A>'
 
-    user_first_giveaway, user_no_giveaway, user_entered_giveaway, time_to_create_over = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, users, addition_date, days_to_create_ga, min_ga_time, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score, check_entered_giveaways)
-    response = HtmlResponseGenerationService.generate_check_user_first_giveaway_response(user_first_giveaway, user_no_giveaway, user_entered_giveaway, time_to_create_over)
+    user_first_giveaway, succesfully_ended, user_no_giveaway, user_entered_giveaway, time_to_create_over = SGMTBusinessLogic.check_user_first_giveaway(group_webpage, users, addition_date, days_to_create_ga, min_ga_time, min_entries, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score, check_entered_giveaways)
+    response = HtmlResponseGenerationService.generate_check_user_first_giveaway_response(user_first_giveaway, succesfully_ended, user_no_giveaway, user_entered_giveaway, time_to_create_over)
     return response
 
 

@@ -34,6 +34,7 @@ def generate_check_monthly_ui(groups):
     response += '</select><BR><BR>'
 
     response += '<BR><B>Optional:</B><BR><BR>'
+    response += get_min_entries()
     response += get_min_days_with_game_stats()
     response += get_footer('Get Monthly GAs')
     return response
@@ -59,6 +60,7 @@ def generate_check_all_giveaways_ui(groups):
 
     response += get_optional_label()
     response += get_start_date()
+    response += get_min_entries()
     response += get_min_days_with_game_stats()
     response += get_footer('Check Giveaways')
     return response
@@ -72,7 +74,8 @@ def generate_user_check_first_giveaway_ui(groups):
 
     response += get_optional_label()
     response += 'Within how many days of entering the group should the first GA be created: <input type="text" name="days_to_create_ga" size=2><BR><BR>'
-    response += 'Minimum number of days of a GA to run: <input type="text" name="min_ga_time" size=2><BR><BR>'
+    response += get_min_days('min_ga_time')
+    response += get_min_entries()
     response += get_game_stats()
     response += get_footer('Check First Giveaway')
     return response
@@ -125,10 +128,18 @@ def generate_lazy_add_group_ui():
     return response
 
 
+def get_min_entries():
+    return 'Minimum number of entries: <input type="text" name="min_entries" size=2><BR><BR>'
+
+
 def get_min_days_with_game_stats():
-    response = 'Minimum number of days of a GA: <input type="text" name="min_days" size=2><BR><BR>'
+    response = get_min_days()
     response += get_game_stats()
     return response
+
+
+def get_min_days(var_name='min_days'):
+    return 'Minimum number of days of a GA to run: <input type="text" name="' + var_name + '" size=2><BR><BR>'
 
 
 def get_game_stats():
