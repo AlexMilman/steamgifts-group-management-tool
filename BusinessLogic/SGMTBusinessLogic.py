@@ -546,7 +546,7 @@ def add_new_group(group_webpage, cookies, start_date=None):
 
 
 def update_existing_group(group_webpage, start_date=None):
-    group = MySqlConnector.load_group(group_webpage)
+    group = MySqlConnector.load_group(group_webpage, fetch_not_started_giveaways=True)
     if not group:
         return None
     cookies = common_cookies
@@ -638,8 +638,8 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False, start
 
 def remove_deleted_giveaways(cookies, group, group_giveaways):
     # If any existing GA is missing from newly parsed data - remove it from group giveaways.
-    earliest_giveaway_end_time = sorted(group_giveaways.values(), key=lambda x: x.end_time)[0].end_time
-    for giveaway in sorted(group.group_giveaways.values(), key=lambda x: x.end_time, reverse=True):
+    earliest_giveaway_end_time = sorted(filter(lambda x: x.end_time, group_giveaways.values()), key=lambda x: x.end_time)[0].end_time
+    for giveaway in sorted(filter(lambda x: x.end_time, group.group_giveaways.values()), key=lambda x: x.end_time, reverse=True):
         if giveaway.end_time < earliest_giveaway_end_time:
             break
         if giveaway.link not in group_giveaways and not giveaway.has_winners() and SteamGiftsScrapingUtils.is_giveaway_deleted(giveaway.link, cookies):

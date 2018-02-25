@@ -88,7 +88,7 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
     LogUtils.log_info('Save Group ' + group_website + ' took ' + str(time.time() - start_time) + ' seconds')
 
 
-def load_group(group_website, load_users_data=True, load_giveaway_data=True, limit_by_time=False, starts_after_str=None, ends_before_str=None, ends_after_str=None):
+def load_group(group_website, load_users_data=True, load_giveaway_data=True, fetch_not_started_giveaways=False, limit_by_time=False, starts_after_str=None, ends_before_str=None, ends_after_str=None):
     start_time = time.time()
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
@@ -126,6 +126,8 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, lim
         for row in group_giveaways_data:
             start_time_epoch = row[1]
             end_time_epoch = row[2]
+            if not fetch_not_started_giveaways and not end_time_epoch:
+                continue
             if limit_by_time and \
                     ((starts_after_str and datetime.datetime.utcfromtimestamp(start_time_epoch) < datetime.datetime.strptime(starts_after_str, '%Y-%m-%d'))
                      or (ends_before_str and datetime.datetime.utcfromtimestamp(end_time_epoch) > datetime.datetime.strptime(ends_before_str, "%Y-%m-%d"))

@@ -97,8 +97,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
             for end_time_text in WebUtils.get_items_by_xpath(giveaway_elem, u'.//div/text()'):
                 if end_time_text == ' Begins in ':
                     giveaway_not_started_yet = True
-            if giveaway_not_started_yet:
-                continue
+
             partial_giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
             giveaway_link = SteamGiftsConsts.get_giveaway_link(partial_giveaway_link)
             LogUtils.log_info('Processing ' + giveaway_link)
@@ -109,8 +108,11 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
             creation_time=None
             end_time=None
             if len(timestamps) >= 2:
-                end_time = datetime.utcfromtimestamp(StringUtils.normalize_float(timestamps[0]))
-                creation_time = datetime.utcfromtimestamp(StringUtils.normalize_float(timestamps[1]))
+                if giveaway_not_started_yet:
+                    creation_time = datetime.utcfromtimestamp(StringUtils.normalize_float(timestamps[0]))
+                else:
+                    end_time = datetime.utcfromtimestamp(StringUtils.normalize_float(timestamps[0]))
+                    creation_time = datetime.utcfromtimestamp(StringUtils.normalize_float(timestamps[1]))
 
             if winners:
                 reached_ended_giveaways = True
@@ -140,7 +142,9 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
                                 winners_page_index += 1
 
             giveaway_entries=dict()
-            entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(partial_giveaway_link), cookies=cookies)
+            entries_content=None
+            if not giveaway_not_started_yet:
+                entries_content = WebUtils.get_html_page(SteamGiftsConsts.get_giveaway_entries_link(partial_giveaway_link), cookies=cookies)
             if entries_content is not None:
                 error_message = WebUtils.get_item_by_xpath(entries_content, u'.//div[@class="page__heading__breadcrumbs"]/text()')
                 if not error_message or error_message != 'Error':
@@ -181,8 +185,10 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
             game_value = float(WebUtils.get_items_by_xpath(giveaway_elem, u'.//span[@class="giveaway__heading__thin"]/text()')[-1][1:-2])
             games[game_name] = GameData(game_name, steam_game_link, game_value)
 
-            if giveaway_link not in existing_giveaways.keys() or not group_giveaway.equals(existing_giveaways[giveaway_link]):
+            if giveaway_link not in existing_giveaways or not group_giveaway.equals(existing_giveaways[giveaway_link]):
                 giveaways_changed = True
+                if giveaway_link in existing_giveaways and existing_giveaways[giveaway_link].start_time != group_giveaway.start_time:
+                    group_giveaway.start_time = existing_giveaways[giveaway_link].start_time
                 group_giveaways[giveaway_link] = group_giveaway
 
             if start_date:

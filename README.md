@@ -66,6 +66,7 @@ So for now this tool's automatic nightly update will run slowly, but safely.
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "not region restricted" to optional params
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "not whitelist" to optional params
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "group only" to optional params
+* New endpoint: PopularGiveaways - will list all giveaways with certain popularity. Options: GroupOnly, Entries on finish, Entries within X days, # of comments, 
 * Fix logger to printout errors on server error
 * Support giveaways with multiple copies + integrate into value calculation and summary printouts
 * Check replacing UserCheckRules with lambda AWS process
