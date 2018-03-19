@@ -532,6 +532,8 @@ def test():
 
 
 def lazy_add_group(group_webpage, cookies):
+    if not cookies:
+        cookies = ''
     group_name = SteamGiftsScrapingUtils.get_group_name(group_webpage, cookies)
     MySqlConnector.save_empty_group(group_name, group_webpage, cookies)
     return group_name
