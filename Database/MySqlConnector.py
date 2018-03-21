@@ -283,6 +283,19 @@ def update_existing_users(users):
     LogUtils.log_info('Update existing users for ' + str(len(users)) + ' users took ' + str(time.time() - start_time) + ' seconds')
 
 
+def delete_users(users):
+    start_time = time.time()
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
+    cursor = connection.cursor()
+
+    cursor.execute('DELETE FROM Users WHERE UserName IN(' + parse_list(list(map(lambda x: x.user_name, users))) + ')')
+    connection.commit()  # you need to call commit() method to save your changes to the database
+
+    cursor.close()
+    connection.close()
+    LogUtils.log_info('Delete of ' + str(len(users)) + ' users took ' + str(time.time() - start_time) + ' seconds')
+
+
 def get_existing_games_data(games_list):
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
@@ -336,6 +349,19 @@ def update_existing_games(games):
     cursor.close()
     connection.close()
     LogUtils.log_info('Update existing games for ' + str(len(games)) + ' games took ' + str(time.time() - start_time) + ' seconds')
+
+
+def remove_games(games):
+    start_time = time.time()
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
+    cursor = connection.cursor()
+
+    cursor.execute('DELETE FROM Games WHERE Name IN (' + parse_list(list(map(lambda x: x.game_name, games))) + ')')
+    connection.commit()  # you need to call commit() method to save your changes to the database
+
+    cursor.close()
+    connection.close()
+    LogUtils.log_info('Delete of ' + str(len(games)) + ' invalid games took ' + str(time.time() - start_time) + ' seconds')
 
 
 def get_game_data(game_name):

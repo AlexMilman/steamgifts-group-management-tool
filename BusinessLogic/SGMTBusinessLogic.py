@@ -666,14 +666,20 @@ def update_all_db_users_data():
     users = MySqlConnector.get_all_users()
     #Go over list, check if any changed
     changed_users = []
+    deleted_users = []
     for user in users:
         new_user = GroupUser(user.user_name)
-        SteamGiftsScrapingUtils.update_user_additional_data(new_user)
-        if not user.equals(new_user):
+        user_data_updated = SteamGiftsScrapingUtils.update_user_additional_data(new_user)
+        if not user_data_updated:
+            deleted_users.append(user)
+        elif not user.equals(new_user):
             changed_users.append(new_user)
-    #Save changed users to the DB
+    # Save changed users to the DB
     if changed_users:
         MySqlConnector.update_existing_users(changed_users)
+    # Delete from DB users no longer on SteamGifts
+    if deleted_users:
+        MySqlConnector.delete_users(deleted_users)
 
 
 def update_all_db_games_data():
@@ -681,11 +687,17 @@ def update_all_db_games_data():
     games = MySqlConnector.get_all_games()
     #Go over all games, and update their data
     changed_games = []
+    removed_games = []
     for game in games:
         new_game = GameData(game.game_name, game.game_link, game.value)
         update_game_data(new_game)
-        if not game.equals(new_game):
+        if game.num_of_reviews == -1 and game.steam_score == -1 and game.equals(new_game):
+            removed_games.append(new_game)
+        elif not game.equals(new_game):
             changed_games.append(new_game)
-    #Save changed games to the DB
+    # Save changed games to the DB
     if changed_games:
         MySqlConnector.update_existing_games(changed_games)
+    # Delete from DB Games with no available data
+    if removed_games:
+        MySqlConnector.remove_games(removed_games)
