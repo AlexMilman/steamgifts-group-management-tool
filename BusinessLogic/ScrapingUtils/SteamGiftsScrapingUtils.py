@@ -49,11 +49,11 @@ def update_user_additional_data(user):
     html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user.user_name))
     if html_content is None:
         LogUtils.log_error('Cannot update additional data for user: ' + user.user_name)
-        return
+        return False
     steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
     if not steam_user:
         LogUtils.log_error('Cannot update non-existent user: ' + user.user_name)
-        return
+        return False
     user.steam_id = steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
     all_rows = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="featured__table__row"]')
     for row_content in all_rows:
@@ -65,7 +65,7 @@ def update_user_additional_data(user):
         elif row_title == u'Contributor Level':
             user_level_item = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__right"]/span/@data-ui-tooltip')
             user.level = StringUtils.normalize_float(user_level_item.split('name" : "')[2].split('", "color')[0])
-
+    return True
 
 def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_full_run=False, start_date=None):
     if existing_giveaways is None:
@@ -192,7 +192,7 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
                 group_giveaways[giveaway_link] = group_giveaway
 
             if start_date:
-                if end_time < datetime.strptime(start_date, '%Y-%m-%d'):
+                if end_time and end_time < datetime.strptime(start_date, '%Y-%m-%d'):
                     reached_end = True
                     break
 
