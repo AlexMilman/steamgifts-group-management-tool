@@ -40,8 +40,10 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
     response += u'<BR>User created ' + str(len(created_giveaways)) + u' giveaways '
     if len(created_giveaways) > 1:
         total = len(created_giveaways) - missing_data
-        response += u'(Total value of given away games: ' + str(total_value) + u' Average game score: ' + str(
-            total_score / total) + u' Average Num of reviews: ' + str(total_num_of_reviews / total) + ')'
+        response += u'(Total value of given away games: ' + str(total_value)
+        if total > 0:
+            response += u' Average game score: ' + str(total_score / total) + u' Average Num of reviews: ' + str(total_num_of_reviews / total)
+        response += ')'
     response += u'<BR>'
     for giveaway in sorted(created_giveaways, key=lambda x: x.end_time, reverse=True):
         game_name = giveaway.game_name
