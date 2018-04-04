@@ -66,6 +66,7 @@ So for now this tool's automatic nightly update will run slowly, but safely.
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "not region restricted" to optional params
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "not whitelist" to optional params
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "group only" to optional params
+* Move start_time, end_time from Group->Giveaways data, to be kept under individual GAs + Add fetching from DB by Giveaway start/end time
 * New endpoint: PopularGiveaways - will list all giveaways with certain popularity. Options: GroupOnly, Entries on finish, Entries within X days, # of comments, 
 * Fix logger to printout errors on server error
 * Support giveaways with multiple copies + integrate into value calculation and summary printouts
