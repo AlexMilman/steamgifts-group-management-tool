@@ -49,7 +49,8 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
         game_name = giveaway.game_name
         game_data = games[game_name]
         response += u'<A HREF="' + giveaway.link + u'">' + game_name + u'</A>'
-        response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
+        if game_data:
+            response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
         response += u' Ends on: ' + giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
         response += u'<BR>'
     won = 0
@@ -63,7 +64,8 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
     for giveaway in sorted(entered_giveaways, key=lambda x: x.end_time, reverse=True):
         game_data = games[giveaway.game_name]
         response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name + u'</A>'
-        response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
+        if game_data:
+            response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
         response += u', Ends on: ' + giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
         if giveaway.entries[user].entry_time:
             response += u', Entry date: ' + giveaway.entries[user].entry_time.strftime('%Y-%m-%d %H:%M:%S')
