@@ -47,6 +47,7 @@ def check_monthly():
     alt2_min_game_value = get_optional_float_param('alt2_min_game_value')
     alt2_min_steam_num_of_reviews = get_optional_int_param('alt2_min_steam_num_of_reviews')
     alt2_min_steam_score = get_optional_int_param('alt2_min_steam_score')
+    ignore_inactive_users = request.args.get('ignore_inactive_users')
 
     if not group_webpage or not year_month:
         return 'CheckMonthly - Returns a list of all users who didn\'t create a giveaway in a given month<BR><BR>' \
@@ -65,11 +66,12 @@ def check_monthly():
                'alt2_min_game_value - 2nd Alternative minimal game value (in $) allowed<BR>' \
                'alt2_min_steam_num_of_reviews - 2nd Alternative minimal number of Steam reviews allowed for a game<BR>' \
                'alt2_min_steam_score - 2nd Alternative Minimal Steam score allowed for a game<BR>' \
+               'ignore_incative_users - Ignore inactive users (users who did not enter any GA this month)<BR>' \
                '<BR>' \
                '<A HREF="/SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80">Request Example</A>'
 
-    users, monthly_posters, monthly_unfinished = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_entries, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score)
-    response = HtmlResponseGenerationService.generate_check_monthly_response(users, monthly_posters, monthly_unfinished)
+    users, monthly_posters, monthly_unfinished, inactive_users = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_entries, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score, ignore_inactive_users)
+    response = HtmlResponseGenerationService.generate_check_monthly_response(users, monthly_posters, monthly_unfinished, inactive_users)
     return response
 
 

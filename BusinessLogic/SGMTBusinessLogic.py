@@ -111,7 +111,7 @@ def get_all_users_in_group(group_webpage):
 
 def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_value=0.0, min_num_of_reviews=0, min_score=0,
                   alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0,
-                  alt2_min_value=0.0, alt2_min_num_of_reviews=0, alt2_min_score=0):
+                  alt2_min_value=0.0, alt2_min_num_of_reviews=0, alt2_min_score=0, ignore_inactive_users=False):
     split_date = year_month.split('-')
     year = int(split_date[0])
     month = int(split_date[1])
@@ -125,8 +125,12 @@ def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_valu
         return None
     users = group.group_users.keys()
     monthly_posters = set()
+    monthly_active = set()
+    monthly_inactive = None
     monthly_unfinished = dict()
     for group_giveaway in group.group_giveaways.values():
+        if ignore_inactive_users:
+            monthly_active.update(group_giveaway.entries.keys())
         end_month = group_giveaway.end_time.month
         start_month = group_giveaway.start_time.month
         # If GA started in previous month, mark it as started on the 1th of the month
@@ -151,7 +155,9 @@ def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_valu
                         monthly_unfinished[creator] = set()
                     monthly_unfinished[creator].add(group_giveaway)
 
-    return users, monthly_posters, monthly_unfinished
+    if ignore_inactive_users:
+        monthly_inactive = [x for x in users if x not in monthly_active]
+    return users, monthly_posters, monthly_unfinished, monthly_inactive
 
 
 def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entries=1, min_value=0.0, min_num_of_reviews=0, min_score=0,

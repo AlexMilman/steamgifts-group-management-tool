@@ -36,6 +36,7 @@ def generate_check_monthly_ui(groups):
     response += '<BR><B>Optional:</B><BR><BR>'
     response += get_min_entries()
     response += get_min_days_with_game_stats()
+    response += 'Ignore inactive users (users who did not enter any GA this month): <input type="checkbox" name="ignore_inactive_users" value="true"><BR>'
     response += get_footer('Get Monthly GAs')
     return response
 

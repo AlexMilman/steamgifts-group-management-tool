@@ -11,7 +11,7 @@ def generate_invalid_giveaways_response(games, invalid_giveaways):
 
     response = u'<B>Invalid Giveaways:</B>'
     for user, user_giveaways in invalid_giveaways.iteritems():
-        response += u'<BR>User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A>:<BR>'
+        response += u'<BR>User ' + generate_user_link(user) + ':<BR>'
 
         for giveaway in sorted(user_giveaways, key=lambda x: x.end_time, reverse=True):
             game_name = giveaway.game_name
@@ -25,7 +25,7 @@ def generate_invalid_giveaways_response(games, invalid_giveaways):
 
 
 def generate_user_full_history_response(created_giveaways, entered_giveaways, games, user):
-    response = u'<BR>User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A>:<BR>'
+    response = u'<BR>User ' + generate_user_link(user) + ':<BR>'
     total_value = 0
     total_score = 0.0
     total_num_of_reviews = 0.0
@@ -127,21 +127,27 @@ def generate_full_data_link(group_webpage, start_date, user_name):
     return u'/SGMT/UserFullGiveawaysHistory?group_webpage=' + group_webpage + u'&user=' + user_name + u'&start_date=' + start_date
 
 
-def generate_check_monthly_response(users, monthly_posters, monthly_unfinished):
+def generate_check_monthly_response(users, monthly_posters, monthly_unfinished, inactive_users):
     response = u'<BR>Users with unfinished monthly GAs:<BR>'
     for user, giveaways in monthly_unfinished.iteritems():
         if user not in monthly_posters:
-            response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A> giveaways: '
+            response += u'User ' + generate_user_link(user) + u' giveaways: '
             if giveaways and len(giveaways) > 0:
                 for giveaway in giveaways:
                     response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name + u'</A>, '
                 response = response[:-2]
                 response += '<BR>'
 
+    if inactive_users:
+        response += u'<BR><BR>Users inactive this month (did not enter any GAs):<BR>'
+        for user in inactive_users:
+            response += generate_user_link(str(user)) + u'<BR>'
+
     response += u'<BR><BR>Users without monthly giveaways:<BR>'
     for user in users:
-        if user not in monthly_posters and user not in monthly_unfinished.keys():
-            response += u'<A HREF="'+ SteamGiftsConsts.get_user_link(str(user)) + u'">' + str(user) + u'</A><BR>'
+        if user not in monthly_posters and user not in monthly_unfinished.keys() and inactive_users and user not in inactive_users:
+            response += generate_user_link(str(user)) + u'<BR>'
+
     return response
 
 
@@ -149,7 +155,7 @@ def generate_check_user_first_giveaway_response(user_first_giveaway, succesfully
     response = u''
     for user_name in user_first_giveaway.keys():
         for group_giveaway, game_data in user_first_giveaway[user_name]:
-            response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user_name) + u'">' + user_name + u'</A> ' \
+            response += u'User ' + generate_user_link(user_name) + ' ' \
                         u'first giveaway: <A HREF="' + group_giveaway.link + u'">' + group_giveaway.game_name + u'</A> ' \
                         u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
             if user_name in succesfully_ended and group_giveaway.link in succesfully_ended[user_name]:
@@ -162,13 +168,13 @@ def generate_check_user_first_giveaway_response(user_first_giveaway, succesfully
         
     response += u'<BR>'
     for user in user_no_giveaway:
-        response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + '">' + user + u'</A> did not create a GA yet!<BR>'
+        response += u'User ' + generate_user_link(user) + ' did not create a GA yet!<BR>'
     
     response += u'<BR>'
     for user in user_entered_giveaway:
         group_giveaways = user_entered_giveaway[user]
         for group_giveaway in sorted(group_giveaways, key=lambda x: x.entries[user].entry_time, reverse=True):
-            response += u'User <A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A> ' \
+            response += u'User ' + generate_user_link(user) + ' ' \
                         u'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + u'</A> ' \
                         u'(Entry date: ' + group_giveaway.entries[user].entry_time.strftime('%Y-%m-%d %H:%M:%S') + u')<BR>'
 
@@ -211,6 +217,9 @@ def generate_user_check_rules_response(user, nonactivated, multiple_wins, real_c
 
 def linkify(url):
     return u'<A HREF="' + url + '">' + url + '</A>'
+
+def generate_user_link(user):
+    return u'<A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A>'
 
 
 def generate_get_groups_response(empty_groups, groups):
