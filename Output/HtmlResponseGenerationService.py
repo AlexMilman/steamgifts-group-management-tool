@@ -2,7 +2,7 @@
 # Copyright (C) 2017  Alex Milman
 from datetime import datetime
 
-from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SGToolsConsts
+from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SGToolsConsts, SteamConsts
 
 
 def generate_invalid_giveaways_response(games, invalid_giveaways):
@@ -128,7 +128,12 @@ def generate_full_data_link(group_webpage, start_date, user_name):
 
 
 def generate_check_monthly_response(users, monthly_posters, monthly_unfinished, inactive_users):
-    response = u'<BR>Users with unfinished monthly GAs:<BR>'
+    response = '<style>\
+                    th {\
+                        text-align: left;\
+                    }\
+                </style>'
+    response += u'<BR>Users with unfinished monthly GAs:<BR>'
     for user, giveaways in monthly_unfinished.iteritems():
         if user not in monthly_posters:
             response += u'User ' + generate_user_link(user) + u' giveaways: '
@@ -144,9 +149,13 @@ def generate_check_monthly_response(users, monthly_posters, monthly_unfinished, 
             response += generate_user_link(str(user)) + u'<BR>'
 
     response += u'<BR><BR>Users without monthly giveaways:<BR>'
-    for user in users:
+    response += u'<TABLE style="width:15%">'
+    for user, user_data in users.iteritems():
         if user not in monthly_posters and user not in monthly_unfinished.keys() and inactive_users and user not in inactive_users:
-            response += generate_user_link(str(user)) + u'<BR>'
+            response += u'<TR>'
+            response += generate_user_link(str(user)) + generate_steam_user_link(user_data.steam_id)
+            response += u'</TR>'
+    response += u'</TABLE>'
 
     return response
 
@@ -219,7 +228,11 @@ def linkify(url):
     return u'<A HREF="' + url + '">' + url + '</A>'
 
 def generate_user_link(user):
-    return u'<A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A>'
+    return u'<TH><A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A></TH>'
+
+
+def generate_steam_user_link(steam_id):
+    return '<TH><A HREF=' + SteamConsts.STEAM_PROFILE_LINK + steam_id + '>Steam</A></TH><TH></TH>'
 
 
 def generate_get_groups_response(empty_groups, groups):

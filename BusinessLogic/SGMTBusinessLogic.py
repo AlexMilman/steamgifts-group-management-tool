@@ -157,6 +157,10 @@ def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_valu
 
     if ignore_inactive_users:
         monthly_inactive = [x for x in users if x not in monthly_active]
+
+    if users:
+        users = MySqlConnector.get_users_by_names(users)
+
     return users, monthly_posters, monthly_unfinished, monthly_inactive
 
 

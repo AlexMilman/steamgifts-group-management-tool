@@ -205,7 +205,7 @@ def check_existing_users(users_list):
     cursor = connection.cursor()
 
     existing_users = []
-    cursor.execute("SELECT UserName FROM Users WHERE UserName IN (" + parse_list(users_list) + ")")
+    cursor.execute('SELECT UserName FROM Users WHERE UserName IN (' + parse_list(users_list) + ')')
     data = cursor.fetchall()
     for row in data:
         existing_users.append(row[0])
@@ -264,6 +264,27 @@ def get_all_users():
 
     LogUtils.log_info('Get all users took ' + str(time.time() - start_time) + ' seconds')
     return all_users
+
+
+def get_users_by_names(user_names):
+    start_time = time.time()
+    users_data = dict()
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
+    cursor = connection.cursor()
+
+    cursor.execute('SELECT * FROM Users WHERE UserName IN (' + parse_list(user_names) + ')')
+    data = cursor.fetchall()
+    for row in data:
+        # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level)
+        user_name = row[0]
+        user_data = GroupUser(user_name, steam_id=row[1], global_won=row[2], global_sent=row[3], level=row[4])
+        users_data[user_name] = user_data
+
+    cursor.close()
+    connection.close()
+
+    LogUtils.log_info('Get users by name took ' + str(time.time() - start_time) + ' seconds')
+    return users_data
 
 
 def update_existing_users(users):
