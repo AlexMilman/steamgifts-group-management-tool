@@ -71,7 +71,7 @@ def check_monthly():
                '<A HREF="/SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80">Request Example</A>'
 
     users, monthly_posters, monthly_unfinished, inactive_users = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_entries, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score, ignore_inactive_users)
-    response = HtmlResponseGenerationService.generate_check_monthly_response(users, monthly_posters, monthly_unfinished, inactive_users)
+    response = HtmlResponseGenerationService.generate_check_monthly_response(users, monthly_posters, monthly_unfinished, inactive_users, year_month)
     return response
 
 
@@ -263,6 +263,42 @@ def user_check_rules():
     for user in users_list:
         nonactivated, multiple_wins, real_cv_ratio, steamgifts_ratio, is_level, steamrep = SGMTBusinessLogic.user_check_rules(user, check_nonactivated, check_multiple_wins, check_real_cv_value, check_steamgifts_ratio, check_level, level, check_steamrep)
         response += HtmlResponseGenerationService.generate_user_check_rules_response(user, nonactivated, multiple_wins, real_cv_ratio, steamgifts_ratio, is_level, steamrep)
+    return response
+
+
+@app.route('/SGMT/PopularGiveawaysUI', methods=['GET'])
+def popular_giveaways_ui():
+    groups = SGMTBusinessLogic.get_groups_with_users()
+    response = HtmlUIGenerationService.generate_popular_giveaways_ui(groups)
+    return response
+
+
+@app.route('/SGMT/PopularGiveaways', methods=['GET'])
+def popular_giveaways():
+    group_webpage = request.args.get('group_webpage')
+    check_param = request.args.get('check_param')
+    year_month = request.args.get('year_month')
+    year = request.args.get('year')
+    month = request.args.get('month')
+    if not year_month and year and month:
+        year_month = year + '-' + month
+    group_only_users = request.args.get('group_only_users')
+    num_of_days = get_optional_int_param('num_of_days')
+
+    if not group_webpage or not year_month or (check_param != 'TotalEntries' and check_param != 'EntriesOnFinish' and check_param != 'EntriesWithinXDays'):
+        return 'PopularGiveaways - Get most popular giveaways in a group in a given month.<BR><BR>' \
+               '<B>Params:</B><BR> ' \
+               'group_webpage - SteamGifts group webpage<BR>' \
+               'check_param=TotalEntries/EntriesOnFinish/EntriesWithinXDays - Parameter according to which to measure popularity<BR>' \
+               'year_month=YYYY-MM - The Year/Month for which to perform the check <BR>' \
+               '<B>Optional Params:</B> <BR>' \
+               'group_only_users=True/False - Count only entries from users in the group<BR>' \
+               'num_of_days - In case of EntriesWithinXDays. the number of days <BR>' \
+               '<BR>'\
+               '<A HREF="/SGMT/PopularGiveaways?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&check_param=TotalEntries&year_month=2018-04&group_only_users=True">Request Example</A>'
+
+    popular_giveaways = SGMTBusinessLogic.get_popular_giveaways(group_webpage, check_param, year_month, group_only_users, num_of_days)
+    response = HtmlResponseGenerationService.generate_popular_giveaways_response(popular_giveaways, year_month)
     return response
 
 

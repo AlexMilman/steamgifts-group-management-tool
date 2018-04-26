@@ -22,18 +22,9 @@ def generate_main_page_ui():
 def generate_check_monthly_ui(groups):
     response = get_header('CheckMonthly - Returns a list of all users who didn\'t create a giveaway in a given month.','CheckMonthly')
     response += get_groups_dropdown(groups.values())
+    response = get_year_month()
 
-    response += 'Year:&nbsp; &nbsp;<select name="year">'
-    response += '<option value="2017">2017</option>'
-    response += '<option value="2018">2018</option>'
-    response += '</select>&nbsp; &nbsp;'
-
-    response += 'Month:&nbsp; &nbsp;<select name="month">'
-    for month in xrange(1, 13, 1):
-        response += '<option value="' + str(month) + '">' + str(month) + '</option>'
-    response += '</select><BR><BR>'
-
-    response += '<BR><B>Optional:</B><BR><BR>'
+    response += get_optional_label()
     response += get_min_entries()
     response += get_min_days_with_game_stats()
     response += 'Ignore inactive users (users who did not enter any GA this month): <input type="checkbox" name="ignore_inactive_users" value="true"><BR>'
@@ -126,6 +117,38 @@ def generate_lazy_add_group_ui():
                'Within 24 hours of the user appearing as member of your group in SteamGifts, and your group appearing under "processed" in the <A HREF="/SGMT/GetAvailableGroups">Groups page</A>. full abilities of the SGMT tool will be open to you.<BR><BR><BR>'
     response += 'Group Webpage (SteamGifts): <input type="text" name="group_webpage" size=100><BR>'
     response += get_footer('Add new group')
+    return response
+
+
+def generate_popular_giveaways_ui(groups):
+    response = get_header('PopularGiveaways  - Get most popular giveaways in a group in a given month.', 'PopularGiveaways')
+    response += get_groups_dropdown(groups.values())
+    response += 'Measure popilarity by:&nbsp; &nbsp;<select name="check_param">'
+    response += '<option value="TotalEntries">Total number of entries in a GA</option>'
+    response += '<option value="EntriesOnFinish">Number of entries on finished GAs</option>'
+    response += '<option value="EntriesWithinXDays">Number of entries within X days of GA creation</option>'
+    response += '</select>&nbsp; &nbsp;<BR><BR>'
+    response += get_year_month()
+
+    response += get_optional_label()
+    response += '<input type="checkbox" name="group_only_users" value="true">Count only entries from users in the group<BR><BR>'
+    response += 'If "Number of entries within X days of GA creation" was chosen, Number of days: <input type="text" name="num_of_days" size=3><BR><BR>'
+
+    response += get_footer('Get popular giveaways')
+    return response
+
+
+def get_year_month():
+    response = 'Year:&nbsp; &nbsp;<select name="year">'
+    response += '<option value="2017">2017</option>'
+    response += '<option value="2018">2018</option>'
+    response += '</select>&nbsp; &nbsp;'
+
+    response += 'Month:&nbsp; &nbsp;<select name="month">'
+    for month in xrange(1, 13, 1):
+        response += '<option value="' + str(month) + '">' + str(month) + '</option>'
+    response += '</select><BR><BR>'
+
     return response
 
 

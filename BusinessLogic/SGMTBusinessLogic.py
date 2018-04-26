@@ -112,17 +112,10 @@ def get_all_users_in_group(group_webpage):
 def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_value=0.0, min_num_of_reviews=0, min_score=0,
                   alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0,
                   alt2_min_value=0.0, alt2_min_num_of_reviews=0, alt2_min_score=0, ignore_inactive_users=False):
-    split_date = year_month.split('-')
-    year = int(split_date[0])
-    month = int(split_date[1])
-    month_start = year_month + '-01'
-    if month == 12:
-        month_end = str(year + 1) + '-01-01'
-    else:
-        month_end = str(year) + '-' + str(month + 1) + '-01'
-    group = MySqlConnector.load_group(group_webpage, limit_by_time=True, ends_after_str=month_start, ends_before_str=month_end)
+    group = get_group_by_year_month(group_webpage, year_month)
     if not group:
         return None
+    month = int(year_month.split('-')[1])
     users = group.group_users.keys()
     monthly_posters = set()
     monthly_active = set()
@@ -598,6 +591,9 @@ def update_games_data(games, update_value=False):
 
 
 def update_game_data(game):
+    if game.game_link.startswith('http:'):
+        # Converting all HTTP links into HTTPS
+        game.game_link = game.game_link.replace('http', 'https')
     game_link = game.game_link
     game_name = game.game_name
     try:
@@ -671,6 +667,32 @@ def update_all_db_groups():
             LogUtils.log_error('Cannot update data for group: ' + group_url + ' ERROR: ' + str(sys.exc_info()[0]))
 
 
+def get_popular_giveaways(group_webpage, check_param, year_month, group_only_users=False, num_of_days=None):
+    group = get_group_by_year_month(group_webpage, year_month)
+    group_users = group.group_users.keys()
+    giveaways_entries = dict()
+    current_time = datetime.datetime.now()
+    for giveaway, giveaway_data in group.group_giveaways.iteritems():
+        giveaways_entries[giveaway_data] = 0
+        # TotalEntries/EntriesOnFinish/EntriesWithinXDays
+        if check_param == 'TotalEntries' or (check_param == 'EntriesOnFinish' and giveaway_data.has_winners()):
+            for entry in giveaway_data.entries.values():
+                if not group_only_users or entry.user_name in group_users:
+                    giveaways_entries[giveaway_data] += 1
+        elif check_param == 'EntriesWithinXDays' and num_of_days:
+            if not giveaway_data.end_time:
+                timedelta = current_time - giveaway_data.start_time
+            else:
+                timedelta = giveaway_data.end_time - giveaway_data.start_time
+
+            if timedelta <= datetime.timedelta(days=num_of_days + 1):
+                if giveaway_data not in giveaways_entries:
+                    giveaways_entries[giveaway_data] = 0
+                giveaways_entries[giveaway_data] += 1
+
+    return giveaways_entries
+
+
 def update_all_db_users_data():
     #Load all DB users from DB
     users = MySqlConnector.get_all_users()
@@ -698,16 +720,36 @@ def update_all_db_games_data():
     #Go over all games, and update their data
     changed_games = []
     removed_games = []
-    for game in games:
-        new_game = GameData(game.game_name, game.game_link, game.value)
-        update_game_data(new_game)
-        if game.num_of_reviews == -1 and game.steam_score == -1 and game.equals(new_game):
-            removed_games.append(new_game)
-        elif not game.equals(new_game):
-            changed_games.append(new_game)
+    for game_data in games:
+        new_game_data = GameData(game_data.game_name, game_data.game_link, game_data.value)
+        update_game_data(new_game_data)
+        if game_data.num_of_reviews == -1 and game_data.steam_score == -1 and game_data.equals(new_game_data):
+            removed_games.append(new_game_data)
+        elif not game_data.equals(new_game_data):
+            changed_games.append(new_game_data)
     # Save changed games to the DB
     if changed_games:
         MySqlConnector.update_existing_games(changed_games)
     # Delete from DB Games with no available data
     if removed_games:
         MySqlConnector.remove_games(removed_games)
+
+
+def get_group_by_year_month(group_webpage, year_month):
+    split_date = year_month.split('-')
+    year = int(split_date[0])
+    month = int(split_date[1])
+    month_start = year_month + '-01'
+    if month == 12:
+        month_end = str(year + 1) + '-01-01'
+    else:
+        month_end = str(year) + '-' + get_next_month(month) + '-01'
+    group = MySqlConnector.load_group(group_webpage, limit_by_time=True, ends_after_str=month_start, ends_before_str=month_end)
+    return group
+
+
+def get_next_month(month):
+    month += 1
+    if month >= 10:
+        return str(month)
+    return '0' + str(month)

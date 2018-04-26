@@ -1,5 +1,6 @@
 # HTML response generation service of SGMT
 # Copyright (C) 2017  Alex Milman
+import calendar
 from datetime import datetime
 
 from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SGToolsConsts, SteamConsts
@@ -32,10 +33,11 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
     missing_data = 0
     for giveaway in created_giveaways:
         game_data = games[giveaway.game_name]
-        total_value += game_data.value
-        total_score += game_data.steam_score
-        total_num_of_reviews += game_data.num_of_reviews
-        if game_data.steam_score == -1 and game_data.num_of_reviews == -1:
+        if game_data:
+            total_value += game_data.value
+            total_score += game_data.steam_score
+            total_num_of_reviews += game_data.num_of_reviews
+        if not game_data or (game_data.steam_score == -1 and game_data.num_of_reviews == -1):
             missing_data += 1
     response += u'<BR>User created ' + str(len(created_giveaways)) + u' giveaways '
     if len(created_giveaways) > 1:
@@ -127,12 +129,14 @@ def generate_full_data_link(group_webpage, start_date, user_name):
     return u'/SGMT/UserFullGiveawaysHistory?group_webpage=' + group_webpage + u'&user=' + user_name + u'&start_date=' + start_date
 
 
-def generate_check_monthly_response(users, monthly_posters, monthly_unfinished, inactive_users):
-    response = '<style>\
+def generate_check_monthly_response(users, monthly_posters, monthly_unfinished, inactive_users, year_month):
+    response = u'<style>\
                     th {\
                         text-align: left;\
                     }\
                 </style>'
+    response += u'<BR><B>' + get_month_year_str(year_month) + u'</B><BR>'
+
     response += u'<BR>Users with unfinished monthly GAs:<BR>'
     for user, giveaways in monthly_unfinished.iteritems():
         if user not in monthly_posters:
@@ -153,7 +157,7 @@ def generate_check_monthly_response(users, monthly_posters, monthly_unfinished, 
     for user, user_data in users.iteritems():
         if user not in monthly_posters and user not in monthly_unfinished.keys() and inactive_users and user not in inactive_users:
             response += u'<TR>'
-            response += generate_user_link(str(user)) + generate_steam_user_link(user_data.steam_id)
+            response += u'<TH>' + generate_user_link(str(user)) + u'</TH><TH>' + generate_steam_user_link(user_data.steam_id) + u'</TH><TH></TH>'
             response += u'</TR>'
     response += u'</TABLE>'
 
@@ -224,15 +228,41 @@ def generate_user_check_rules_response(user, nonactivated, multiple_wins, real_c
     return response
 
 
+def generate_popular_giveaways_response(popular_giveaways, year_month):
+    response = u'<style>\
+                    th {\
+                        text-align: left;\
+                    }\
+                </style>'
+
+    response += u'<BR><B>Most Popular GAs for ' + get_month_year_str(year_month) + u':</B><BR><BR>'
+    response += u'<TABLE style="width:45%">'
+    for giveaway_data, num_of_entries in sorted(popular_giveaways.iteritems(), key=lambda (k,v): (v,k), reverse=True):
+        response += u'<TR>'
+        response += u'<TH><A HREF="' + giveaway_data.link + u'">' + giveaway_data.game_name + u' </A></TH><TH>By: ' + generate_user_link(giveaway_data.creator) + '</TH><TH>Entries: ' + str(num_of_entries) + u'</TH>'
+        response += u'</TR>'
+    response += u'</TABLE>'
+
+    return response
+
+
+def get_month_year_str(year_month):
+    split_date = year_month.split('-')
+    year = split_date[0]
+    month = calendar.month_name[int(split_date[1])]
+    month_year_str = month + u' ' + year
+    return month_year_str
+
+
 def linkify(url):
     return u'<A HREF="' + url + '">' + url + '</A>'
 
 def generate_user_link(user):
-    return u'<TH><A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A></TH>'
+    return u'<A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A>'
 
 
 def generate_steam_user_link(steam_id):
-    return '<TH><A HREF=' + SteamConsts.STEAM_PROFILE_LINK + steam_id + '>Steam</A></TH><TH></TH>'
+    return '<A HREF=' + SteamConsts.STEAM_PROFILE_LINK + steam_id + '>Steam</A>'
 
 
 def generate_get_groups_response(empty_groups, groups):

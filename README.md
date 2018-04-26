@@ -61,7 +61,6 @@ So for now this tool's automatic nightly update will run slowly, but safely.
 * Better UI
 
 ### TODO
-* New endpoint: PopularGiveaways - will list all giveaways with certain popularity. Options: Only group users. Check: Total entries, Entries on finish, Entries within X days. 
 * Add to Giveaways DB: MinimumLevel, Whitelist, RegionRestricted
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "no minimum level" to optional params
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "not region restricted" to optional params
