@@ -135,7 +135,7 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, fet
                     continue
             # (giveaway_id, calendar.timegm(group_giveaway.start_time), calendar.timegm(group_giveaway.end_time))
             giveaway_id = row[0]
-            giveaways_by_id[giveaway_id] = GroupGiveaway(giveaway_id, start_time=from_epoch(start_time_epoch), end_time=from_epoch(end_time_epoch))
+            giveaways_by_id[giveaway_id] = GroupGiveaway(None, start_time=from_epoch(start_time_epoch), end_time=from_epoch(end_time_epoch))
 
         cursor.execute('SELECT * FROM Giveaways WHERE GiveawayID in (' + parse_list(giveaways_by_id.keys()) + ')')
         data = cursor.fetchall()
@@ -453,9 +453,9 @@ def get_all_empty_groups():
 
 
 def parse_list(list, prefix=''):
-    result = '""'
+    result = ''
     if not list or len(list) == 0:
-        return result
+        return '""'
     for item in list:
         result += '"' + prefix + item + '",'
 
