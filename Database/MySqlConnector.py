@@ -63,7 +63,8 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
             users_data.append((group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level))
 
     if users_data:
-        cursor.executemany("INSERT IGNORE INTO Users (UserName,SteamId,GlobalWon,GlobalSent,Level) VALUES (%s, %s, %s, %s, %s)", users_data)
+        cursor.executemany("INSERT INTO Users (UserName,SteamId,GlobalWon,GlobalSent,Level) VALUES (%s, %s, %s, %s, %s)"
+                           " ON DUPLICATE KEY UPDATE UserName=VALUES(UserName),SteamId=VALUES(SteamId),GlobalWon=VALUES(GlobalWon),GlobalSent=VALUES(GlobalSent),Level=VALUES(Level)", users_data)
 
     # Insert Group
     group_id_str = "\"" + StringUtils.get_hashed_id(group_website) + "\""
