@@ -11,6 +11,7 @@ def generate_main_page_ui():
     response += '<A HREF="/SGMT/UserCheckFirstGiveawayUI">UserCheckFirstGiveaway</A> - Check if users comply with first giveaway rules (according to defined rules).<BR><BR>'
     response += '<A HREF="/SGMT/GroupUsersSummaryUI">GroupUsersSummary</A> - For a given group, return summary of all giveaways created, entered and won by members.<BR><BR>'
     response += '<A HREF="/SGMT/UserFullGiveawaysHistoryUI">UserFullGiveawaysHistory</A> - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).<BR><BR>'
+    response += '<A HREF="/SGMT/PopularGiveawaysUI">PopularGiveaways</A> - Get most popular giveaways in a group in a given month.<BR><BR>'
     response += '<BR><BR><BR>'
     response += '<B>Tool Management</B><BR><BR>'
     response += '<A HREF="/SGMT/GetAvailableGroups">GetAvailableGroups</A> - List all SteamGifts groups available in the tool at the moment.<BR><BR>'
@@ -214,6 +215,7 @@ def get_header(title, action=None, head=None):
     response += '<A HREF="/SGMT/UserCheckFirstGiveawayUI">UserCheckFirstGiveaway</A>'  + space
     response += '<A HREF="/SGMT/GroupUsersSummaryUI">GroupUsersSummary</A>'  + space
     response += '<A HREF="/SGMT/UserFullGiveawaysHistoryUI">UserFullGiveawaysHistory</A>'  + space
+    response += '<A HREF="/SGMT/PopularGiveawaysUI">PopularGiveaways</A>'  + space
     response += space + '<B>Advanced Actions:</B>'  + space
     response += '<A HREF="/SGMT/GetAvailableGroups">GetAvailableGroups</A>'  + space
     response += '<A HREF="/SGMT/AddNewGroupUI">AddNewGroup</A>'  + space
