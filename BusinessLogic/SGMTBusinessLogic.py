@@ -123,7 +123,7 @@ def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_valu
     monthly_unfinished = dict()
     for group_giveaway in group.group_giveaways.values():
         if ignore_inactive_users:
-            monthly_active.update(group_giveaway.entries.keys())
+            monthly_active.update([x.user_name for x in group_giveaway.entries.values() if x.entry_time.month == month])
         end_month = group_giveaway.end_time.month
         start_month = group_giveaway.start_time.month
         # If GA started in previous month, mark it as started on the 1th of the month
@@ -262,6 +262,9 @@ def get_group_summary(group_webpage, start_time):
         if not start_time or start_time <= group_giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S'):
             group_games_count += 1
             game_data = MySqlConnector.get_game_data(group_giveaway.game_name)
+            if not game_data:
+                LogUtils.log_error(u'Could not load game data: ' + group_giveaway.game_name)
+                continue
             value = game_data.value
             group_games_value += value
             score = game_data.steam_score
@@ -427,7 +430,7 @@ def check_game_data(game_data, game_name):
         LogUtils.log_error(u'Could not load full game data: ' + game_name)
 
 
-def game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score, alt2_min_value=0, alt2_min_num_of_reviews=0, alt2_min_score=0):
+def game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0, alt2_min_value=0.0, alt2_min_num_of_reviews=0, alt2_min_score=0):
     if not game_data:
         return True
     if ((min_value == 0 or (game_data.value == 0 or game_data.value >= min_value))
