@@ -23,7 +23,7 @@ def generate_main_page_ui():
 def generate_check_monthly_ui(groups):
     response = get_header('CheckMonthly - Returns a list of all users who didn\'t create a giveaway in a given month.','CheckMonthly')
     response += get_groups_dropdown(groups.values())
-    response = get_year_month()
+    response += get_year_month()
 
     response += get_optional_label()
     response += get_min_entries()
