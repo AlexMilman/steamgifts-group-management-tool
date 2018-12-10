@@ -2,3 +2,5 @@ Flask
 lxml
 PyMysql
 gunicorn
+gzip
+StringIO
