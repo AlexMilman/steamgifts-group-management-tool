@@ -1,3 +1,5 @@
+import gzip
+from StringIO import StringIO
 import httplib
 import time
 import urllib2
@@ -51,11 +53,16 @@ def get_page_content(page_url, cookies=None):
     opener = urllib2.build_opener()
     if cookies:
         opener.addheaders.append(('Cookie', cookies))
+    opener.addheaders.append(('Accept-encoding', 'gzip'))
     response = opener.open(page_url)
 
     while 1:
         try:
             data = response.read()
+            if response.info().get('Content-Encoding') == 'gzip':
+                data_buffer = StringIO(data)
+                zipped_file = gzip.GzipFile(fileobj=data_buffer)
+                data = zipped_file.read()
         except httplib.IncompleteRead, e:
             content = e.partial
             break
