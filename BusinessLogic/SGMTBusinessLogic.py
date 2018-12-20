@@ -517,10 +517,12 @@ def load_user(group_user, user_name):
 
 
 def test():
-    # WebUtils.get_html_page('https://www.steamgifts.com/giveaway/OCir9/plank-not-included/groups1')
+    from BusinessLogic.Utils import WebUtils
+    group = MySqlConnector.load_group('https://www.steamgifts.com/group/6HSPr/qgg-group')
+    print WebUtils.get_page_content('https://www.steamgifts.com/giveaway/JtzUN/broken-sword-5-the-serpents-curse', cookies=group.cookies)
     # group = add_new_group(group_webpage, '')
     # MySqlConnector.save_group(group_webpage, group)
-    # group = MySqlConnector.MySqlConnector.load_group(group_webpage)
+    # group = MySqlConnector.load_group(group_webpage)
 
     # for group_user in group.group_users.values():
     #     print '\nUser: ' + group_user.user_name
@@ -528,7 +530,8 @@ def test():
     #         print message
     #     if group_user.global_won > group_user.global_sent:
     #         print 'User ' + group_user.user_name + ' has negative global gifts ratio'
-    game = GameData('Strategy & Tactics: Wargame...', 'http://store.steampowered.com/app/536740/', 2)
+    game = GameData('Anarcute', 'https://store.steampowered.com/app/390720/', 2)
+    update_game_data(game)
 
     try:
         SteamScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
@@ -649,7 +652,10 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False, start
 
 def remove_deleted_giveaways(cookies, group, group_giveaways):
     # If any existing GA is missing from newly parsed data - remove it from group giveaways.
-    earliest_giveaway_end_time = sorted(filter(lambda x: x.end_time, group_giveaways.values()), key=lambda x: x.end_time)[0].end_time
+    giveaways_sorted_by_end_time = sorted(filter(lambda x: x.end_time, group_giveaways.values()), key=lambda x: x.end_time)
+    if not giveaways_sorted_by_end_time:
+        return
+    earliest_giveaway_end_time = giveaways_sorted_by_end_time[0].end_time
     for giveaway in sorted(filter(lambda x: x.end_time, group.group_giveaways.values()), key=lambda x: x.end_time, reverse=True):
         if giveaway.end_time < earliest_giveaway_end_time:
             break
