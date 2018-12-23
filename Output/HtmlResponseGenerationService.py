@@ -79,14 +79,16 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
 
 def generate_group_users_summary_response(group_webpage, total_group_data, users_data, start_date):
     response = u'Summary for group ' + group_webpage + u':<BR><BR>'
-    # Total Games Value, Average games value, Average Game Score, Average Game NumOfReviews, Average number of created per user, Average number of entrered per user, Average number of won per user
+    # Total Games Value, Average games value, Average Game Score, Average Game NumOfReviews, Average number of entered per game, Average number of created per user, Average number of entrered per user, Average number of won per user
     response += u'Total value of games given away in group: $' + float_to_str(total_group_data[0]) + u'<BR>'
     response += u'Average value of a game: $' + float_to_str(total_group_data[1]) + u'<BR>'
     response += u'Average steam score per game: ' + float_to_str(total_group_data[2]) + u'<BR>'
-    response += u'Average number of steam reviews per game: ' + float_to_str(total_group_data[3]) + u'<BR><BR>'
-    response += u'Average number of giveaways created by user: ' + float_to_str(total_group_data[4]) + u'<BR>'
-    response += u'Average number of giveaways entered by user: ' + float_to_str(total_group_data[5]) + u'<BR>'
-    response += u'Average number of giveaways won by user: ' + float_to_str(total_group_data[6]) + u'<BR>'
+    response += u'Average number of steam reviews per game: ' + float_to_str(total_group_data[3]) + u'<BR>'
+    response += u'Average number of group member entries per giveaway: ' + float_to_str(total_group_data[4]) + u'<BR><BR>'
+
+    response += u'Average number of giveaways created by user: ' + float_to_str(total_group_data[5]) + u'<BR>'
+    response += u'Average number of giveaways entered by user: ' + float_to_str(total_group_data[6]) + u'<BR>'
+    response += u'Average number of giveaways won by user: ' + float_to_str(total_group_data[7]) + u'<BR>'
     response += u'<BR><BR>Summaries for all group users:<BR>'
     for user_name in sorted(users_data.keys(), key=lambda x: users_data[x][1], reverse=True):
         user_data = users_data[user_name]
