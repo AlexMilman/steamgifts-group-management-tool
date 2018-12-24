@@ -320,7 +320,7 @@ def get_group_summary(group_webpage, start_time):
     group_average_game_score = group_games_total_score / (group_games_count - group_games_without_data)
     group_average_game_num_of_reviews = group_games_total_num_of_reviews / (group_games_count - group_games_without_data)
     # Total Games Value, Average games value, Average Game Score, Average Game NumOfReviews, Average number of entered per game, Average number of created per user, Average number of entrered per user, Average number of won per user
-    total_group_data = (group_games_value, group_average_game_value, group_average_game_score, group_average_game_num_of_reviews, group_total_entered / group_games_count, group_games_count / len(all_group_users), group_total_entered / len(all_group_users), group_total_won / len(all_group_users))
+    total_group_data = (group_games_value, group_average_game_value, group_average_game_score, group_average_game_num_of_reviews, group_total_entered / group_games_count, float(group_games_count) / len(all_group_users), group_total_entered / len(all_group_users), group_total_won / len(all_group_users))
 
     # Number of created GAs, Total Value, Average Value, Average Score, Average NumOfReviews
     # Number of entered GAs, Percentage of unique, Average Value, Average Score, Average Num Of Reviews
