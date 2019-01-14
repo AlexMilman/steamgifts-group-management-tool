@@ -261,7 +261,11 @@ def get_group_summary(group_webpage, start_time):
         # Go over all giveaways started after "addition_date"
         if not start_time or start_time <= group_giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S'):
             group_games_count += 1
-            game_data = MySqlConnector.get_game_data(group_giveaway.game_name)
+            try:
+                game_data = MySqlConnector.get_game_data(group_giveaway.game_name)
+            except Exception as e:
+                LogUtils.log_error(u'Crashed while trying to load game data of ' + group_giveaway.game_name + u'. Reason: ' + str(e))
+                continue
             if not game_data:
                 LogUtils.log_error(u'Could not load game data: ' + group_giveaway.game_name)
                 continue
