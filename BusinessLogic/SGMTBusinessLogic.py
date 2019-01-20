@@ -127,7 +127,7 @@ def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_valu
         end_month = group_giveaway.end_time.month
         start_month = group_giveaway.start_time.month
         # If GA started in previous month, mark it as started on the 1th of the month
-        if start_month == month - 1 and end_month == month:
+        if (start_month == month - 1 or (start_month == 12 and month == 1)) and end_month == month :
             start_day = 1
             start_month = month
         else:
