@@ -3,7 +3,7 @@ SteamGifts Group Management Tool (SGMT) is designed to give SteamGifts group adm
 The tool is built to run as a Service, and uses a MySql DB to store all collected data.
 
 ### Using the tool
-The tool is currently deployed on a web server, and can be accessed through [here](http://18.217.222.235:8080/SGMT/)
+The tool is currently deployed on a web server, and can be accessed through [here](http://www.sgmt.name:8080/SGMT/)
 
 ### Current Features
 The up-to-date features and their functionality can be seen on the live server, in the link above.
