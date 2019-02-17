@@ -131,7 +131,7 @@ def generate_full_data_link(group_webpage, start_date, user_name):
     return u'/SGMT/UserFullGiveawaysHistory?group_webpage=' + group_webpage + u'&user=' + user_name + u'&start_date=' + start_date
 
 
-def generate_check_monthly_response(users, monthly_posters, monthly_unfinished, inactive_users, year_month):
+def generate_check_monthly_response(group_webpage, users, monthly_posters, monthly_unfinished, inactive_users, year_month):
     response = u'<style>\
                     th {\
                         text-align: left;\
@@ -155,11 +155,11 @@ def generate_check_monthly_response(users, monthly_posters, monthly_unfinished, 
             response += generate_user_link(str(user)) + u'<BR>'
 
     response += u'<BR><BR>Users without monthly giveaways:<BR>'
-    response += u'<TABLE style="width:15%">'
+    response += u'<TABLE style="width:25%">'
     for user, user_data in users.iteritems():
         if user not in monthly_posters and user not in monthly_unfinished.keys() and inactive_users and user not in inactive_users:
             response += u'<TR>'
-            response += u'<TH>' + generate_user_link(str(user)) + u'</TH><TH>' + generate_steam_user_link(user_data.steam_id) + u'</TH><TH></TH>'
+            response += u'<TH>' + generate_user_link(str(user)) + u'</TH><TH>' + '<A HREF="' + generate_full_data_link(group_webpage, '', user) + u'">User full GAs list</A></TH><TH>' + generate_steam_user_link(user_data.steam_id) + u'</TH>'
             response += u'</TR>'
     response += u'</TABLE>'
 

@@ -71,7 +71,7 @@ def check_monthly():
                '<A HREF="/SGMT/CheckMonthly?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&year_month=2017-11&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80">Request Example</A>'
 
     users, monthly_posters, monthly_unfinished, inactive_users = SGMTBusinessLogic.check_monthly(group_webpage, year_month, min_days, min_entries, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score, ignore_inactive_users)
-    response = HtmlResponseGenerationService.generate_check_monthly_response(users, monthly_posters, monthly_unfinished, inactive_users, year_month)
+    response = HtmlResponseGenerationService.generate_check_monthly_response(group_webpage, users, monthly_posters, monthly_unfinished, inactive_users, year_month)
     return response
 
 
