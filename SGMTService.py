@@ -302,6 +302,35 @@ def popular_giveaways():
     return response
 
 
+@app.route('/SGMT/CheckGameGiveawaysUI', methods=['GET'])
+def check_game_giveaways_ui():
+    groups = SGMTBusinessLogic.get_groups_with_users()
+    response = HtmlUIGenerationService.check_game_giveaways_ui(groups)
+    return response
+
+
+@app.route('/SGMT/CheckGameGiveaways', methods=['GET'])
+def check_game_giveaways():
+    group_webpage = request.args.get('group_webpage')
+    game_name = request.args.get('game_name')
+    start_date = request.args.get('start_date')
+
+    if not group_webpage:
+        return 'CheckGameGiveaways  - Number of group entries every time a game was given away in the group.<BR><BR>' \
+               '<B>Params:</B><BR> ' \
+               'group_webpage - SteamGifts group webpage<BR>' \
+               'game_name - Full name of the game<BR>' \
+               '<B>Optional Params:</B> <BR>' \
+               'start_date=YYYY-MM-DD - The date starting from which to fetch the data <BR>' \
+               '<BR>'\
+               '<A HREF="/SGMT/CheckGameGiveaways?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&game_name=BATTLETECH">Request Example</A>'
+
+    all_game_giveaways = SGMTBusinessLogic.get_game_giveaways(group_webpage, game_name, start_date)
+    response = HtmlResponseGenerationService.generate_all_game_giveaways_response(game_name, all_game_giveaways)
+    return response
+
+
+
 @app.route('/SGMT/AddNewGroupUI', methods=['GET'])
 def ulazy_add_group_ui():
     response = HtmlUIGenerationService.generate_lazy_add_group_ui()

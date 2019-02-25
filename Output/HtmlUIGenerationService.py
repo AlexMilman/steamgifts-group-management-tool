@@ -12,6 +12,7 @@ def generate_main_page_ui():
     response += '<A HREF="/SGMT/GroupUsersSummaryUI">GroupUsersSummary</A> - For a given group, return summary of all giveaways created, entered and won by members.<BR><BR>'
     response += '<A HREF="/SGMT/UserFullGiveawaysHistoryUI">UserFullGiveawaysHistory</A> - For a single user, show a detailed list of all giveaways he either created or participated in (Game link, value, score, winners, etc.).<BR><BR>'
     response += '<A HREF="/SGMT/PopularGiveawaysUI">PopularGiveaways</A> - Get most popular giveaways in a group in a given month.<BR><BR>'
+    response += '<A HREF="/SGMT/CheckGameGiveawaysUI">CheckGameGiveaways</A> - Number of group entries every time a game was given away in the group.<BR><BR>'
     response += '<BR><BR><BR>'
     response += '<B>Tool Management</B><BR><BR>'
     response += '<A HREF="/SGMT/GetAvailableGroups">GetAvailableGroups</A> - List all SteamGifts groups available in the tool at the moment.<BR><BR>'
@@ -139,6 +140,17 @@ def generate_popular_giveaways_ui(groups):
     return response
 
 
+def check_game_giveaways_ui(groups):
+    response = get_header('CheckGameGiveaways  - Number of group entries every time a game was given away in the group.', 'CheckGameGiveaways')
+    response += get_groups_dropdown(groups.values())
+    response += 'Game Full Name: <input type="text" name="game_name"><BR><BR>'
+
+    response += get_optional_label()
+    response += get_start_date()
+    response += get_footer('Get Giveaways Data')
+    return response
+
+
 def get_year_month():
     response = 'Year:&nbsp; &nbsp;<select name="year">'
     response += '<option value="2017">2017</option>'
@@ -217,6 +229,7 @@ def get_header(title, action=None, head=None):
     response += '<A HREF="/SGMT/GroupUsersSummaryUI">GroupUsersSummary</A>'  + space
     response += '<A HREF="/SGMT/UserFullGiveawaysHistoryUI">UserFullGiveawaysHistory</A>'  + space
     response += '<A HREF="/SGMT/PopularGiveawaysUI">PopularGiveaways</A>'  + space
+    response += '<A HREF="/SGMT/CheckGameGiveawaysUI">CheckGameGiveaways</A>'  + space
     response += space + '<B>Advanced Actions:</B>'  + space
     response += '<A HREF="/SGMT/GetAvailableGroups">GetAvailableGroups</A>'  + space
     response += '<A HREF="/SGMT/AddNewGroupUI">AddNewGroup</A>'  + space

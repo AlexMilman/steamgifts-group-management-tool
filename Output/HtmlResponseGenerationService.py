@@ -248,6 +248,24 @@ def generate_popular_giveaways_response(popular_giveaways, year_month):
     return response
 
 
+def generate_all_game_giveaways_response(game_name, all_game_giveaways):
+    response = u'<style>\
+                    th {\
+                        text-align: left;\
+                    }\
+                </style>'
+
+    response += u'<BR><B>Full list of "' + game_name + u'" GAs:</B><BR><BR>'
+    response += u'<TABLE style="width:75%">'
+    for giveaway_data, num_of_entries in sorted(all_game_giveaways.iteritems(), key=lambda (k,v): k.end_time , reverse=True):
+        response += u'<TR>'
+        response += u'<TH><A HREF="' + giveaway_data.link + u'">SteamGifts Link</A></TH><TH>By: ' + generate_user_link(giveaway_data.creator) + '</TH><TH>Group Entries: ' + str(num_of_entries) + u'</TH><TH>Start Time: ' + str(giveaway_data.start_time) + u'</TH><TH>End Time: ' + str(giveaway_data.end_time) + u'</TH>'
+        response += u'</TR>'
+    response += u'</TABLE>'
+
+    return response
+
+
 def get_month_year_str(year_month):
     split_date = year_month.split('-')
     year = split_date[0]

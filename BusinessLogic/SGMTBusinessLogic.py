@@ -706,6 +706,20 @@ def get_popular_giveaways(group_webpage, check_param, year_month, group_only_use
     return giveaways_entries
 
 
+def get_game_giveaways(group_webpage, game_name, start_time):
+    group = MySqlConnector.load_group(group_webpage, limit_by_time=start_time, starts_after_str=start_time)
+    if not group:
+        return None
+    group_users = group.group_users.keys()
+    all_game_giveaways = dict()
+    for group_giveaway in group.group_giveaways.values():
+        if group_giveaway.game_name == game_name:
+            giveaway_entries = group_giveaway.entries.values()
+            all_game_giveaways[group_giveaway] = len([entry for entry in giveaway_entries if entry.user_name in group_users])
+
+    return all_game_giveaways
+
+
 def update_all_db_users_data():
     #Load all DB users from DB
     users = MySqlConnector.get_all_users()
