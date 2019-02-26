@@ -143,7 +143,7 @@ def generate_popular_giveaways_ui(groups):
 def check_game_giveaways_ui(groups):
     response = get_header('CheckGameGiveaways  - Number of group entries every time a game was given away in the group.', 'CheckGameGiveaways')
     response += get_groups_dropdown(groups.values())
-    response += 'Game Full Name: <input type="text" name="game_name"><BR><BR>'
+    response += 'Name of the Game: <input type="text" name="game_name"><BR><BR>'
 
     response += get_optional_label()
     response += get_start_date()

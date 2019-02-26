@@ -257,9 +257,10 @@ def generate_all_game_giveaways_response(game_name, all_game_giveaways):
 
     response += u'<BR><B>Full list of "' + game_name + u'" GAs:</B><BR><BR>'
     response += u'<TABLE style="width:75%">'
+    response += u'<B><TH>Game Name</TH><TH>Gifter</TH><TH>Group Entries</TH><TH>Start Time</TH><TH>End Time</TH></B>'
     for giveaway_data, num_of_entries in sorted(all_game_giveaways.iteritems(), key=lambda (k,v): k.end_time , reverse=True):
         response += u'<TR>'
-        response += u'<TH><A HREF="' + giveaway_data.link + u'">SteamGifts Link</A></TH><TH>By: ' + generate_user_link(giveaway_data.creator) + '</TH><TH>Group Entries: ' + str(num_of_entries) + u'</TH><TH>Start Time: ' + str(giveaway_data.start_time) + u'</TH><TH>End Time: ' + str(giveaway_data.end_time) + u'</TH>'
+        response += u'<TH><A HREF="' + giveaway_data.link + u'">' + giveaway_data.game_name + u' </A></TH><TH>' + generate_user_link(giveaway_data.creator) + '</TH><TH>' + str(num_of_entries) + u'</TH><TH>' + str(giveaway_data.start_time) + u'</TH><TH>' + str(giveaway_data.end_time) + u'</TH>'
         response += u'</TR>'
     response += u'</TABLE>'
 
