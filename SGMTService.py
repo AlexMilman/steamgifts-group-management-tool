@@ -312,7 +312,7 @@ def check_game_giveaways_ui():
 @app.route('/SGMT/CheckGameGiveaways', methods=['GET'])
 def check_game_giveaways():
     group_webpage = request.args.get('group_webpage')
-    game_name = request.args.get('game_name')
+    game_name = request.args.get('game_name').strip()
     start_date = request.args.get('start_date')
 
     if not group_webpage:
@@ -390,7 +390,8 @@ def update_group_data():
     start_time = time.time()
     group_webpage = request.args.get('group_webpage')
     start_date = request.args.get('start_date')
-    SGMTBusinessLogic.update_existing_group(group_webpage, start_date)
+    end_date = request.args.get('end_date')
+    SGMTBusinessLogic.update_existing_group(group_webpage, start_date, end_date)
     LogUtils.log_info('UpdateGroupData ' + group_webpage + ' took ' + str(time.time() - start_time) +  ' seconds')
     return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
 
@@ -398,7 +399,8 @@ def update_group_data():
 @app.route('/SGMT-Admin/UpdateAllGroups', methods=['GET'])
 def update_all_groups():
     start_time = time.time()
-    SGMTBusinessLogic.update_all_db_users_data()
+    # Redundant as we don't use most of this data:
+    # SGMTBusinessLogic.update_all_db_users_data()
     SGMTBusinessLogic.update_all_db_games_data()
     SGMTBusinessLogic.update_all_db_groups()
     LogUtils.log_info('UpdateAllGroups took ' + str(time.time() - start_time) +  ' seconds')

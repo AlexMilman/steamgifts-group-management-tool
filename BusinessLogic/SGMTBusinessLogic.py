@@ -512,11 +512,8 @@ def user_check_rules(user_name, check_nonactivated=False, check_multiple_wins=Fa
 
 def load_user(group_user, user_name):
     if not group_user:
-        group_user = MySqlConnector.get_user_data(user_name)
-    if not group_user:
         group_user = GroupUser(user_name)
         SteamGiftsScrapingUtils.update_user_additional_data(group_user)
-        MySqlConnector.save_user(group_user)
     return group_user
 
 
@@ -560,14 +557,14 @@ def add_new_group(group_webpage, cookies, start_date=None):
     update_games_data(games)
 
 
-def update_existing_group(group_webpage, start_date=None):
+def update_existing_group(group_webpage, start_date=None, end_date=None):
     group = MySqlConnector.load_group(group_webpage, fetch_not_started_giveaways=True)
     if not group:
         return None
     cookies = common_cookies
     if group.cookies:
         cookies = group.cookies
-    games = update_group_data(group_webpage, cookies, group, start_date=start_date)
+    games = update_group_data(group_webpage, cookies, group, start_date=start_date, end_date=end_date)
     update_games_data(games, update_value=True)
 
 
@@ -637,7 +634,7 @@ def update_game_data(game):
         LogUtils.log_error('Cannot add additional data for game: ' + game_name + ' ERROR: ' + str(sys.exc_info()[0]))
 
 
-def update_group_data(group_webpage, cookies, group, force_full_run=False, start_date=None):
+def update_group_data(group_webpage, cookies, group, force_full_run=False, start_date=None, end_date=None):
     group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
     existing_users = MySqlConnector.check_existing_users(group_users.keys())
     for group_user in group_users.values():
@@ -647,7 +644,7 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False, start
             except:
                 LogUtils.log_error('Cannot add additional data for user: ' + group_user.user_name + ' ERROR: ' + str(sys.exc_info()[0]))
 
-    group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run=force_full_run, start_date=start_date)
+    group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run=force_full_run, start_date=start_date, end_date=end_date)
     remove_deleted_giveaways(cookies, group, group_giveaways)
     MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways, group_webpage=group_webpage, cookies=cookies, group_name=group.group_name), existing_users, group)
 
@@ -670,12 +667,20 @@ def remove_deleted_giveaways(cookies, group, group_giveaways):
 
 def update_all_db_groups():
     #Load list of all groups from DB
-    groups = MySqlConnector.get_all_groups()
-    #For each group, run: update_group_data
+    groups, empty_groups = get_groups()
+    #For each existing group, run: update_group_data from last 2 months
     start_date = (datetime.datetime.now() - relativedelta(months=1)).replace(day=1).strftime('%Y-%m-%d')
-    for group_url in groups.values():
+    for group_name, group_url in groups.items():
+        if group_name not in empty_groups.keys():
+            try:
+                update_existing_group(group_url, start_date=start_date)
+            except:
+                LogUtils.log_error('Cannot update data for group: ' + group_url + ' ERROR: ' + str(sys.exc_info()[0]))
+
+    #For each new group, run: update_group_data from all time
+    for group_url in empty_groups.values():
         try:
-            update_existing_group(group_url, start_date=start_date)
+            update_existing_group(group_url)
         except:
             LogUtils.log_error('Cannot update data for group: ' + group_url + ' ERROR: ' + str(sys.exc_info()[0]))
 
@@ -713,7 +718,7 @@ def get_game_giveaways(group_webpage, game_name, start_time):
     group_users = group.group_users.keys()
     all_game_giveaways = dict()
     for group_giveaway in group.group_giveaways.values():
-        if group_giveaway.game_name == game_name:
+        if group_giveaway.game_name.lower() in game_name.lower() or game_name.lower() in group_giveaway.game_name.lower():
             giveaway_entries = group_giveaway.entries.values()
             all_game_giveaways[group_giveaway] = len([entry for entry in giveaway_entries if entry.user_name in group_users])
 
