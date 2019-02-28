@@ -115,6 +115,8 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, fet
         for row in data:
             # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level)
             user_name = row[0]
+            if user_name not in group_users:
+                group_users[user_name] = GroupUser(user_name)
             group_users[user_name].steam_id=row[1]
             group_users[user_name].global_won=int(row[2])
             group_users[user_name].global_sent=int(row[3])
