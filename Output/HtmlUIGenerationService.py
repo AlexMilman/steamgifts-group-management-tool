@@ -102,7 +102,7 @@ def generate_user_full_giveaways_history_ui(groups):
     response += 'switch($(\'#group_webpage\').val()) {'
     for group in groups.values():
         response += 'case "' + group.group_webpage + '":'
-        for user in group.group_users:
+        for user in sorted(group.group_users, key=lambda x: x.lower()):
           response += '$(\'#user\').append(\'<option value="' + user + '">' + user + '</option>\');'
         response += 'break;'
     response += '}});'
