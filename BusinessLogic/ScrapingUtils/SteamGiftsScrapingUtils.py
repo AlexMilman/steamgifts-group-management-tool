@@ -67,7 +67,7 @@ def update_user_additional_data(user):
             user.level = StringUtils.normalize_float(user_level_item.split('name" : "')[2].split('", "color')[0])
     return True
 
-def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_full_run=False, start_date=None):
+def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_full_run=False, start_date=None, end_date=None):
     if existing_giveaways is None:
         existing_giveaways = dict()
     LogUtils.log_info('Starting to process giveaways for group ' + group_webpage)
@@ -92,6 +92,11 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
             LogUtils.log_info('Processing giveaways page ' + get_page_num_str(current_page_num))
 
         giveaway_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="giveaway__summary"]')
+        if end_date:
+            earliest_end_time = datetime.utcfromtimestamp(StringUtils.normalize_float(WebUtils.get_items_by_xpath(giveaway_elements[-1], u'.//span/@data-timestamp')[0]))
+            if earliest_end_time and earliest_end_time > datetime.strptime(end_date, '%Y-%m-%d'):
+                page_index += 1
+                continue
         for giveaway_elem in giveaway_elements:
             giveaway_not_started_yet = False
             for end_time_text in WebUtils.get_items_by_xpath(giveaway_elem, u'.//div/text()'):
