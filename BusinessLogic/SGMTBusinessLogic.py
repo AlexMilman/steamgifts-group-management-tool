@@ -2,6 +2,7 @@ import ConfigParser
 import sys
 
 import datetime
+import traceback
 
 from dateutil.relativedelta import relativedelta
 
@@ -256,8 +257,6 @@ def get_group_summary(group_webpage, start_time):
     group_total_won=0.0
     for group_giveaway in group.group_giveaways.values():
         creator = group_giveaway.creator
-        if creator not in all_group_users:
-            continue
         # Go over all giveaways started after "addition_date"
         if not start_time or start_time <= group_giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S'):
             group_games_count += 1
@@ -265,6 +264,7 @@ def get_group_summary(group_webpage, start_time):
                 game_data = MySqlConnector.get_game_data(group_giveaway.game_name)
             except Exception as e:
                 LogUtils.log_error(u'Crashed while trying to load game data of ' + group_giveaway.game_name + u'. Reason: ' + str(e))
+                traceback.print_exc()
                 continue
             if not game_data:
                 LogUtils.log_error(u'Could not load game data: ' + group_giveaway.game_name)
@@ -281,14 +281,15 @@ def get_group_summary(group_webpage, start_time):
                 group_games_without_data += 1
 
             # Number of created GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
-            if creator not in users_created:
-                users_created[creator] = [0, 0, 0, 0, 0]
-            users_created[creator][0] += 1
-            users_created[creator][1] += value
-            if game_data_available:
-                users_created[creator][2] += 1
-                users_created[creator][3] += score
-                users_created[creator][4] += num_of_reviews
+            if creator in all_group_users:
+                if creator not in users_created:
+                    users_created[creator] = [0, 0, 0, 0, 0]
+                users_created[creator][0] += 1
+                users_created[creator][1] += value
+                if game_data_available:
+                    users_created[creator][2] += 1
+                    users_created[creator][3] += score
+                    users_created[creator][4] += num_of_reviews
 
             for entry in group_giveaway.entries.values():
                 user_name = entry.user_name
@@ -518,9 +519,9 @@ def load_user(group_user, user_name):
 
 
 def test():
-    from BusinessLogic.Utils import WebUtils
-    group = MySqlConnector.load_group('https://www.steamgifts.com/group/6HSPr/qgg-group')
-    print WebUtils.get_page_content('https://www.steamgifts.com/giveaway/JtzUN/broken-sword-5-the-serpents-curse', cookies=group.cookies)
+    # from BusinessLogic.Utils import WebUtils
+    # group = MySqlConnector.load_group('https://www.steamgifts.com/group/6HSPr/qgg-group')
+    # print WebUtils.get_page_content('https://www.steamgifts.com/giveaway/JtzUN/broken-sword-5-the-serpents-curse', cookies=group.cookies)
     # group = add_new_group(group_webpage, '')
     # MySqlConnector.save_group(group_webpage, group)
     # group = MySqlConnector.load_group(group_webpage)
@@ -531,14 +532,14 @@ def test():
     #         print message
     #     if group_user.global_won > group_user.global_sent:
     #         print 'User ' + group_user.user_name + ' has negative global gifts ratio'
-    game = GameData('Anarcute', 'https://store.steampowered.com/app/390720/', 2)
-    update_game_data(game)
+    game = GameData('!AnyWay!', 'https://store.steampowered.com/app/866510/', 2)
+    # update_game_data(game)
 
-    try:
-        SteamScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
-    except:
-        SteamDBScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
-    pass
+    # try:
+    #     SteamScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
+    # except:
+    SteamDBScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
+    # pass
 
 
 def lazy_add_group(group_webpage, cookies):
@@ -630,9 +631,9 @@ def update_game_data(game):
             game.num_of_reviews = chosen_num_of_reviews
         else:
             LogUtils.log_error('Don\'t know how to handle game: ' + game_name + ' at ' + game_link)
-    except:
-        LogUtils.log_error('Cannot add additional data for game: ' + game_name + ' ERROR: ' + str(sys.exc_info()[0]))
-
+    except Exception as e:
+        LogUtils.log_error('Cannot add additional data for game: ' + game_name + ' ERROR: ' + str(e))
+        traceback.print_exc()
 
 def update_group_data(group_webpage, cookies, group, force_full_run=False, start_date=None, end_date=None):
     group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
@@ -641,8 +642,9 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False, start
         if group_user.user_name not in existing_users:
             try:
                 SteamGiftsScrapingUtils.update_user_additional_data(group_user)
-            except:
-                LogUtils.log_error('Cannot add additional data for user: ' + group_user.user_name + ' ERROR: ' + str(sys.exc_info()[0]))
+            except Exception as e:
+                LogUtils.log_error('Cannot add additional data for user: ' + group_user.user_name + ' ERROR: ' + str(e))
+                traceback.print_exc()
 
     group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run=force_full_run, start_date=start_date, end_date=end_date)
     remove_deleted_giveaways(cookies, group, group_giveaways)
@@ -674,15 +676,17 @@ def update_all_db_groups():
         if group_name not in empty_groups.keys():
             try:
                 update_existing_group(group_url, start_date=start_date)
-            except:
-                LogUtils.log_error('Cannot update data for group: ' + group_url + ' ERROR: ' + str(sys.exc_info()[0]))
+            except Exception as e:
+                LogUtils.log_error('Cannot update data for group: ' + group_url + ' ERROR: ' + str(e))
+                traceback.print_exc()
 
     #For each new group, run: update_group_data from all time
     for group_url in empty_groups.values():
         try:
             update_existing_group(group_url)
-        except:
-            LogUtils.log_error('Cannot update data for group: ' + group_url + ' ERROR: ' + str(sys.exc_info()[0]))
+        except Exception as e:
+            LogUtils.log_error('Cannot update data for group: ' + group_url + ' ERROR: ' + str(e))
+            traceback.print_exc()
 
 
 def get_popular_giveaways(group_webpage, check_param, year_month, group_only_users=False, num_of_days=None):
