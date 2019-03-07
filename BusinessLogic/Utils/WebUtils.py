@@ -1,4 +1,5 @@
 import gzip
+import traceback
 from StringIO import StringIO
 import httplib
 import time
@@ -36,11 +37,12 @@ def get_html_page(page_url, cookies=None, retries=3, https=False):
                 return html.fromstring(get_https_page_content(page_url))
             else:
                 return html.fromstring(get_page_content(page_url, cookies))
-        except:
+        except Exception as e:
             if retries > 0:
                 LogUtils.log_error('Error downloading page ' + page_url + '. ' + str(retries) + ' retries left. retyring...')
             else:
-                LogUtils.log_error('Error downloading page ' + page_url + '. now more retries left. stopping...')
+                LogUtils.log_error('Error downloading page ' + page_url + '. now more retries left. stopping... Reason: ' + str(e))
+                traceback.print_exc()
             time.sleep(0.1)
             retries -= 1
 
