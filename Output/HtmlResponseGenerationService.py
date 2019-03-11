@@ -124,6 +124,12 @@ def generate_group_users_summary_response(group_webpage, total_group_data, users
                         + u', Average GA value: $' + float_to_str(user_won[3]) \
                         + u', Average GA Steam game score: ' + float_to_str(user_won[4]) \
                         + u', Average GA Steam number of reviews: ' + float_to_str(user_won[5]) + u'<BR>'
+
+        if user_created and user_won:
+            response += u'Created/Won ratio: '
+            response += u'Number of GAs ratio: ' + float_to_str(float(user_created[0]) / user_won[0]) \
+                        + u', GAs value ratio: ' + float_to_str(user_created[1] / user_won[2]) + u'<BR>'
+
     return response
 
 
