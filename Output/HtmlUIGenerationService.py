@@ -114,11 +114,12 @@ def generate_user_full_giveaways_history_ui(groups):
 def generate_lazy_add_group_ui():
     response = get_header('AddNewGroup - Add new group to SteamGifts Group Management Tool (SGMT).', 'AddNewGroup')
     response += 'In order to add your group to SGMT, you need to perform the following steps::<BR>' \
-               '1. Add the SGMT user (<A HREF="http://steamcommunity.com/profiles/76561198811025715">Steam</A>, <A HREF="https://www.steamgifts.com/user/SGMT">SteamGifts</A>) to your group. This is a mock user approved by SteamGifts. You can check - it never enters any giveaways.<BR>' \
-               '2. Add your group to the tool by using the button (and text box) below.<BR><BR>' \
-               'Within 24 hours of the user appearing as member of your group in SteamGifts, and your group appearing under "processed" in the <A HREF="/SGMT/GetAvailableGroups">Groups page</A>. full abilities of the SGMT tool will be open to you.<BR><BR><BR>'
-    response += 'Group Webpage (SteamGifts): <input type="text" name="group_webpage" size=100><BR>'
-    response += get_footer('Add new group')
+               '1. Add the SGMT user (<A HREF="http://steamcommunity.com/profiles/76561198811025715">Steam</A>, <A HREF="https://www.steamgifts.com/user/SGMT">SteamGifts</A>) to your group. This is a mock user approved by SteamGifts. You can check - it never enters any giveaways.<BR><BR>' \
+               '2. Send a mail to <A HREF="mailto:sgmt.suport@gmail.com">sgmt.suport@gmail.com</A> with the name and link of the group you want to add.'\
+               # '2. Add your group to the tool by using the button (and text box) below.<BR><BR>' \
+               # 'Within 24 hours of the user appearing as member of your group in SteamGifts, and your group appearing under "processed" in the <A HREF="/SGMT/GetAvailableGroups">Groups page</A>. full abilities of the SGMT tool will be open to you.<BR><BR><BR>'
+    # response += 'Group Webpage (SteamGifts): <input type="text" name="group_webpage" size=100><BR>'
+    # response += get_footer('Add new group')
     return response
 
 
