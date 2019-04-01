@@ -272,11 +272,11 @@ def get_group_summary(group_webpage, start_time):
             try:
                 game_data = MySqlConnector.get_game_data(group_giveaway.game_name)
             except Exception as e:
-                LogUtils.log_error(u'Crashed while trying to load game data of ' + group_giveaway.game_namee.decode('utf-8') + u'. Reason: ' + str(e))
+                LogUtils.log_error(u'Crashed while trying to load game data of ' + group_giveaway.game_name.decode('utf-8') + u'. Reason: ' + str(e))
                 traceback.print_exc()
                 continue
             if not game_data:
-                LogUtils.log_error(u'Could not load game data: ' + group_giveaway.game_namee.decode('utf-8'))
+                LogUtils.log_error(u'Could not load game data: ' + group_giveaway.game_name.decode('utf-8'))
                 continue
             value = game_data.value
             group_games_value += value
