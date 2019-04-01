@@ -15,6 +15,12 @@ def get_steam_id_to_user_dict(users):
     return steam_id_to_user
 
 
+def get_steam_user_name_from_steam_id(user_id):
+    html_content = WebUtils.get_html_page(SteamConsts.STEAM_PROFILE_LINK + user_id)
+    steam_user_name = WebUtils.get_item_by_xpath(html_content, u'.//span[@class="actual_persona_name"]/text()')
+    return steam_user_name
+
+
 def verify_after_n_giveaways(steam_after_n_thread_link, giveaways, group_users, max_pages=0):
     after_n_giveaways = dict()
     steam_id_to_user = get_steam_id_to_user_dict(group_users.values())
