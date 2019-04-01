@@ -88,7 +88,7 @@ def get_all_user_wins(group_webpage):
     return wins
 
 
-def get_stemagifts_to_steam_user_translation(group_webpage):
+def get_steamgifts_to_steam_user_translation(group_webpage):
     group = MySqlConnector.load_group(group_webpage)
     if not group:
         return None
@@ -156,6 +156,15 @@ def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_valu
         users = MySqlConnector.get_users_by_names(users)
 
     return users, monthly_posters, monthly_unfinished, monthly_inactive
+
+
+def get_steamgifts_to_steam_user_names(users, monthly_posters, monthly_unfinished, inactive_users):
+    user_to_steam_username = dict()
+    for user_data in users.values():
+        user_name = user_data.user_name
+        if user_name not in monthly_posters and user_name not in monthly_unfinished.keys() and inactive_users and user_name not in inactive_users:
+            user_to_steam_username[user_name] = SteamScrapingUtils.get_steam_user_name_from_steam_id(user_data.steam_id)
+    return user_to_steam_username
 
 
 def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entries=1, min_value=0.0, min_num_of_reviews=0, min_score=0,
@@ -263,11 +272,11 @@ def get_group_summary(group_webpage, start_time):
             try:
                 game_data = MySqlConnector.get_game_data(group_giveaway.game_name)
             except Exception as e:
-                LogUtils.log_error(u'Crashed while trying to load game data of ' + group_giveaway.game_name + u'. Reason: ' + str(e))
+                LogUtils.log_error(u'Crashed while trying to load game data of ' + group_giveaway.game_namee.decode('utf-8') + u'. Reason: ' + str(e))
                 traceback.print_exc()
                 continue
             if not game_data:
-                LogUtils.log_error(u'Could not load game data: ' + group_giveaway.game_name)
+                LogUtils.log_error(u'Could not load game data: ' + group_giveaway.game_namee.decode('utf-8'))
                 continue
             value = game_data.value
             group_games_value += value
@@ -525,6 +534,7 @@ def test():
     # group = add_new_group(group_webpage, '')
     # MySqlConnector.save_group(group_webpage, group)
     # group = MySqlConnector.load_group(group_webpage)
+    SteamScrapingUtils.get_steam_user_name_from_steam_id('76561198018110309')
 
     # for group_user in group.group_users.values():
     #     print '\nUser: ' + group_user.user_name
@@ -558,14 +568,14 @@ def add_new_group(group_webpage, cookies, start_date=None):
     update_games_data(games)
 
 
-def update_existing_group(group_webpage, start_date=None, end_date=None):
+def update_existing_group(group_webpage, start_date=None, end_date=None, force_full_run=False):
     group = MySqlConnector.load_group(group_webpage, fetch_not_started_giveaways=True)
     if not group:
         return None
     cookies = common_cookies
     if group.cookies:
         cookies = group.cookies
-    games = update_group_data(group_webpage, cookies, group, start_date=start_date, end_date=end_date)
+    games = update_group_data(group_webpage, cookies, group, start_date=start_date, end_date=end_date, force_full_run=force_full_run)
     update_games_data(games, update_value=True)
 
 
@@ -583,7 +593,7 @@ def update_games_data(games, update_value=False):
     games_to_add = []
     games_to_update_value = []
     existing_games = MySqlConnector.get_existing_games_data(games.keys())
-    for game in games.values():
+    for game in sorted(games.values(), key=lambda x: x.game_name):
         game_name = game.game_name.decode('utf-8')
         if game_name not in existing_games.keys():
             update_game_data(game)
@@ -634,6 +644,7 @@ def update_game_data(game):
     except Exception as e:
         LogUtils.log_error('Cannot add additional data for game: ' + game_name + ' ERROR: ' + str(e))
         traceback.print_exc()
+
 
 def update_group_data(group_webpage, cookies, group, force_full_run=False, start_date=None, end_date=None):
     group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
@@ -722,7 +733,8 @@ def get_game_giveaways(group_webpage, game_name, start_time):
     group_users = group.group_users.keys()
     all_game_giveaways = dict()
     for group_giveaway in group.group_giveaways.values():
-        if group_giveaway.game_name.lower() in game_name.lower() or game_name.lower() in group_giveaway.game_name.lower():
+        group_game_name = group_giveaway.game_name.decode('utf-8')
+        if group_game_name.lower() in game_name.lower() or game_name.lower() in group_game_name.lower():
             giveaway_entries = group_giveaway.entries.values()
             all_game_giveaways[group_giveaway] = len([entry for entry in giveaway_entries if entry.user_name in group_users])
 

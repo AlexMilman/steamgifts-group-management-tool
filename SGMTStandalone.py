@@ -123,7 +123,7 @@ def main(argv):
             print 'Giveaway: ' + giveaway.link + '.  Created by: ' + SteamGiftsConsts.STEAMGIFTS_USER_LINK + giveaway.creator \
                         + '.  Won by: ' + parse_list(giveaway.get_winners(), SteamGiftsConsts.STEAMGIFTS_USER_LINK)
     elif feature == 'GetSteamGiftsUserToSteamUserTranslation':
-        steam_id_to_user = SGMTBusinessLogic.get_stemagifts_to_steam_user_translation(group_webpage)
+        steam_id_to_user = SGMTBusinessLogic.get_steamgifts_to_steam_user_translation(group_webpage)
         for steam_profile_id, user in steam_id_to_user.iteritems():
             print 'Steamgifts User: ' + SteamGiftsConsts.get_user_link(user) + '.  Steam profile: ' + SteamConsts.STEAM_PROFILE_LINK + steam_profile_id
     elif feature == 'GetAllUserWins':

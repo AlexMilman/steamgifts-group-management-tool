@@ -17,7 +17,7 @@ def generate_invalid_giveaways_response(games, invalid_giveaways):
         for giveaway in sorted(user_giveaways, key=lambda x: x.end_time, reverse=True):
             game_name = giveaway.game_name
             game_data = games[game_name]
-            response += u'<A HREF="' + giveaway.link + u'">' + game_name + u'</A>'
+            response += u'<A HREF="' + giveaway.link + u'">' + game_name.decode('utf-8') + u'</A>'
             if game_data:
                 response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
             response += u' Ends on: ' + giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -50,7 +50,7 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
     for giveaway in sorted(created_giveaways, key=lambda x: x.end_time, reverse=True):
         game_name = giveaway.game_name
         game_data = games[game_name]
-        response += u'<A HREF="' + giveaway.link + u'">' + game_name + u'</A>'
+        response += u'<A HREF="' + giveaway.link + u'">' + game_name.decode('utf-8') + u'</A>'
         if game_data:
             response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
         response += u' Ends on: ' + giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -65,7 +65,7 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
         response += u' (Won ' + str(won) + u', Winning percentage: ' + str(float(won) / len(entered_giveaways) * 100) + u'%)<BR>'
     for giveaway in sorted(entered_giveaways, key=lambda x: x.end_time, reverse=True):
         game_data = games[giveaway.game_name]
-        response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name + u'</A>'
+        response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name.decode('utf-8') + u'</A>'
         if game_data:
             response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
         response += u', Ends on: ' + giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
@@ -151,7 +151,7 @@ def generate_check_monthly_response(group_webpage, users, monthly_posters, month
             response += u'User ' + generate_user_link(user) + u' giveaways: '
             if giveaways and len(giveaways) > 0:
                 for giveaway in giveaways:
-                    response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name + u'</A>, '
+                    response += u'<A HREF="' + giveaway.link + u'">' + giveaway.game_name.decode('utf-8') + u'</A>, '
                 response = response[:-2]
                 response += '<BR>'
 
@@ -177,7 +177,7 @@ def generate_check_user_first_giveaway_response(user_first_giveaway, succesfully
     for user_name in user_first_giveaway.keys():
         for group_giveaway, game_data in user_first_giveaway[user_name]:
             response += u'User ' + generate_user_link(user_name) + ' ' \
-                        u'first giveaway: <A HREF="' + group_giveaway.link + u'">' + group_giveaway.game_name + u'</A> ' \
+                        u'first giveaway: <A HREF="' + group_giveaway.link + u'">' + group_giveaway.game_name.decode('utf-8') + u'</A> ' \
                         u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
             if user_name in succesfully_ended and group_giveaway.link in succesfully_ended[user_name]:
                 response += u'<B> - Finished succesfully !!!</B>'
@@ -196,7 +196,7 @@ def generate_check_user_first_giveaway_response(user_first_giveaway, succesfully
         group_giveaways = user_entered_giveaway[user]
         for group_giveaway in sorted(group_giveaways, key=lambda x: x.entries[user].entry_time, reverse=True):
             response += u'User ' + generate_user_link(user) + ' ' \
-                        u'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name + u'</A> ' \
+                        u'entered giveaway before his first giveaway was over: <A HREF="' + group_giveaway.link + '">' + group_giveaway.game_name.decode('utf-8') + u'</A> ' \
                         u'(Entry date: ' + group_giveaway.entries[user].entry_time.strftime('%Y-%m-%d %H:%M:%S') + u')<BR>'
 
     if time_to_create_over:        
@@ -247,7 +247,7 @@ def generate_popular_giveaways_response(popular_giveaways, year_month):
     response += u'<TABLE style="width:45%">'
     for giveaway_data, num_of_entries in sorted(popular_giveaways.iteritems(), key=lambda (k,v): (v,k), reverse=True):
         response += u'<TR>'
-        response += u'<TH><A HREF="' + giveaway_data.link + u'">' + giveaway_data.game_name + u' </A></TH><TH>By: ' + generate_user_link(giveaway_data.creator) + '</TH><TH>Entries: ' + str(num_of_entries) + u'</TH>'
+        response += u'<TH><A HREF="' + giveaway_data.link + u'">' + giveaway_data.game_name.decode('utf-8') + u' </A></TH><TH>By: ' + generate_user_link(giveaway_data.creator) + '</TH><TH>Entries: ' + str(num_of_entries) + u'</TH>'
         response += u'</TR>'
     response += u'</TABLE>'
 
@@ -266,7 +266,7 @@ def generate_all_game_giveaways_response(game_name, all_game_giveaways):
     response += u'<B><TH>Game Name</TH><TH>Gifter</TH><TH>Group Entries</TH><TH>Start Time</TH><TH>End Time</TH></B>'
     for giveaway_data, num_of_entries in sorted(all_game_giveaways.iteritems(), key=lambda (k,v): k.end_time , reverse=True):
         response += u'<TR>'
-        response += u'<TH><A HREF="' + giveaway_data.link + u'">' + giveaway_data.game_name + u' </A></TH><TH>' + generate_user_link(giveaway_data.creator) + '</TH><TH>' + str(num_of_entries) + u'</TH><TH>' + str(giveaway_data.start_time) + u'</TH><TH>' + str(giveaway_data.end_time) + u'</TH>'
+        response += u'<TH><A HREF="' + giveaway_data.link + u'">' + giveaway_data.game_name.decode('utf-8') + u' </A></TH><TH>' + generate_user_link(giveaway_data.creator) + '</TH><TH>' + str(num_of_entries) + u'</TH><TH>' + str(giveaway_data.start_time) + u'</TH><TH>' + str(giveaway_data.end_time) + u'</TH>'
         response += u'</TR>'
     response += u'</TABLE>'
 

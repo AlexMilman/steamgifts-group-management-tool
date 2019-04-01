@@ -107,14 +107,14 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, fet
     if load_users_data and group_users_data:
         for row in group_users_data:
             # (group_user.user_name, group_user.group_won, group_user.group_sent)
-            user_name = row[0]
+            user_name = str(row[0])
             group_users[user_name] = GroupUser(user_name, group_won=row[1], group_sent=row[2])
 
         cursor.execute('SELECT * FROM Users WHERE UserName in (' + parse_list(group_users.keys()) + ')')
         data = cursor.fetchall()
         for row in data:
             # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level)
-            user_name = row[0]
+            user_name = str(row[0])
             if user_name not in group_users:
                 group_users[user_name] = GroupUser(user_name)
             group_users[user_name].steam_id=row[1]
@@ -144,18 +144,18 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, fet
         data = cursor.fetchall()
         for row in data:
             # (giveaway_id, group_giveaway.link, group_giveaway.creator, group_giveaway.game_name, json.dumps(entries_data), json.dumps(group_giveaway.groups))
-            giveaway_link = row[1]
+            giveaway_link = str(row[1])
             giveaway_id = StringUtils.get_hashed_id(giveaway_link)
             group_giveaways[giveaway_link] = giveaways_by_id[giveaway_id]
             group_giveaways[giveaway_link].link = giveaway_link
-            group_giveaways[giveaway_link].creator = row[2]
-            group_giveaways[giveaway_link].game_name = row[3]
+            group_giveaways[giveaway_link].creator = str(row[2])
+            group_giveaways[giveaway_link].game_name = row[3].encode('utf-8')
             group_giveaways[giveaway_link].entries = dict()
             for ent_row in json.loads(row[4]):
                 # (entry.user_name, entry.entry_time, entry.winner)
-                user_name = ent_row[0]
+                user_name = str(ent_row[0])
                 group_giveaways[giveaway_link].entries[user_name] = GiveawayEntry(user_name, entry_time=from_epoch(ent_row[1]), winner=ent_row[2])
-            group_giveaways[giveaway_link].groups = json.loads(row[5])
+            group_giveaways[giveaway_link].groups = json.loads(str(row[5]))
 
     cursor.close()
     connection.close()
