@@ -67,6 +67,7 @@ def update_user_additional_data(user):
             user.level = StringUtils.normalize_float(user_level_item.split('name" : "')[2].split('", "color')[0])
     return True
 
+
 def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_full_run=False, start_date=None, end_date=None):
     if existing_giveaways is None:
         existing_giveaways = dict()
