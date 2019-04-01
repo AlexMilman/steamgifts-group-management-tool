@@ -391,7 +391,8 @@ def update_group_data():
     group_webpage = request.args.get('group_webpage')
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
-    SGMTBusinessLogic.update_existing_group(group_webpage, start_date, end_date)
+    force_full_run = request.args.get('force_full_run')
+    SGMTBusinessLogic.update_existing_group(group_webpage, start_date, end_date, force_full_run)
     LogUtils.log_info('UpdateGroupData ' + group_webpage + ' took ' + str(time.time() - start_time) +  ' seconds')
     return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
 
