@@ -27,7 +27,7 @@ def get_group_users(group_webpage):
         if current_page_num and current_page_num != str(page_index):
             break
 
-        user_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="table__row-inner-wrap"]')
+        user_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="table__row-outer-wrap"]')
         for user_elem in user_elements:
             user = WebUtils.get_item_by_xpath(user_elem, u'.//a[@class="table__column__heading"]/text()')
             user_data_elements = WebUtils.get_items_by_xpath(user_elem, u'.//div[@class="table__column--width-small text-center"]/text()')
