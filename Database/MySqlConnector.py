@@ -107,7 +107,11 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, fet
     if load_users_data and group_users_data:
         for row in group_users_data:
             # (group_user.user_name)
-            user_name = row
+            if isinstance(row, basestring):
+                user_name = row
+            else:
+                #Handling old data
+                user_name = row[0]
             group_users[user_name] = GroupUser(user_name)
 
         cursor.execute('SELECT * FROM Users WHERE UserName in (' + parse_list(group_users.keys()) + ')')
@@ -195,6 +199,7 @@ def get_all_groups_with_users():
             if isinstance(user_data, basestring):
                 users.add(user_data)
             else:
+                #Handling old data
                 users.add(user_data[0])
         groups[row[0]] = Group(group_name=row[0], group_webpage=row[1], group_users=users)
 
