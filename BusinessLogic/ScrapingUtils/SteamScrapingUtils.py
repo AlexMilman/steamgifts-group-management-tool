@@ -83,3 +83,9 @@ def get_games_from_package(package_name, package_link):
     html_content = WebUtils.get_html_page(package_link, "birthtime=-7199; lastagecheckage=1-January-1970; mature_content=1;")
     games = WebUtils.get_items_by_xpath(html_content, u'.//a[@class="tab_item_overlay"]/@href')
     return games
+
+
+def update_user_additional_data(user):
+    LogUtils.log_info('Processing Steam user ' + user.steam_id)
+    user.steam_user_name = get_steam_user_name_from_steam_id(user.steam_id)
+    return True

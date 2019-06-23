@@ -57,14 +57,14 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
     users_data = []
     group_users_data = []
     for group_user in group.group_users.values():
-        group_users_data.append((group_user.user_name, group_user.group_won, group_user.group_sent))
+        group_users_data.append(group_user.user_name)
 
         if group_user.user_name not in users_to_ignore:
-            users_data.append((group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level))
+            users_data.append((group_user.user_name, group_user.steam_id, group_user.steam_user_name))
 
     if users_data:
-        cursor.executemany("INSERT INTO Users (UserName,SteamId,GlobalWon,GlobalSent,Level) VALUES (%s, %s, %s, %s, %s)"
-                           " ON DUPLICATE KEY UPDATE UserName=VALUES(UserName),SteamId=VALUES(SteamId),GlobalWon=VALUES(GlobalWon),GlobalSent=VALUES(GlobalSent),Level=VALUES(Level)", users_data)
+        cursor.executemany("INSERT INTO Users (UserName,SteamId,SteamUserName) VALUES (%s, %s, %s)"
+                           " ON DUPLICATE KEY UPDATE UserName=VALUES(UserName),SteamId=VALUES(SteamId),SteamUserName=VALUES(SteamUserName)", users_data)
 
     # Insert Group
     group_id_str = "\"" + StringUtils.get_hashed_id(group_website) + "\""
@@ -106,21 +106,20 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, fet
     group_users = dict()
     if load_users_data and group_users_data:
         for row in group_users_data:
-            # (group_user.user_name, group_user.group_won, group_user.group_sent)
-            user_name = str(row[0])
-            group_users[user_name] = GroupUser(user_name, group_won=row[1], group_sent=row[2])
+            # (group_user.user_name)
+            user_name = row
+            group_users[user_name] = GroupUser(user_name)
 
         cursor.execute('SELECT * FROM Users WHERE UserName in (' + parse_list(group_users.keys()) + ')')
         data = cursor.fetchall()
         for row in data:
-            # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level)
+            # (group_user.user_name, group_user.steam_id, group_user.steam_user_name)
             user_name = str(row[0])
             if user_name not in group_users:
                 group_users[user_name] = GroupUser(user_name)
             group_users[user_name].steam_id=row[1]
-            group_users[user_name].global_won=int(row[2])
-            group_users[user_name].global_sent=int(row[3])
-            group_users[user_name].level=int(row[4])
+            if len(row) == 3: # Temporary workaround until the DB is rebuilt.
+                group_users[user_name].steam_user_name=row[2]
 
     # Load Giveaways Data
     group_giveaways = dict()
@@ -192,8 +191,8 @@ def get_all_groups_with_users():
     for row in data:
         users = set()
         for user_data in json.loads(row[2]):
-            # (group_user.user_name, group_user.group_won, group_user.group_sent)
-            users.add(user_data[0])
+            # (group_user.user_name)
+            users.add(user_data)
         groups[row[0]] = Group(group_name=row[0], group_webpage=row[1], group_users=users)
 
     cursor.close()
@@ -228,8 +227,8 @@ def get_user_data(user_name):
     cursor.execute('SELECT * FROM Users WHERE UserName = "' + user_name + '"')
     data = cursor.fetchone()
     if data:
-        # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level)
-        group_user = GroupUser(user_name, steam_id=data[1], global_won=data[2], global_sent=data[3], level=data[4])
+        # (group_user.user_name, group_user.steam_id, group_user.steam_user_name)
+        group_user = GroupUser(user_name, steam_id=data[1], steam_user_name=data[2])
 
     cursor.close()
     connection.close()
@@ -240,8 +239,8 @@ def save_user(group_user):
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
-    cursor.execute('INSERT INTO Users (UserName,SteamId,GlobalWon,GlobalSent,Level) '
-                   'VALUES ("' + group_user.user_name + '","' + group_user.steam_id + '",' + str(group_user.global_won) + ',' + str(group_user.global_sent) + ',' + str(group_user.level) + ')')
+    cursor.execute('INSERT INTO Users (UserName,SteamId,SteamUserName) '
+                   'VALUES ("' + group_user.user_name + '","' + group_user.steam_id + '",' + str(group_user.steam_user_name) + ')')
 
     connection.commit()  # you need to call commit() method to save your changes to the database
 
@@ -258,8 +257,8 @@ def get_all_users():
     cursor.execute('SELECT * FROM Users')
     data = cursor.fetchall()
     for row in data:
-        # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level)
-        group_user = GroupUser(row[0], steam_id=row[1], global_won=row[2], global_sent=row[3], level=row[4])
+        # (group_user.user_name, group_user.steam_id, group_user.steam_user_name)
+        group_user = GroupUser(row[0], steam_id=row[1], steam_user_name=row[2])
         all_users.append(group_user)
 
     cursor.close()
@@ -278,9 +277,9 @@ def get_users_by_names(user_names):
     cursor.execute('SELECT * FROM Users WHERE UserName IN (' + parse_list(user_names) + ')')
     data = cursor.fetchall()
     for row in data:
-        # (group_user.user_name, group_user.steam_id, group_user.global_won, group_user.global_sent, group_user.level)
+        # (group_user.user_name, group_user.steam_id, group_user.steam_user_name)
         user_name = row[0]
-        user_data = GroupUser(user_name, steam_id=row[1], global_won=row[2], global_sent=row[3], level=row[4])
+        user_data = GroupUser(user_name, steam_id=row[1], steam_user_name=row[2])
         users_data[user_name] = user_data
 
     cursor.close()
@@ -297,9 +296,9 @@ def update_existing_users(users):
 
     users_data = []
     for user_data in users:
-        users_data.append((user_data.steam_id, user_data.global_won, user_data.global_sent, user_data.level, user_data.user_name))
+        users_data.append((user_data.steam_id, user_data.steam_user_name, user_data.user_name))
 
-    cursor.executemany("UPDATE Users SET SteamId=%s,GlobalWon=%s,GlobalSent=%s,Level=%s WHERE UserName=%s", users_data)
+    cursor.executemany("UPDATE Users SET SteamId=%s,SteamUserName=%s WHERE UserName=%s", users_data)
     connection.commit()  # you need to call commit() method to save your changes to the database
 
     cursor.close()

@@ -30,10 +30,7 @@ def get_group_users(group_webpage):
         user_elements = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="table__row-outer-wrap"]')
         for user_elem in user_elements:
             user = WebUtils.get_item_by_xpath(user_elem, u'.//a[@class="table__column__heading"]/text()')
-            user_data_elements = WebUtils.get_items_by_xpath(user_elem, u'.//div[@class="table__column--width-small text-center"]/text()')
-            user_sent = StringUtils.normalize_float(user_data_elements[0][0:user_data_elements[0].find('(')])
-            user_received = StringUtils.normalize_float(user_data_elements[1][0:user_data_elements[1].find('(')])
-            group_users[user] = GroupUser(user, user_received, user_sent)
+            group_users[user] = GroupUser(user)
 
         if not current_page_num:
             break
@@ -45,7 +42,7 @@ def get_group_users(group_webpage):
 
 
 def update_user_additional_data(user):
-    LogUtils.log_info('Processing user ' + user.user_name)
+    LogUtils.log_info('Processing SteamGifts user ' + user.user_name)
     html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user.user_name))
     if html_content is None:
         LogUtils.log_error('Cannot update additional data for user: ' + user.user_name)
@@ -55,17 +52,34 @@ def update_user_additional_data(user):
         LogUtils.log_error('Cannot update non-existent user: ' + user.user_name)
         return False
     user.steam_id = steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
+    return True
+
+
+def get_user_contribution_data(user_name):
+    html_content = WebUtils.get_html_page(SteamGiftsConsts.get_user_link(user_name))
+    if html_content is None:
+        LogUtils.log_error('Cannot update additional data for user: ' + user_name)
+        return None
+    steam_user = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="sidebar__shortcut-inner-wrap"]/a/@href')
+    if not steam_user:
+        LogUtils.log_error('Cannot update non-existent user: ' + user_name)
+        return None
+
     all_rows = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="featured__table__row"]')
     for row_content in all_rows:
         row_title = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__left"]/text()')
         if row_title == u'Gifts Won':
-            user.global_won = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__right"]/span/span/a/text()'))
+            global_won = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__right"]/span/span/a/text()'))
         elif row_title == u'Gifts Sent':
-            user.global_sent = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class=" featured__table__row__right"]/span/span/a/text()'))
+            global_sent = StringUtils.normalize_int(WebUtils.get_item_by_xpath(row_content, u'.//div[@class=" featured__table__row__right"]/span/span/a/text()'))
         elif row_title == u'Contributor Level':
             user_level_item = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__right"]/span/@data-ui-tooltip')
-            user.level = StringUtils.normalize_float(user_level_item.split('name" : "')[2].split('", "color')[0])
-    return True
+            level = StringUtils.normalize_float(user_level_item.split('name" : "')[2].split('", "color')[0])
+
+    if global_won or global_sent or level:
+        return global_won, global_sent, level
+
+    return None
 
 
 def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_full_run=False, start_date=None, end_date=None):

@@ -165,7 +165,7 @@ def generate_check_monthly_response(group_webpage, users, monthly_posters, month
     for user, user_data in users.iteritems():
         if user not in monthly_posters and user not in monthly_unfinished.keys() and inactive_users and user not in inactive_users:
             response += u'<TR>'
-            response += u'<TH>' + generate_user_link(str(user)) + u'</TH><TH>' + '<A HREF="' + generate_full_data_link(group_webpage, '', user) + u'">User full GAs list</A></TH><TH>' + generate_steam_user_link(user_data.steam_id) + u'</TH>'
+            response += u'<TH>' + generate_user_link(str(user)) + u'</TH><TH>' + '<A HREF="' + generate_full_data_link(group_webpage, '', user) + u'">User full GAs list</A></TH><TH>' + generate_steam_user_link(user_data.steam_id, user_data.steam_user_name) + u'</TH>'
             response += u'</TR>'
     response += u'</TABLE>'
 
@@ -288,8 +288,8 @@ def generate_user_link(user):
     return u'<A HREF="' + SteamGiftsConsts.get_user_link(user) + u'">' + user + u'</A>'
 
 
-def generate_steam_user_link(steam_id):
-    return '<A HREF=' + SteamConsts.STEAM_PROFILE_LINK + steam_id + '>Steam</A>'
+def generate_steam_user_link(steam_id, steam_user_name):
+    return '<A HREF=' + SteamConsts.STEAM_PROFILE_LINK + steam_id + '>Steam (' + str(steam_user_name) + ')</A>'
 
 
 def generate_get_groups_response(empty_groups, groups):
