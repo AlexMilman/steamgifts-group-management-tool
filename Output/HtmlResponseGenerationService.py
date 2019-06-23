@@ -289,7 +289,7 @@ def generate_user_link(user):
 
 
 def generate_steam_user_link(steam_id, steam_user_name):
-    return '<A HREF=' + SteamConsts.STEAM_PROFILE_LINK + steam_id + '>Steam (' + str(steam_user_name) + ')</A>'
+    return '<A HREF=' + SteamConsts.STEAM_PROFILE_LINK + steam_id + '>Steam (' + str(steam_user_name.decode('utf-8')) + ')</A>'
 
 
 def generate_get_groups_response(empty_groups, groups):
