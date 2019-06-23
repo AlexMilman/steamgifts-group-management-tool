@@ -192,7 +192,10 @@ def get_all_groups_with_users():
         users = set()
         for user_data in json.loads(row[2]):
             # (group_user.user_name)
-            users.add(user_data)
+            if isinstance(user_data, basestring):
+                users.add(user_data)
+            else:
+                users.add(user_data[0])
         groups[row[0]] = Group(group_name=row[0], group_webpage=row[1], group_users=users)
 
     cursor.close()
