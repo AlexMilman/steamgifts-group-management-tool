@@ -400,11 +400,24 @@ def update_group_data():
 @app.route('/SGMT-Admin/UpdateAllGroups', methods=['GET'])
 def update_all_groups():
     start_time = time.time()
-    # Redundant as we don't use most of this data:
-    # SGMTBusinessLogic.update_all_db_users_data()
-    SGMTBusinessLogic.update_all_db_games_data()
     SGMTBusinessLogic.update_all_db_groups()
     LogUtils.log_info('UpdateAllGroups took ' + str(time.time() - start_time) +  ' seconds')
+    return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
+
+
+@app.route('/SGMT-Admin/UpdateAllGames', methods=['GET'])
+def update_all_games():
+    start_time = time.time()
+    SGMTBusinessLogic.update_all_db_games_data()
+    LogUtils.log_info('UpdateAllGames took ' + str(time.time() - start_time) +  ' seconds')
+    return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
+
+
+@app.route('/SGMT-Admin/', methods=['GET'])
+def update_all_users():
+    start_time = time.time()
+    SGMTBusinessLogic.update_all_db_users_data()
+    LogUtils.log_info('UpdateAllUsers took ' + str(time.time() - start_time) +  ' seconds')
     return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
 
 

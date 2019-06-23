@@ -61,7 +61,6 @@ So for now this tool's automatic nightly update will run slowly, but safely.
 * Better UI
 
 ### TODO
-* Separate Group/User & Game update (And update schedulers to run accordingly)
 * Add to Giveaways DB: MinimumLevel, Whitelist, RegionRestricted
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "no minimum level" to optional params
 * CheckMonthly/CheckAllGiveawaysAccordingToRules/UserCheckFirstGiveaway: Add "not region restricted" to optional params
