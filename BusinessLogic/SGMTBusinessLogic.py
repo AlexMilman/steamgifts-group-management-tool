@@ -1,6 +1,4 @@
 import ConfigParser
-import sys
-
 import datetime
 import traceback
 
@@ -398,7 +396,6 @@ def load_user(group_user, user_name):
 
 
 def test():
-    update_all_current_group_users_data()
     # from BusinessLogic.Utils import WebUtils
     # group = MySqlConnector.load_group('https://www.steamgifts.com/group/6HSPr/qgg-group')
     # print WebUtils.get_page_content('https://www.steamgifts.com/giveaway/JtzUN/broken-sword-5-the-serpents-curse', cookies=group.cookies)
@@ -413,9 +410,11 @@ def test():
     #         print message
     #     if group_user.global_won > group_user.global_sent:
     #         print 'User ' + group_user.user_name + ' has negative global gifts ratio'
-    # game = GameData('!AnyWay!', 'https://store.steampowered.com/app/866510/', 2)
-    # update_game_data(game)
+    game = GameData('Conarium', 'https://store.steampowered.com/app/313780/Conarium/', 2)
+    update_game_data(game)
+    MySqlConnector.save_games([game])
 
+    MySqlConnector.get_game_data('Conarium')
     # try:
     #     SteamScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
     # except:
@@ -615,40 +614,18 @@ def get_game_giveaways(group_webpage, game_name, start_time):
 
 
 def update_all_db_users_data():
-    #Load all DB users from DB
-    users = MySqlConnector.get_all_users()
-    #Go over list, check if any changed
-    changed_users = []
-    deleted_users = []
-    for user in users:
-        new_user = GroupUser(user.user_name)
-        user_data_updated = SteamGiftsScrapingUtils.update_user_additional_data(new_user)
-        if new_user.steam_id:
-            user_data_updated &= SteamScrapingUtils.update_user_additional_data(new_user)
-        if not user_data_updated:
-            deleted_users.append(user)
-        elif not user.equals(new_user):
-            changed_users.append(new_user)
-    # Save changed users to the DB
-    if changed_users:
-        MySqlConnector.update_existing_users(changed_users)
-    # Delete from DB users no longer on SteamGifts
-    if deleted_users:
-        MySqlConnector.delete_users(deleted_users)
-
-
-def update_all_current_group_users_data():
     #Load list of all groups & users from DB
     groups = get_groups_with_users()
+    all_users = MySqlConnector.get_all_users()
     #Generate users list from all groups
     all_group_users = set()
     for group, group_data in groups.items():
         all_group_users.update(group_data.group_users)
-    users = MySqlConnector.get_users_by_names(all_group_users)
+    group_users = MySqlConnector.get_users_by_names(all_group_users)
     #Go over list, check if any changed
     changed_users = []
-    deleted_users = []
-    for user in users.values():
+    deleted_users = [user for user in all_users if user.user_name not in all_group_users]
+    for user in group_users.values():
         new_user = GroupUser(user.user_name)
         user_data_updated = SteamGiftsScrapingUtils.update_user_additional_data(new_user)
         if new_user.steam_id:
