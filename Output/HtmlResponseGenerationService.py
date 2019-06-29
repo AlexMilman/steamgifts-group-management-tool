@@ -161,7 +161,7 @@ def generate_check_monthly_response(group_webpage, users, monthly_posters, month
             response += generate_user_link(str(user)) + u'<BR>'
 
     response += u'<BR><BR>Users without monthly giveaways:<BR>'
-    response += u'<TABLE style="width:25%">'
+    response += u'<TABLE style="width:35%">'
     for user, user_data in users.iteritems():
         if user not in monthly_posters and user not in monthly_unfinished.keys() and inactive_users and user not in inactive_users:
             response += u'<TR>'
@@ -289,7 +289,7 @@ def generate_user_link(user):
 
 
 def generate_steam_user_link(steam_id, steam_user_name):
-    return '<A HREF=' + SteamConsts.STEAM_PROFILE_LINK + steam_id + '>Steam (' + str(steam_user_name.decode('utf-8')) + ')</A>'
+    return '<A HREF=' + SteamConsts.STEAM_PROFILE_LINK + steam_id + '>Steam (' + steam_user_name + ')</A>'
 
 
 def generate_get_groups_response(empty_groups, groups):
