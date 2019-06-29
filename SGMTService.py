@@ -413,7 +413,7 @@ def update_all_games():
     return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
 
 
-@app.route('/SGMT-Admin/', methods=['GET'])
+@app.route('/SGMT-Admin/UpdateAllUsers', methods=['GET'])
 def update_all_users():
     start_time = time.time()
     SGMTBusinessLogic.update_all_db_users_data()
