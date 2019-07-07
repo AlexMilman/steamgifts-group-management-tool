@@ -141,11 +141,14 @@ def get_group_summary(group_webpage, start_time):
                 continue
             if not game_data:
                 LogUtils.log_error(u'Could not load game data: ' + group_giveaway.game_name.decode('utf-8'))
-                continue
-            value = game_data.value
-            group_games_value += value
-            score = game_data.steam_score
-            num_of_reviews = game_data.num_of_reviews
+            score = -1
+            num_of_reviews = -1
+            value = -1
+            if game_data:
+                value = game_data.value
+                group_games_value += value
+                score = game_data.steam_score
+                num_of_reviews = game_data.num_of_reviews
             game_data_available = score != -1 and num_of_reviews != -1
             if game_data_available:
                 group_games_total_score += score
@@ -158,11 +161,14 @@ def get_group_summary(group_webpage, start_time):
                 if creator not in users_created:
                     users_created[creator] = [0, 0, 0, 0, 0]
                 users_created[creator][0] += 1
-                users_created[creator][1] += value
+                if value != -1:
+                    users_created[creator][1] += value
                 if game_data_available:
                     users_created[creator][2] += 1
-                    users_created[creator][3] += score
-                    users_created[creator][4] += num_of_reviews
+                    if score != -1:
+                        users_created[creator][3] += score
+                    if num_of_reviews != -1:
+                        users_created[creator][4] += num_of_reviews
 
             for entry in group_giveaway.entries.values():
                 user_name = entry.user_name
@@ -175,11 +181,14 @@ def get_group_summary(group_webpage, start_time):
                 users_entered[user_name][0] += 1
                 if len(group_giveaway.groups) == 1:
                     users_entered[user_name][1] += 1
-                users_entered[user_name][2] += value
+                if value != -1:
+                    users_entered[user_name][2] += value
                 if game_data_available:
                     users_entered[user_name][3] += 1
-                    users_entered[user_name][4] += score
-                    users_entered[user_name][5] += num_of_reviews
+                    if score != -1:
+                        users_entered[user_name][4] += score
+                    if num_of_reviews != -1:
+                        users_entered[user_name][5] += num_of_reviews
 
                 if entry.winner:
                     group_total_won += 1
@@ -187,11 +196,14 @@ def get_group_summary(group_webpage, start_time):
                     if user_name not in users_won:
                         users_won[user_name] = [0, 0, 0, 0, 0]
                     users_won[user_name][0] += 1
-                    users_won[user_name][1] += value
+                    if value != -1:
+                        users_won[user_name][1] += value
                     if game_data_available:
                         users_won[user_name][2] += 1
-                        users_won[user_name][3] += score
-                        users_won[user_name][4] += num_of_reviews
+                        if score != -1:
+                            users_won[user_name][3] += score
+                        if num_of_reviews != -1:
+                            users_won[user_name][4] += num_of_reviews
 
 
     group_average_game_value = group_games_value / group_games_count
@@ -410,9 +422,9 @@ def test():
     #         print message
     #     if group_user.global_won > group_user.global_sent:
     #         print 'User ' + group_user.user_name + ' has negative global gifts ratio'
-    game = GameData('Conarium', 'https://store.steampowered.com/app/313780/Conarium/', 2)
+    game = GameData('Conarium', 'https://store.steampowered.com/app/313780/Conarium/', 20)
     update_game_data(game)
-    MySqlConnector.save_games([game])
+    MySqlConnector.update_existing_games([game])
 
     MySqlConnector.get_game_data('Conarium')
     # try:
@@ -490,9 +502,12 @@ def update_game_data(game):
             try:
                 steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name, game_link)
             except:
+                LogUtils.log_error('Error extracting Steam data for game: ' + game_name + ' at link: ' + game_link)
                 steam_score, num_of_reviews = SteamDBScrapingUtils.get_game_additional_data(game_name, game_link)
             game.steam_score = steam_score
             game.num_of_reviews = num_of_reviews
+            if (not steam_score and not num_of_reviews) or (steam_score == 0 and num_of_reviews == 0):
+                LogUtils.log_error('Enable to extract Steam Score & Number of reviews for: ' + game_name)
         elif game_link.startswith(SteamConsts.STEAM_PACKAGE_LINK):
             chosem_score = -1
             chosen_num_of_reviews = -1
@@ -558,7 +573,7 @@ def update_all_db_groups():
     for group_name, group_url in groups.items():
         if group_name not in empty_groups.keys():
             try:
-                update_existing_group(group_url, start_date=start_date)
+                update_existing_group(group_url, start_date=start_date, update_games=True)
             except Exception as e:
                 LogUtils.log_error('Cannot update data for group: ' + group_url + ' ERROR: ' + str(e))
                 traceback.print_exc()
