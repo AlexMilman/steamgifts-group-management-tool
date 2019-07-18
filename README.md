@@ -2,6 +2,8 @@
 SteamGifts Group Management Tool (SGMT) is designed to give SteamGifts group admins tools needed to automatically manage their groups
 The tool is built to run as a Service, and uses a MySql DB to store all collected data.
 
+This tool is based on <a href="https://github.com/AlexMilman/Python2FullFlaskService">Python2FullFlaskService<a>.
+
 ### Using the tool
 The tool is currently deployed on a web server, and can be accessed through [here](http://www.sgmt.name:8080/SGMT/)
 
@@ -17,13 +19,6 @@ Within a command prompt navigate to the steamgifts-group-management-tool folder 
 ```
 pip install -r requirements.txt
 ``` 
-
-### Running the tool in CLI - Deprecated (use at your own risk)
-Within a command prompt navigate to the steamgifts-group-management-tool folder and run the command
-```
-python SGMTStandalone.py -h
-```
-This will show you a full usage explanation
 
 ### Running the tool as Service
 Within a command prompt navigate to the steamgifts-group-management-tool folder and run the command
