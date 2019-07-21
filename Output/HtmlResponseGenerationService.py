@@ -108,11 +108,12 @@ def generate_group_users_summary_response(group_webpage, total_group_data, users
         if user_entered:
             response += u'Entered: '
             response += u'Number of GAs: ' + float_to_str(user_entered[0]) \
-                        + u', Group-only GAs: ' + float_to_str(user_entered[1]) + u'%' \
-                        + u', Total GAs value: $' + float_to_str(user_entered[2]) \
-                        + u', Average GA value: $' + float_to_str(user_entered[3]) \
-                        + u', Average GA Steam game score: ' + float_to_str(user_entered[4]) \
-                        + u', Average GA Steam number of reviews: ' + float_to_str(user_entered[5]) + u'<BR>'
+                        + u', Chance of winning: ' + float_to_str(user_entered[1]) + u'%' \
+                        + u', Group-only GAs: ' + float_to_str(user_entered[2]) + u'%' \
+                        + u', Total GAs value: $' + float_to_str(user_entered[3]) \
+                        + u', Average GA value: $' + float_to_str(user_entered[4]) \
+                        + u', Average GA Steam game score: ' + float_to_str(user_entered[5]) \
+                        + u', Average GA Steam number of reviews: ' + float_to_str(user_entered[6]) + u'<BR>'
 
         # Number of won GAs, Winning percentage, Total value, Average Value, Average Score, Average Num Of Reviews
         user_won = user_data[2]
@@ -221,11 +222,11 @@ def generate_user_check_rules_response(user, nonactivated, multiple_wins, real_c
 
     if steamgifts_ratio is not None:
         response += u'Won more than sent in SteamGifts:<BR>' \
-                    u'Won: ' + steamgifts_ratio[0] + '<BR>' \
-                    u'Sent: ' + steamgifts_ratio[1] + u'<BR>'
+                    u'Won: ' + str(steamgifts_ratio[0]) + '<BR>' \
+                    u'Sent: ' + str(steamgifts_ratio[1]) + u'<BR>'
         
     if level is not None:
-        response += u'User level is less than ' + level + u'<BR>'
+        response += u'User level is less than ' + str(level) + u'<BR>'
         
     if steamrep is not None:
         response += u'User is not public or banned: ' + linkify(steamrep) + u' ()<BR>'
@@ -289,6 +290,8 @@ def generate_user_link(user):
 
 
 def generate_steam_user_link(steam_id, steam_user_name):
+    if not steam_user_name:
+        steam_user_name = ''
     return '<A HREF=' + SteamConsts.STEAM_PROFILE_LINK + steam_id + '>Steam (' + steam_user_name + ')</A>'
 
 
