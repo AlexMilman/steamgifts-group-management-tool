@@ -170,25 +170,28 @@ def get_group_summary(group_webpage, start_time):
                     if num_of_reviews != -1:
                         users_created[creator][4] += num_of_reviews
 
-            for entry in group_giveaway.entries.values():
+            giveaway_entries = group_giveaway.entries.values()
+            num_of_giveaway_entries = len(giveaway_entries)
+            for entry in giveaway_entries:
                 user_name = entry.user_name
                 if user_name not in all_group_users:
                     continue
                 group_total_entered += 1
                 # Number of entered GAs, Number of Unique GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
                 if user_name not in users_entered:
-                    users_entered[user_name] = [0, 0, 0, 0, 0, 0]
+                    users_entered[user_name] = [0, 0, 0, 0, 0, 0, 0]
                 users_entered[user_name][0] += 1
+                users_entered[user_name][1] += (1.0 / num_of_giveaway_entries)
                 if len(group_giveaway.groups) == 1:
-                    users_entered[user_name][1] += 1
+                    users_entered[user_name][2] += 1
                 if value != -1:
-                    users_entered[user_name][2] += value
+                    users_entered[user_name][3] += value
                 if game_data_available:
-                    users_entered[user_name][3] += 1
+                    users_entered[user_name][4] += 1
                     if score != -1:
-                        users_entered[user_name][4] += score
+                        users_entered[user_name][5] += score
                     if num_of_reviews != -1:
-                        users_entered[user_name][5] += num_of_reviews
+                        users_entered[user_name][6] += num_of_reviews
 
                 if entry.winner:
                     group_total_won += 1
@@ -230,13 +233,14 @@ def get_group_summary(group_webpage, start_time):
     for user in users_entered.keys():
         if user not in users_data:
             users_data[user] = [(),(),()]
-        # Number of entered GAs, Number of Shared GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
+        # Number of entered GAs, Total number of entries in GAs he entered, Number of Shared GAs, Total Value,
+        # Number of GAs with data, Total Score, Total NumOfReviews
         user_data = users_entered[user]
-        # Number of entered GAs, Percentage of unique, Total Value, Average Value, Average Score, Average Num Of Reviews
+        # Number of entered GAs, Chance of winning, Percentage of unique, Total Value, Average Value, Average Score, Average Num Of Reviews
         if user_data[3] > 0:
-            users_data[user][1] = (user_data[0], float(user_data[1]) / user_data[0] * 100, user_data[2], float(user_data[2]) / user_data[0], float(user_data[4]) / user_data[3], float(user_data[5]) / user_data[3])
+            users_data[user][1] = (user_data[0], user_data[1] * 100, float(user_data[2]) / user_data[0] * 100, user_data[3], float(user_data[3]) / user_data[0], float(user_data[5]) / user_data[4], float(user_data[6]) / user_data[4])
         else:
-            users_data[user][1] = (user_data[0], float(user_data[1]) / user_data[0] * 100, user_data[2], float(user_data[2]) / user_data[0], 0, 0)
+            users_data[user][1] = (user_data[0], user_data[1] * 100, float(user_data[2]) / user_data[0] * 100, user_data[3], float(user_data[3]) / user_data[0], 0, 0)
         if user in users_won:
             # Number of won GAs, Total Value, Number of GAs with data, Total Score, Total NumOfReviews
             user_data = users_won[user]
@@ -358,7 +362,6 @@ def user_check_rules(user_name, check_nonactivated=False, check_multiple_wins=Fa
     steamgifts_ratio=None
     level=None
     steamrep=None
-    group_user=None
 
     if check_nonactivated:
         LogUtils.log_info('Checking user ' + user_name + ' for non-activated games')
@@ -375,20 +378,16 @@ def user_check_rules(user_name, check_nonactivated=False, check_multiple_wins=Fa
         if SGToolsScrapingUtils.check_real_cv_RATIO(user_name):
             real_cv_ratio=True
 
-    user_data_loaded = False
-    if check_steamgifts_ratio:
-        LogUtils.log_info('Checking user ' + user_name + ' for SteamGifts Global ratio')
-        global_won, global_sent, level = SteamGiftsScrapingUtils.get_user_contribution_data(user_name)
-        user_data_loaded = True
-        if group_user.global_won > group_user.global_sent:
-            steamgifts_ratio = (str(group_user.global_won), str(group_user.global_sent))
-
-    if check_level and min_level > 0:
-        LogUtils.log_info('Checking user ' + user_name + ' for minimal level')
-        if not user_data_loaded:
-            group_user = SteamGiftsScrapingUtils.get_user_contribution_data(GroupUser(user_name))
-        if group_user.level < float(min_level):
-            level=str(min_level)
+    if check_steamgifts_ratio or (check_level and min_level > 0):
+        global_won, global_sent, user_level = SteamGiftsScrapingUtils.get_user_contribution_data(user_name)
+        if check_steamgifts_ratio:
+            LogUtils.log_info('Checking user ' + user_name + ' for SteamGifts Global ratio')
+            if global_won > global_sent:
+                steamgifts_ratio = (global_won, global_sent)
+        if check_level and min_level > 0:
+            LogUtils.log_info('Checking user ' + user_name + ' for minimal level')
+            if user_level < float(min_level):
+                level = min_level
 
     if check_steamrep:
         LogUtils.log_info('Checking user ' + user_name + ' in SteamRep')

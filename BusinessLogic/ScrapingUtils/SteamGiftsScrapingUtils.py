@@ -65,6 +65,9 @@ def get_user_contribution_data(user_name):
         LogUtils.log_error('Cannot update non-existent user: ' + user_name)
         return None
 
+    global_won = -1
+    global_sent = -1
+    level = -1
     all_rows = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="featured__table__row"]')
     for row_content in all_rows:
         row_title = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__left"]/text()')
