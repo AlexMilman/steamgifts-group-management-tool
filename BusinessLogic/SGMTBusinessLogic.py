@@ -22,7 +22,8 @@ common_cookies = config.get('Web', 'Cookies')
 
 def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_value=0.0, min_num_of_reviews=0, min_score=0,
                   alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0,
-                  alt2_min_value=0.0, alt2_min_num_of_reviews=0, alt2_min_score=0, ignore_inactive_users=False):
+                  alt2_min_value=0.0, alt2_min_num_of_reviews=0, alt2_min_score=0,
+                  min_entries_override=0, ignore_inactive_users=False):
     group = get_group_by_year_month(group_webpage, year_month)
     if not group:
         return None
@@ -51,6 +52,8 @@ def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_valu
             game_name = group_giveaway.game_name
             game_data = MySqlConnector.get_game_data(game_name)
             check_game_data(game_data, game_name)
+            if len(group_giveaway.entries) > min_entries_override > 0:
+                monthly_posters.add(creator)
             if game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score, alt2_min_value, alt2_min_num_of_reviews, alt2_min_score):
                 if group_giveaway.has_winners() and len(group_giveaway.entries) > min_entries:
                     monthly_posters.add(creator)
