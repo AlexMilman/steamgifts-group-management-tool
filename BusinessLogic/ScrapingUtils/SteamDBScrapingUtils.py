@@ -19,5 +19,6 @@ def get_game_additional_data(game_name, game_link):
         positive_score = int(steam_score_positive)
         negative_score = int(steam_score_negative)
         num_of_reviews = positive_score + negative_score
-        steam_score = int(float(positive_score) / num_of_reviews * 100)
+        if num_of_reviews > 0:
+            steam_score = int(float(positive_score) / num_of_reviews * 100)
     return steam_score, num_of_reviews
