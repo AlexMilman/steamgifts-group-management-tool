@@ -248,7 +248,7 @@ def get_group_summary(group_webpage, start_time):
         # Number of entered GAs, Total number of entries in GAs he entered, Number of Shared GAs, Total Value,
         # Number of GAs with data, Total Score, Total NumOfReviews
         user_data = users_entered[user]
-        # Number of entered GAs, Chance of winning, Percentage of unique, Total Value, Average Value, Average Score, Average Num Of Reviews
+        # Number of entered GAs, Probability of winning, Percentage of unique, Total Value, Average Value, Average Score, Average Num Of Reviews
         if user_data[3] > 0:
             users_data[user][1] = (user_data[0], user_data[1] * 100, float(user_data[2]) / user_data[0] * 100, user_data[3], float(user_data[3]) / user_data[0], float(user_data[5]) / user_data[4], float(user_data[6]) / user_data[4])
         else:

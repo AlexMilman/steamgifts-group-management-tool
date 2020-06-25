@@ -126,7 +126,7 @@ def generate_group_users_summary_response(group_webpage, total_group_data, users
         if user_entered:
             response += u'Entered: '
             response += u'Number of GAs: ' + float_to_str(user_entered[0]) \
-                        + u', Chance of winning: ' + float_to_str(user_entered[1]) + u'%' \
+                        + u', Probability of winning: ' + float_to_str(user_entered[1]) + u'%' \
                         + u', Group-only GAs: ' + float_to_str(user_entered[2]) + u'%' \
                         + u', Total GAs value: $' + float_to_str(user_entered[3]) \
                         + u', Average GA value: $' + float_to_str(user_entered[4]) \
