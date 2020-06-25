@@ -71,7 +71,12 @@ def generate_user_full_history_response(created_giveaways, entered_giveaways, ga
         response += u'<A HREF="' + giveaway.link + u'">' + game_name.decode('utf-8') + u'</A>'
         if game_data:
             response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
-        response += u' Ends on: ' + giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
+        response += u' Number of entries: ' + str(len(giveaway.entries)) + ', '
+        if giveaway.end_time > datetime.now():
+            response += u' Ends on: '
+        else:
+            response += u' Ended on: '
+        response += giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
         response += u'<BR>'
     won = 0
     for giveaway in entered_giveaways:
