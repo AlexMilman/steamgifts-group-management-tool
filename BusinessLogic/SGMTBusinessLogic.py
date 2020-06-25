@@ -111,18 +111,16 @@ def get_user_all_giveways(group_webpage, user, start_time):
         return None
     created_giveaways=[]
     entered_giveaways=[]
-    games_list=set()
+    games=dict()
     for group_giveaway in group.group_giveaways.values():
         if not start_time or start_time <= group_giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S'):
             game_name = group_giveaway.game_name
             if group_giveaway.creator == user:
                 created_giveaways.append(group_giveaway)
-                games_list.add(game_name)
+                games[game_name] = MySqlConnector.get_game_data(game_name)
             elif user in group_giveaway.entries.keys():
                 entered_giveaways.append(group_giveaway)
-                games_list.add(game_name)
-
-    games = MySqlConnector.get_existing_games_data(games_list)
+                games[game_name] = MySqlConnector.get_game_data(game_name)
 
     return created_giveaways, entered_giveaways, games
 
