@@ -6,22 +6,40 @@ from datetime import datetime
 from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SGToolsConsts, SteamConsts
 
 
-def generate_invalid_giveaways_response(games, invalid_giveaways):
-    if not invalid_giveaways:
-        return u'<B>No Invalid Giveaways found !</B>'
+def generate_invalid_giveaways_response(games, invalid_giveaways, free_games):
+    response = ''
+    if not invalid_giveaways and not free_games:
+        response += u'<B>No Invalid Giveaways or Free Games found !</B>'
 
-    response = u'<B>Invalid Giveaways:</B>'
-    for user, user_giveaways in invalid_giveaways.iteritems():
-        response += u'<BR>User ' + generate_user_link(user) + ':<BR>'
+    if invalid_giveaways:
+        response += u'<B>Invalid Giveaways:</B>'
+        for user, user_giveaways in invalid_giveaways.iteritems():
+            response += u'<BR>User ' + generate_user_link(user) + ':<BR>'
 
-        for giveaway in sorted(user_giveaways, key=lambda x: x.end_time, reverse=True):
-            game_name = giveaway.game_name
-            game_data = games[game_name]
-            response += u'<A HREF="' + giveaway.link + u'">' + game_name.decode('utf-8') + u'</A>'
-            if game_data:
-                response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
-            response += u' Ends on: ' + giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
-            response += u'<BR>'
+            for giveaway in sorted(user_giveaways, key=lambda x: x.end_time, reverse=True):
+                game_name = giveaway.game_name
+                game_data = games[game_name]
+                response += u'<A HREF="' + giveaway.link + u'">' + game_name.decode('utf-8') + u'</A>'
+                if game_data:
+                    response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
+                response += u' Ends on: ' + giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
+                response += u'<BR>'
+        response += u'<BR><BR>'
+
+    if free_games:
+        response += u'<B>Games given away for free (possibly marked as ** on SteamGifts):</B>'
+        for user, user_giveaways in free_games.iteritems():
+            response += u'<BR>User ' + generate_user_link(user) + ':<BR>'
+
+            for giveaway in sorted(user_giveaways, key=lambda x: x.end_time, reverse=True):
+                game_name = giveaway.game_name
+                game_data = games[game_name]
+                response += u'<A HREF="' + giveaway.link + u'">' + game_name.decode('utf-8') + u'</A>'
+                if game_data:
+                    response += u' (Steam Value: ' + str(game_data.value) + u', Steam Score: ' + str(game_data.steam_score) + u', Num Of Reviews: ' + str(game_data.num_of_reviews) + u')'
+                response += u' Ends on: ' + giveaway.end_time.strftime('%Y-%m-%d %H:%M:%S')
+                response += u'<BR>'
+
     return response
 
 

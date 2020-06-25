@@ -4,6 +4,7 @@ from StringIO import StringIO
 import httplib
 import time
 import urllib2
+import ssl
 
 from lxml import html
 from BusinessLogic.Utils import LogUtils
@@ -75,7 +76,10 @@ def get_page_content(page_url, cookies=None):
     return content
 
 
-def get_https_page_content(page_url):
+def get_https_page_content(page_url, unverified=False):
+    if unverified and getattr(ssl, '_create_unverified_context', None):
+        ssl._create_default_https_context = ssl._create_unverified_context
+
     page_url = page_url.encode('utf-8')
     content = ''
     request = urllib2.Request(page_url, headers={'User-Agent': "Magic Browser"})

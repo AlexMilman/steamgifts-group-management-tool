@@ -5,7 +5,7 @@ import traceback
 from dateutil.relativedelta import relativedelta
 
 from BusinessLogic.ScrapingUtils import SteamGiftsScrapingUtils, SGToolsScrapingUtils, SteamRepScrapingUtils, \
-    SteamScrapingUtils, SteamGiftsConsts, SteamRepConsts, SteamConsts, SteamDBScrapingUtils
+    SteamScrapingUtils, SteamGiftsConsts, SteamRepConsts, SteamConsts, SteamDBScrapingUtils, BarterVGScrapingUtils
 from BusinessLogic.Utils import LogUtils
 from Data.GameData import GameData
 from Data.Group import Group
@@ -72,12 +72,16 @@ def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_valu
 
 
 def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entries=1, min_value=0.0, min_num_of_reviews=0, min_score=0,
-                  alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0):
+                  alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0, free_group_only=False):
     group = MySqlConnector.load_group(group_webpage, limit_by_time=start_date, starts_after_str=start_date)
     if not group:
         return None
+    free_games_list = None
+    if free_group_only:
+        free_games_list = BarterVGScrapingUtils.get_free_games_list()
     users = group.group_users.keys()
     invalid_giveaways = dict()
+    free_games = dict()
     games = dict()
     for group_giveaway in group.group_giveaways.values():
         creator = group_giveaway.creator
@@ -92,8 +96,13 @@ def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entrie
                     invalid_giveaways[creator] = set()
                 invalid_giveaways[creator].add(group_giveaway)
                 games[game_name] = game_data
+            if free_group_only and group_giveaway.game_name in free_games_list and len(group_giveaway.groups) > 1:
+                if creator not in free_games:
+                    free_games[creator] = set()
+                free_games[creator].add(group_giveaway)
+                games[game_name] = game_data
 
-    return invalid_giveaways, games
+    return invalid_giveaways, free_games, games
 
 
 def get_user_all_giveways(group_webpage, user, start_time):
@@ -424,16 +433,18 @@ def test():
     #         print message
     #     if group_user.global_won > group_user.global_sent:
     #         print 'User ' + group_user.user_name + ' has negative global gifts ratio'
-    game = GameData('Conarium', 'https://store.steampowered.com/app/313780/Conarium/', 20)
-    update_game_data(game)
-    MySqlConnector.update_existing_games([game])
-
-    MySqlConnector.get_game_data('Conarium')
+    # game = GameData('Conarium', 'https://store.steampowered.com/app/313780/Conarium/', 20)
+    # update_game_data(game)
+    # MySqlConnector.update_existing_games([game])
+    #
+    # MySqlConnector.get_game_data('Conarium')
     # try:
     #     SteamScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
     # except:
     # SteamDBScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
     # pass
+    free_games = BarterVGScrapingUtils.get_free_games_list()
+    pass
 
 
 def lazy_add_group(group_webpage, cookies):
@@ -500,18 +511,23 @@ def update_game_data(game):
     game_link = game.game_link
     game_name = game.game_name
     try:
+        steam_score = 0
+        num_of_reviews = 0
         if game_link.startswith(SteamConsts.STEAM_GAME_LINK):
             try:
                 steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name, game_link)
             except:
                 LogUtils.log_error('Error extracting Steam data for game: ' + game_name + ' at link: ' + game_link)
-                steam_score, num_of_reviews = SteamDBScrapingUtils.get_game_additional_data(game_name, game_link)
+                try:
+                    steam_score, num_of_reviews = SteamDBScrapingUtils.get_game_additional_data(game_name, game_link)
+                except:
+                    LogUtils.log_error('Error extracting SteamDB data for game: ' + game_name + ' at link: ' + game_link)
             game.steam_score = steam_score
             game.num_of_reviews = num_of_reviews
             if (not steam_score and not num_of_reviews) or (steam_score == 0 and num_of_reviews == 0):
-                LogUtils.log_error('Enable to extract Steam Score & Number of reviews for: ' + game_name)
+                LogUtils.log_error('Unable to extract Steam Score & Number of reviews for: ' + game_name)
         elif game_link.startswith(SteamConsts.STEAM_PACKAGE_LINK):
-            chosem_score = -1
+            chosen_score = -1
             chosen_num_of_reviews = -1
             package_games = SteamScrapingUtils.get_games_from_package(game_name, game_link)
             i = 0
@@ -520,12 +536,15 @@ def update_game_data(game):
                 try:
                     steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(tmp_game_name, package_url)
                 except:
-                    steam_score, num_of_reviews = SteamDBScrapingUtils.get_game_additional_data(tmp_game_name, package_url)
+                    try:
+                        steam_score, num_of_reviews = SteamDBScrapingUtils.get_game_additional_data(tmp_game_name, package_url)
+                    except:
+                        LogUtils.log_warning('Unable to extract Steam Score & Number of reviews for package: ' + package_url)
                 if num_of_reviews > chosen_num_of_reviews:
-                    chosem_score = steam_score
+                    chosen_score = steam_score
                     chosen_num_of_reviews = num_of_reviews
                 i += 1
-            game.steam_score = chosem_score
+            game.steam_score = chosen_score
             game.num_of_reviews = chosen_num_of_reviews
         else:
             LogUtils.log_error('Don\'t know how to handle game: ' + game_name + ' at ' + game_link)
