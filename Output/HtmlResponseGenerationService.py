@@ -182,7 +182,7 @@ def generate_check_monthly_response(group_webpage, users, monthly_posters, month
     if inactive_users:
         response += u'<BR><BR>Users inactive this month (did not enter any GAs):<BR>'
         for user in inactive_users:
-            response += generate_user_link(str(user)) + u'<BR>'
+            response += generate_full_data_link(str(user)) + u'<BR>'
 
     response += u'<BR><BR>Users without monthly giveaways:<BR>'
     response += u'<TABLE style="width:35%">'
