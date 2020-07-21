@@ -158,7 +158,7 @@ def get_year_month():
     response += '<option value="2017">2017</option>'
     response += '<option value="2018">2018</option>'
     response += '<option value="2019">2019</option>'
-    response += '<option value="2020">2019</option>'
+    response += '<option value="2020">2020</option>'
     response += '</select>&nbsp; &nbsp;'
 
     response += 'Month:&nbsp; &nbsp;<select name="month">'
