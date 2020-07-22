@@ -115,7 +115,7 @@ def generate_group_users_summary_response(group_webpage, total_group_data, users
     response += u'<BR><BR>Summaries for all group users:<BR>'
     for user_name in sorted(users_data.keys(), key=lambda x: users_data[x][1], reverse=True):
         user_data = users_data[user_name]
-        response += u'<BR>User <A HREF="' + generate_full_data_link(group_webpage, start_date, user_name) + u'">' + user_name + u'</A>:<BR>'
+        response += u'<BR>User ' + generate_full_data_link(group_webpage, start_date, user_name) + ':<BR>'
         # Number of created GAs, Total Value, Average Value, Average Score, Average NumOfReviews
         user_created = user_data[0]
         if user_created:
@@ -157,10 +157,6 @@ def generate_group_users_summary_response(group_webpage, total_group_data, users
     return response
 
 
-def generate_full_data_link(group_webpage, start_date, user_name):
-    return u'/SGMT/UserFullGiveawaysHistory?group_webpage=' + group_webpage + u'&user=' + user_name + u'&start_date=' + start_date
-
-
 def generate_check_monthly_response(group_webpage, users, monthly_posters, monthly_unfinished, inactive_users, year_month):
     response = u'<style>\
                     th {\
@@ -182,14 +178,14 @@ def generate_check_monthly_response(group_webpage, users, monthly_posters, month
     if inactive_users:
         response += u'<BR><BR>Users inactive this month (did not enter any GAs):<BR>'
         for user in inactive_users:
-            response += generate_full_data_link(str(user)) + u'<BR>'
+            response += generate_full_data_link(group_webpage, '', user) + u'<BR>'
 
     response += u'<BR><BR>Users without monthly giveaways:<BR>'
     response += u'<TABLE style="width:35%">'
     for user, user_data in users.iteritems():
         if user not in monthly_posters and user not in monthly_unfinished.keys() and inactive_users and user not in inactive_users:
             response += u'<TR>'
-            response += u'<TH>' + generate_user_link(str(user)) + u'</TH><TH>' + '<A HREF="' + generate_full_data_link(group_webpage, '', user) + u'">User full GAs list</A></TH><TH>' + generate_steam_user_link(user_data.steam_id, user_data.steam_user_name) + u'</TH>'
+            response += u'<TH>' + generate_user_link(str(user)) + u'</TH><TH>' + generate_full_data_link(group_webpage, '', user, 'User full GAs list') + u'</TH><TH>' + generate_steam_user_link(user_data.steam_id, user_data.steam_user_name) + u'</TH>'
             response += u'</TR>'
     response += u'</TABLE>'
 
@@ -315,7 +311,13 @@ def generate_user_link(user):
 def generate_steam_user_link(steam_id, steam_user_name):
     if not steam_user_name:
         steam_user_name = ''
-    return '<A HREF=' + SteamConsts.STEAM_PROFILE_LINK + steam_id + '>Steam (' + steam_user_name + ')</A>'
+    return u'<A HREF=' + SteamConsts.STEAM_PROFILE_LINK + steam_id + '>Steam (' + steam_user_name + ')</A>'
+
+
+def generate_full_data_link(group_webpage, start_date, user_name, label=None):
+    if not label:
+        label = user_name
+    return u'<A HREF="/SGMT/UserFullGiveawaysHistory?group_webpage=' + group_webpage + u'&user=' + user_name + u'&start_date=' + start_date + u'">' + label + u'</A>'
 
 
 def generate_get_groups_response(empty_groups, groups):
