@@ -60,11 +60,11 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
         group_users_data.append(group_user.user_name)
 
         if group_user.user_name not in users_to_ignore:
-            users_data.append((group_user.user_name, group_user.steam_id, group_user.steam_user_name))
+            users_data.append((group_user.user_name, group_user.steam_id, group_user.steam_user_name, to_mysql_date(group_user.creation_time)))
 
     if users_data:
-        cursor.executemany("INSERT INTO Users (UserName,SteamId,SteamUserName) VALUES (%s, %s, %s)"
-                           " ON DUPLICATE KEY UPDATE UserName=VALUES(UserName),SteamId=VALUES(SteamId),SteamUserName=VALUES(SteamUserName)", users_data)
+        cursor.executemany("INSERT INTO Users (UserName,SteamId,SteamUserName,CreationTime) VALUES (%s, %s, %s)"
+                           " ON DUPLICATE KEY UPDATE UserName=VALUES(UserName),SteamId=VALUES(SteamId),SteamUserName=VALUES(SteamUserName),CreationTime=VALUES(CreationTime)", users_data)
 
     # Insert Group
     group_id_str = "\"" + StringUtils.get_hashed_id(group_website) + "\""
@@ -117,13 +117,10 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, fet
         cursor.execute('SELECT * FROM Users WHERE UserName in (' + parse_list(group_users.keys()) + ')')
         data = cursor.fetchall()
         for row in data:
-            # (group_user.user_name, group_user.steam_id, group_user.steam_user_name)
-            user_name = str(row[0])
-            if user_name not in group_users:
-                group_users[user_name] = GroupUser(user_name)
-            group_users[user_name].steam_id=row[1]
-            if len(row) == 3: # Temporary workaround until the DB is rebuilt.
-                group_users[user_name].steam_user_name=row[2]
+            # (group_user.user_name, group_user.steam_id, group_user.steam_user_name, group_user.creation_time)
+            user_name = row[0]
+            user_data = GroupUser(user_name, steam_id=row[1], steam_user_name=row[2], creation_time=row[3])
+            group_users[user_name] = user_data
 
     # Load Giveaways Data
     group_giveaways = dict()
@@ -227,35 +224,6 @@ def check_existing_users(users_list):
     return existing_users
 
 
-def get_user_data(user_name):
-    group_user = None
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
-    cursor = connection.cursor()
-
-    cursor.execute('SELECT * FROM Users WHERE UserName = "' + user_name + '"')
-    data = cursor.fetchone()
-    if data:
-        # (group_user.user_name, group_user.steam_id, group_user.steam_user_name)
-        group_user = GroupUser(user_name, steam_id=data[1], steam_user_name=data[2])
-
-    cursor.close()
-    connection.close()
-    return group_user
-
-
-def save_user(group_user):
-    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
-    cursor = connection.cursor()
-
-    cursor.execute('INSERT INTO Users (UserName,SteamId,SteamUserName) '
-                   'VALUES ("' + group_user.user_name + '","' + group_user.steam_id + '",' + str(group_user.steam_user_name) + ')')
-
-    connection.commit()  # you need to call commit() method to save your changes to the database
-
-    cursor.close()
-    connection.close()
-
-
 def get_all_users():
     start_time = time.time()
     all_users = []
@@ -285,9 +253,9 @@ def get_users_by_names(user_names):
     cursor.execute('SELECT * FROM Users WHERE UserName IN (' + parse_list(user_names) + ')')
     data = cursor.fetchall()
     for row in data:
-        # (group_user.user_name, group_user.steam_id, group_user.steam_user_name)
+        # (group_user.user_name, group_user.steam_id, group_user.steam_user_name, group_user.creation_time)
         user_name = row[0]
-        user_data = GroupUser(user_name, steam_id=row[1], steam_user_name=row[2])
+        user_data = GroupUser(user_name, steam_id=row[1], steam_user_name=row[2], creation_time=row[3])
         users_data[user_name] = user_data
 
     cursor.close()
@@ -304,9 +272,9 @@ def update_existing_users(users):
 
     users_data = []
     for user_data in users:
-        users_data.append((user_data.steam_id, user_data.steam_user_name, user_data.user_name))
+        users_data.append((user_data.steam_id, user_data.steam_user_name, to_mysql_date(user_data.creation_time), user_data.user_name))
 
-    cursor.executemany("UPDATE Users SET SteamId=%s,SteamUserName=%s WHERE UserName=%s", users_data)
+    cursor.executemany("UPDATE Users SET SteamId=%s,SteamUserName=%s,CreationTime=%s WHERE UserName=%s", users_data)
     connection.commit()  # you need to call commit() method to save your changes to the database
 
     cursor.close()
@@ -481,6 +449,12 @@ def to_epoch(datetime_object):
 def from_epoch(time_in_epoch):
     if time_in_epoch or time_in_epoch == 0:
         return datetime.datetime.utcfromtimestamp(float(time_in_epoch))
+    return None
+
+
+def to_mysql_date(datetime_object):
+    if datetime_object:
+        return datetime_object.strftime(u'%Y-%m-%d %H:%M:%S')
     return None
 
 

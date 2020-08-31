@@ -52,6 +52,15 @@ def update_user_additional_data(user):
         LogUtils.log_error('Cannot update non-existent user: ' + user.user_name)
         return False
     user.steam_id = steam_user.split(SteamConsts.STEAM_PROFILE_LINK)[1]
+
+    user_menu_rows = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="featured__table__row"]')
+    for row_content in user_menu_rows:
+        user_menu_type = WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__left"]/text()')
+        if user_menu_type == 'Registered':
+            data_timestamp = float(WebUtils.get_item_by_xpath(row_content, u'.//div[@class="featured__table__row__right"]/span/@data-timestamp'))
+            user.creation_time = datetime.fromtimestamp(data_timestamp)
+            break
+
     return True
 
 

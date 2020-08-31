@@ -157,7 +157,7 @@ def generate_group_users_summary_response(group_webpage, total_group_data, users
     return response
 
 
-def generate_check_monthly_response(group_webpage, users, monthly_posters, monthly_unfinished, inactive_users, year_month):
+def generate_check_monthly_response(group_webpage, users, monthly_posters, monthly_unfinished, inactive_users, cakeday_users, year_month):
     response = u'<style>\
                     th {\
                         text-align: left;\
@@ -180,10 +180,15 @@ def generate_check_monthly_response(group_webpage, users, monthly_posters, month
         for user in inactive_users:
             response += generate_full_data_link(group_webpage, '', user) + u'<BR>'
 
+    if cakeday_users:
+        response += u'<BR><BR>Users with a cakeday this month (don\'t need to create a monthly giveaway):<BR>'
+        for user in cakeday_users:
+            response += generate_user_link(str(user)) + u'<BR>'
+
     response += u'<BR><BR>Users without monthly giveaways:<BR>'
     response += u'<TABLE style="width:35%">'
     for user, user_data in users.iteritems():
-        if user not in monthly_posters and user not in monthly_unfinished.keys() and inactive_users and user not in inactive_users:
+        if user not in monthly_posters and user not in monthly_unfinished.keys() and (not inactive_users or user not in inactive_users) and (not cakeday_users or user not in cakeday_users):
             response += u'<TR>'
             response += u'<TH>' + generate_user_link(str(user)) + u'</TH><TH>' + generate_full_data_link(group_webpage, '', user, 'User full GAs list') + u'</TH><TH>' + generate_steam_user_link(user_data.steam_id, user_data.steam_user_name) + u'</TH>'
             response += u'</TR>'

@@ -23,16 +23,17 @@ common_cookies = config.get('Web', 'Cookies')
 def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_value=0.0, min_num_of_reviews=0, min_score=0,
                   alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0,
                   alt2_min_value=0.0, alt2_min_num_of_reviews=0, alt2_min_score=0,
-                  min_entries_override=0, ignore_inactive_users=False):
+                  min_entries_override=0, ignore_inactive_users=False, ignore_cakeday_users=False):
     group = get_group_by_year_month(group_webpage, year_month)
     if not group:
         return None
     month = int(year_month.split('-')[1])
-    users = group.group_users.keys()
+    users = group.group_users
     monthly_posters = set()
     monthly_active = set()
     monthly_inactive = None
     monthly_unfinished = dict()
+    cakeday_users = None
     for group_giveaway in group.group_giveaways.values():
         if ignore_inactive_users:
             monthly_active.update([x.user_name for x in group_giveaway.entries.values() if x.entry_time.month == month])
@@ -63,12 +64,12 @@ def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_valu
                     monthly_unfinished[creator].add(group_giveaway)
 
     if ignore_inactive_users:
-        monthly_inactive = [x for x in users if x not in monthly_active]
+        monthly_inactive = [x for x in users.keys() if x not in monthly_active]
 
-    if users:
-        users = MySqlConnector.get_users_by_names(users)
+    if ignore_cakeday_users:
+        cakeday_users = [user for user,data in users.iteritems() if data.creation_time and data.creation_time.month == month]
 
-    return users, monthly_posters, monthly_unfinished, monthly_inactive
+    return users, monthly_posters, monthly_unfinished, monthly_inactive, cakeday_users
 
 
 def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entries=1, min_value=0.0, min_num_of_reviews=0, min_score=0,
@@ -441,9 +442,12 @@ def test():
     # try:
     #     SteamScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
     # except:
-    # SteamDBScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
+    user = GroupUser('a404381120')
+    SteamGiftsScrapingUtils.update_user_additional_data(user)
+    MySqlConnector.update_existing_users([user])
+    MySqlConnector.get_users_by_names(['a404381120'])
     # pass
-    free_games = BarterVGScrapingUtils.get_free_games_list()
+    # free_games = BarterVGScrapingUtils.get_free_games_list()
     pass
 
 
