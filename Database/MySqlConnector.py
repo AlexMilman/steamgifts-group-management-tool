@@ -63,7 +63,7 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
             users_data.append((group_user.user_name, group_user.steam_id, group_user.steam_user_name, to_mysql_date(group_user.creation_time)))
 
     if users_data:
-        cursor.executemany("INSERT INTO Users (UserName,SteamId,SteamUserName,CreationTime) VALUES (%s, %s, %s)"
+        cursor.executemany("INSERT INTO Users (UserName,SteamId,SteamUserName,CreationTime) VALUES (%s, %s, %s, %s)"
                            " ON DUPLICATE KEY UPDATE UserName=VALUES(UserName),SteamId=VALUES(SteamId),SteamUserName=VALUES(SteamUserName),CreationTime=VALUES(CreationTime)", users_data)
 
     # Insert Group
