@@ -31,8 +31,9 @@ def get_item_by_xpath(data, xpath_param, default=None):
         return xpath_value.extract()
 
 
-def get_html_page(page_url, cookies=None, retries=3, https=False):
+def get_html_page(page_url, cookies=None, retries=3, https=False, delay=0):
     while retries > 0:
+        time.sleep(delay)
         try:
             if https:
                 return html.fromstring(get_https_page_content(page_url))

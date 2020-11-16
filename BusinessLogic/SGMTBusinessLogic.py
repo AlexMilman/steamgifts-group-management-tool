@@ -317,7 +317,7 @@ def check_user_first_giveaway(group_webpage, users, addition_date, days_to_creat
                 if user in group_giveaway.entries \
                         and group_giveaway.entries[user].entry_time >= user_added_time \
                         and (user not in user_end_time or group_giveaway.entries[user].entry_time < user_end_time[user])\
-                        and (len(group_giveaway.groups) == 1 or not SteamGiftsScrapingUtils.user_in_group(user, filter(lambda x: x != partial_group_webpage, group_giveaway.groups))):
+                        and (len(group_giveaway.groups) == 1 or not SteamGiftsScrapingUtils.is_user_in_group(user, filter(lambda x: x != partial_group_webpage, group_giveaway.groups))):
                     #TODO: Add "Whitelist detected" warning
                     if user not in user_entered_giveaway:
                         user_entered_giveaway[user] = set()
@@ -442,12 +442,13 @@ def test():
     # try:
     #     SteamScrapingUtils.get_game_additional_data(game.game_name, game.game_link)
     # except:
-    user = GroupUser('a404381120')
-    SteamGiftsScrapingUtils.update_user_additional_data(user)
-    MySqlConnector.update_existing_users([user])
-    MySqlConnector.get_users_by_names(['a404381120'])
+    # user = GroupUser('a404381120')
+    # SteamGiftsScrapingUtils.update_user_additional_data(user)
+    # MySqlConnector.update_existing_users([user])
+    # MySqlConnector.get_users_by_names(['a404381120'])
     # pass
     # free_games = BarterVGScrapingUtils.get_free_games_list()
+    SteamGiftsScrapingUtils.get_group_giveaways("https://www.steamgifts.com/group/6HSPr/qgg-group", "__gads=ID=5dc87d4015cff31b:T=1486315976:S=ALNI_MbsjCesUHx_EnIbaUSsE9BG0dIYng;_ga=GA1.2.1062554528.1469041573; _gid=GA1.2.723800780.1538165878;PHPSESSID=fpp6kcu05kte5pp62daalkctsq403uutdo49tt9p2e5kj8n0n449i3majs8ig0f8cdg2011tch8mm43ltf8brfpu52tgpilau2cik12;_gat=1", dict())
     pass
 
 
@@ -559,6 +560,9 @@ def update_game_data(game):
 
 def update_group_data(group_webpage, cookies, group, force_full_run=False, start_date=None, end_date=None):
     group_users = SteamGiftsScrapingUtils.get_group_users(group_webpage)
+    if not group_users:
+        LogUtils.log_error("group_users is empty")
+        return dict()
     existing_users = MySqlConnector.check_existing_users(group_users.keys())
     for group_user in group_users.values():
         if group_user.user_name not in existing_users:
@@ -569,23 +573,24 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False, start
                 LogUtils.log_error('Cannot add additional data for user: ' + group_user.user_name + ' ERROR: ' + str(e))
                 traceback.print_exc()
 
-    group_giveaways, games = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run=force_full_run, start_date=start_date, end_date=end_date)
-    remove_deleted_giveaways(cookies, group, group_giveaways)
+    group_giveaways, ignored_giveaways, games, reached_threshold = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run=force_full_run, start_date=start_date, end_date=end_date)
+    if not reached_threshold:
+        remove_deleted_giveaways(cookies, group, group_giveaways, ignored_giveaways)
     MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways, group_webpage=group_webpage, cookies=cookies, group_name=group.group_name), existing_users, group)
 
     return games
 
 
-def remove_deleted_giveaways(cookies, group, group_giveaways):
+def remove_deleted_giveaways(cookies, group, updated_group_giveaways, ignored_group_giveaways):
     # If any existing GA is missing from newly parsed data - remove it from group giveaways.
-    giveaways_sorted_by_end_time = sorted(filter(lambda x: x.end_time, group_giveaways.values()), key=lambda x: x.end_time)
+    giveaways_sorted_by_end_time = sorted(filter(lambda x: x.end_time, updated_group_giveaways.values()), key=lambda x: x.end_time)
     if not giveaways_sorted_by_end_time:
         return
     earliest_giveaway_end_time = giveaways_sorted_by_end_time[0].end_time
     for giveaway in sorted(filter(lambda x: x.end_time, group.group_giveaways.values()), key=lambda x: x.end_time, reverse=True):
         if giveaway.end_time < earliest_giveaway_end_time:
             break
-        if giveaway.link not in group_giveaways and not giveaway.has_winners() and SteamGiftsScrapingUtils.is_giveaway_deleted(giveaway.link, cookies):
+        if giveaway.link not in updated_group_giveaways and giveaway.link not in ignored_group_giveaways and not giveaway.has_winners() and SteamGiftsScrapingUtils.is_giveaway_deleted(giveaway.link, cookies):
             LogUtils.log_info('Removing deleted giveaway: ' + giveaway.link)
             group.group_giveaways.pop(giveaway.link, None)
 
@@ -667,10 +672,10 @@ def update_all_db_users_data():
     deleted_users = [user for user in all_users if user.user_name not in all_group_users]
     for user in group_users.values():
         new_user = GroupUser(user.user_name)
-        user_data_updated = SteamGiftsScrapingUtils.update_user_additional_data(new_user)
+        user_data_fetched = SteamGiftsScrapingUtils.update_user_additional_data(new_user)
         if new_user.steam_id:
-            user_data_updated &= SteamScrapingUtils.update_user_additional_data(new_user)
-        if not user_data_updated:
+            user_data_fetched &= SteamScrapingUtils.update_user_additional_data(new_user)
+        if not user_data_fetched:
             deleted_users.append(user)
         elif not user.equals(new_user):
             changed_users.append(new_user)

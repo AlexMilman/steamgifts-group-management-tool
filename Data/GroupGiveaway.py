@@ -34,7 +34,7 @@ class GroupGiveaway(object):
         winners=[]
         for entry in self.entries.values():
             if entry.winner:
-                winners.append(entry)
+                winners.append(entry.user_name)
         return winners
 
     def equals(self, giveaway):
