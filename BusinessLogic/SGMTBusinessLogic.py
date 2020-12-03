@@ -72,8 +72,10 @@ def check_monthly(group_webpage, year_month, min_days=0, min_entries=1, min_valu
     return users, monthly_posters, monthly_unfinished, monthly_inactive, cakeday_users
 
 
-def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entries=1, min_value=0.0, min_num_of_reviews=0, min_score=0,
-                  alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0, free_group_only=False):
+def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entries=1,
+                          min_value=0.0, min_num_of_reviews=0, min_score=0,
+                          alt_min_value=0.0, alt_min_num_of_reviews=0, alt_min_score=0,
+                          alt2_min_value=0.0, alt2_min_num_of_reviews=0, alt2_min_score=0, free_group_only=False):
     group = MySqlConnector.load_group(group_webpage, limit_by_time=start_date, starts_after_str=start_date)
     if not group:
         return None
@@ -90,7 +92,7 @@ def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entrie
             game_name = group_giveaway.game_name
             game_data = MySqlConnector.get_game_data(game_name)
             check_game_data(game_data, game_name)
-            if not game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score)\
+            if not game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score, alt2_min_value, alt2_min_num_of_reviews, alt2_min_score)\
                     or (group_giveaway.end_time - group_giveaway.start_time).days < min_days\
                     or (datetime.datetime.now() > group_giveaway.end_time and len(group_giveaway.entries) < min_entries):
                 if creator not in invalid_giveaways:

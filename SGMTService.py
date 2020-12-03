@@ -98,6 +98,9 @@ def check_all_giveaways():
     alt_min_game_value = get_optional_float_param('alt_min_game_value')
     alt_min_steam_num_of_reviews = get_optional_int_param('alt_min_steam_num_of_reviews')
     alt_min_steam_score = get_optional_int_param('alt_min_steam_score')
+    alt2_min_game_value = get_optional_float_param('alt2_min_game_value')
+    alt2_min_steam_num_of_reviews = get_optional_int_param('alt2_min_steam_num_of_reviews')
+    alt2_min_steam_score = get_optional_int_param('alt2_min_steam_score')
     free_group_only = request.args.get('free_group_only')
 
     if not group_webpage:
@@ -114,11 +117,14 @@ def check_all_giveaways():
                'alt_min_game_value - Alternative minimal game value (in $) allowed<BR>' \
                'alt_min_steam_num_of_reviews - Alternative minimal number of Steam reviews allowed for a game<BR>' \
                'alt_min_steam_score - Alternative Minimal Steam score allowed for a game<BR>' \
+               'alt2_min_game_value - Alternative #2 minimal game value (in $) allowed<BR>' \
+               'alt2_min_steam_num_of_reviews - Alternative #2 minimal number of Steam reviews allowed for a game<BR>' \
+               'alt2_min_steam_score - Alternative #2 Minimal Steam score allowed for a game<BR>' \
                'free_group_only - Limit giveaways of free games to be group-only<BR>' \
                '<BR>' \
                '<A HREF="/SGMT/CheckAllGiveawaysAccordingToRules?group_webpage=https://www.steamgifts.com/group/6HSPr/qgg-group&start_date=2017-11-01&min_days=3&min_game_value=9.95&min_steam_num_of_reviews=100&min_steam_score=80">Request Example</A>'
 
-    invalid_giveaways, free_games, games = SGMTBusinessLogic.check_giveaways_valid(group_webpage, start_date, min_days, min_entries, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, free_group_only)
+    invalid_giveaways, free_games, games = SGMTBusinessLogic.check_giveaways_valid(group_webpage, start_date, min_days, min_entries, min_game_value, min_steam_num_of_reviews, min_steam_score, alt_min_game_value, alt_min_steam_num_of_reviews, alt_min_steam_score, alt2_min_game_value, alt2_min_steam_num_of_reviews, alt2_min_steam_score, free_group_only)
     response = HtmlResponseGenerationService.generate_invalid_giveaways_response(games, invalid_giveaways, free_games)
     return response
 
