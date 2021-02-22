@@ -174,11 +174,10 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
                     continue
 
             giveaway_entries=dict()
-            entries_content=None
-            if not existing_giveaway or len(existing_giveaway.entries) != int(num_of_entries.replace(',','')) or existing_giveaway.get_winners() != winners:
+            if not giveaway_not_started_yet and \
+                    (not existing_giveaway or len(existing_giveaway.entries) != int(num_of_entries.replace(',','')) or existing_giveaway.get_winners() != winners):
                 giveaway_entries_link = SteamGiftsConsts.get_giveaway_entries_link(partial_giveaway_link)
-                if not giveaway_not_started_yet:
-                    entries_content = WebUtils.get_html_page(giveaway_entries_link, cookies=cookies, delay=delay_time)
+                entries_content = WebUtils.get_html_page(giveaway_entries_link, cookies=cookies, delay=delay_time)
                 if entries_content is not None:
                     error_message = WebUtils.get_item_by_xpath(entries_content, u'.//div[@class="page__heading__breadcrumbs"]/text()')
                     if not error_message or error_message != 'Error':
