@@ -600,6 +600,7 @@ def remove_deleted_giveaways(cookies, group, updated_group_giveaways, ignored_gr
 def update_all_db_groups():
     #Load list of all groups from DB
     groups, empty_groups = get_groups()
+    LogUtils.log_info("Updating groups: " + str(groups.keys()))
     #For each existing group, run: update_group_data from last 2 months
     start_date = (datetime.datetime.now() - relativedelta(months=1)).replace(day=1).strftime('%Y-%m-%d')
     for group_name, group_url in groups.items():
