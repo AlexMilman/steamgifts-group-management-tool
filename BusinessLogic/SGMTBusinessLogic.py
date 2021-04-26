@@ -654,7 +654,9 @@ def get_game_giveaways(group_webpage, game_name, start_time):
     all_game_giveaways = dict()
     for group_giveaway in group.group_giveaways.values():
         group_game_name = group_giveaway.game_name.decode('utf-8')
-        if group_game_name.lower() in game_name.lower() or game_name.lower() in group_game_name.lower():
+        if not group_game_name:
+            LogUtils.log_info("Invalid game name: " + group_giveaway.link)
+        if group_game_name and (group_game_name.lower() in game_name.lower() or game_name.lower() in group_game_name.lower()):
             giveaway_entries = group_giveaway.entries.values()
             all_game_giveaways[group_giveaway] = len([entry for entry in giveaway_entries if entry.user_name in group_users])
 
