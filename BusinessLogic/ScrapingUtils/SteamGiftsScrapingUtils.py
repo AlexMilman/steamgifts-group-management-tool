@@ -118,7 +118,9 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
             partial_giveaway_link = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/@href')
             giveaway_link = SteamGiftsConsts.get_giveaway_link(partial_giveaway_link)
             LogUtils.log_info('Starting to process ' + giveaway_link)
-            game_name = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/text()', default='').encode('utf-8')
+            game_name = extract_game_name(giveaway_elem)
+            if not game_name:
+                continue
             winners = get_and_encode_list(giveaway_elem, u'.//div[@class="giveaway__column--positive"]/a/text()')
             poster = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__username"]/text()').encode('utf-8')
             num_of_entries = WebUtils.get_items_by_xpath(giveaway_elem, u'.//div[@class="giveaway__links"]/a/span/text()')[0].split(" ")[0]
@@ -252,6 +254,13 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
 
     LogUtils.log_info('Finished processing giveaways for group ' + group_webpage)
     return group_giveaways, ignored_giveaways, games, reached_threshold
+
+
+def extract_game_name(giveaway_elem):
+    game_name = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/text()', default='').encode('utf-8')
+    if not game_name:
+        game_name = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/text()', default='').decode('utf-8','ignore').encode("utf-8")
+    return game_name
 
 
 def get_and_encode_list(element, xpath):
