@@ -71,7 +71,14 @@ def get_game_additional_data(game_name, game_link):
     if base_game_link is not None:
         # If this is DLC - get additional data according to base game
         html_content = WebUtils.get_html_page(base_game_link, "birthtime=-7199; lastagecheckage=1-January-1970; mature_content=1;")
-    steam_game_tooltip = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="user_reviews_summary_row"][@id!="appReviewsRecent_responsive"]/@data-tooltip-html')[-1]
+    steam_game_tooltip = None
+    steam_game_tooltip_list = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="user_reviews_summary_row"]/@data-tooltip-html')
+    if len(steam_game_tooltip_list) == 1:
+        steam_game_tooltip = steam_game_tooltip_list[0]
+    elif len(steam_game_tooltip_list) == 3:
+        steam_game_tooltip = steam_game_tooltip_list[1]
+    elif len(steam_game_tooltip_list) > 0:
+        LogUtils.log_error('Invalid tooltips: \n' + str(steam_game_tooltip_list))
     if steam_game_tooltip != 'Need more user reviews to generate a score' and steam_game_tooltip != 'No user reviews':
         steam_score = StringUtils.normalize_int(steam_game_tooltip.split('%')[0])
         num_of_reviews = StringUtils.normalize_int(steam_game_tooltip.split('of the')[1].split('user reviews')[0])
