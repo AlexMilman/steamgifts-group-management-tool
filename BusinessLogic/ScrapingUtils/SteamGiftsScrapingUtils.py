@@ -260,6 +260,7 @@ def extract_game_name(giveaway_elem):
     game_name = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/text()', default='').encode('utf-8')
     if not game_name:
         game_name = WebUtils.get_item_by_xpath(giveaway_elem, u'.//a[@class="giveaway__heading__name"]/text()', default='').decode('utf-8','ignore').encode("utf-8")
+    game_name.replace('"', '\"')
     return game_name
 
 
