@@ -227,8 +227,8 @@ def get_group_summary(group_webpage, start_time):
     group_average_game_value = group_games_value / group_games_count
     group_average_game_score = group_games_total_score / (group_games_count - group_games_without_data)
     group_average_game_num_of_reviews = group_games_total_num_of_reviews / (group_games_count - group_games_without_data)
-    # Total Games Value, Average games value, Average Game Score, Average Game NumOfReviews, Average number of entered per game, Average number of created per user, Average number of entrered per user, Average number of won per user
-    total_group_data = (group_games_value, group_average_game_value, group_average_game_score, group_average_game_num_of_reviews, group_total_entered / group_games_count, float(group_games_count) / len(all_group_users), group_total_entered / len(all_group_users), group_total_won / len(all_group_users))
+    # Total Giveaways Count, Total Games Value, Average games value, Average Game Score, Average Game NumOfReviews, Average number of entered per game, Average number of created per user, Average number of entrered per user, Average number of won per user
+    total_group_data = (group_games_count, group_games_value, group_average_game_value, group_average_game_score, group_average_game_num_of_reviews, group_total_entered / group_games_count, float(group_games_count) / len(all_group_users), group_total_entered / len(all_group_users), group_total_won / len(all_group_users))
 
     # Number of created GAs, Total Value, Average Value, Average Score, Average NumOfReviews
     # Number of entered GAs, Percentage of unique, Average Value, Average Score, Average Num Of Reviews
@@ -252,7 +252,7 @@ def get_group_summary(group_webpage, start_time):
         # Number of GAs with data, Total Score, Total NumOfReviews
         user_data = users_entered[user]
         # Number of entered GAs, Probability of winning, Percentage of unique, Total Value, Average Value, Average Score, Average Num Of Reviews
-        if user_data[3] > 0:
+        if user_data[3] > 0 and user_data[4] > 0:
             users_data[user][1] = (user_data[0], user_data[1] * 100, float(user_data[2]) / user_data[0] * 100, user_data[3], float(user_data[3]) / user_data[0], float(user_data[5]) / user_data[4], float(user_data[6]) / user_data[4])
         else:
             users_data[user][1] = (user_data[0], user_data[1] * 100, float(user_data[2]) / user_data[0] * 100, user_data[3], float(user_data[3]) / user_data[0], 0, 0)
@@ -523,12 +523,14 @@ def update_game_data(game):
         if game_link.startswith(SteamConsts.STEAM_GAME_LINK):
             try:
                 steam_score, num_of_reviews = SteamScrapingUtils.get_game_additional_data(game_name, game_link)
-            except:
+            except Exception as e:
                 LogUtils.log_error('Error extracting Steam data for game: ' + game_name + ' at link: ' + game_link)
+                LogUtils.log_error("Exception: " + str(e))
                 try:
                     steam_score, num_of_reviews = SteamDBScrapingUtils.get_game_additional_data(game_name, game_link)
-                except:
+                except Exception as e:
                     LogUtils.log_error('Error extracting SteamDB data for game: ' + game_name + ' at link: ' + game_link)
+                    LogUtils.log_error("Exception: " + str(e))
             game.steam_score = steam_score
             game.num_of_reviews = num_of_reviews
             if (not steam_score and not num_of_reviews) or (steam_score == 0 and num_of_reviews == 0):
