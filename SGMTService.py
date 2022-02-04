@@ -161,8 +161,8 @@ def user_check_first_giveaway():
                '<B>Params:</B><BR> ' \
                'group_webpage - SteamGifts group webpage<BR>' \
                'users - A list of SteamGifts users (seperated by commas) <BR>' \
-               '<B>Optional Params:</B> <BR>' \
                'addition_date=YYYY-MM-DD - The date from which the user was added to the group <BR>' \
+               '<B>Optional Params:</B> <BR>' \
                'days_to_create_ga - Within how many days of entering the group should the first GA be created<BR>' \
                'min_entries - Minimum number of entries when GA ends<BR>' \
                'min_ga_time - Minimum number of days of a GA to run<BR>' \
