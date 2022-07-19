@@ -435,7 +435,7 @@ def parse_list(list, prefix=''):
     if not list or len(list) == 0:
         return '""'
     for item in list:
-        result += '"' + prefix + item + '",'
+        result += '"' + prefix + item.replace('"', '\\"') + '",'
 
     return result[:-1]
 
