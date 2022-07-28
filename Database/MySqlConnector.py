@@ -430,16 +430,17 @@ def get_all_empty_groups():
     return groups
 
 
-def update_bundled_games(bundled_games):
+def overwrite_bundled_games(bundled_games):
     start_time = time.time()
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
     bundled_games_data = []
     for bundled_game in bundled_games:
-        bundled_games_data.append((bundled_game.game_name, bundled_game.package_id, bundled_game.was_bundled, bundled_game.was_free, bundled_game.app_id))
+        bundled_games_data.append((bundled_game.app_id, bundled_game.game_name, bundled_game.package_id, bundled_game.was_bundled, bundled_game.was_free))
 
-    cursor.executemany("UPDATE BundledGames SET GameName=%s,PackageId=%s,WasBundled=%s,WasFree=%s WHERE AppId=%s", bundled_games_data)
+    cursor.execute("TRUNCATE TABLE BundledGames")
+    cursor.executemany("INSERT INTO BundledGames (AppId,GameName,PackageId,WasBundled,WasFree) VALUES (%s, %s, %s, %s, %s)", bundled_games_data)
     connection.commit()  # you need to call commit() method to save your changes to the database
 
     cursor.close()

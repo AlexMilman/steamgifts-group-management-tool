@@ -719,7 +719,7 @@ def update_bundled_games_data():
     bundled_games_data = SteamGiftsScrapingUtils.get_bundled_games_data()
 
     if bundled_games_data:
-        MySqlConnector.update_bundled_games(bundled_games_data)
+        MySqlConnector.overwrite_bundled_games(bundled_games_data)
 
 
 def get_group_by_year_month(group_webpage, year_month):
