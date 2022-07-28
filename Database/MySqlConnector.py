@@ -454,7 +454,7 @@ def get_free_games():
     cursor = connection.cursor()
 
     free_games = list()
-    cursor.execute("SELECT GameName FROM BundledGames WHERE WasFree = true and AppId <> null")
+    cursor.execute('SELECT GameName FROM BundledGames WHERE WasFree = true and AppId <> "null"')
     data = cursor.fetchall()
     for row in data:
         free_games.append(row[0])
