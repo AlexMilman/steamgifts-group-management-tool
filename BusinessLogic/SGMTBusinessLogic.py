@@ -98,8 +98,8 @@ def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entrie
         if creator in users:
             game_name = group_giveaway.game_name
             if game_name not in games:
-                if game_name.encode('utf-8') in games:
-                    games[game_name] = games[game_name.encode('utf-8')]
+                if game_name.decode('utf-8') in games:
+                    games[game_name] = games[game_name.decode('utf-8')]
                 else:
                     LogUtils.log_warning('Game ' + str(game_name) + ' was not found in loaded games')
                     games[game_name] = MySqlConnector.get_game_data(game_name)
