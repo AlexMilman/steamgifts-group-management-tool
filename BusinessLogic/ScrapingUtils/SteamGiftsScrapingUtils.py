@@ -267,8 +267,8 @@ def get_bundled_games_data():
         LogUtils.log_info('Processing bundled games page #' + str(page_index))
         bundled_games = steamgifts_bundled_games_response['results']
         for bundled_game in bundled_games:
-            if bundled_game['app_id']:
-                bundled_games_data.append(BundledGame(bundled_game['app_id'], bundled_game['name'], bundled_game['reduced_value_timestamp'], bundled_game['no_value_timestamp']))
+            if bundled_game['reduced_value_timestamp'] or bundled_game['no_value_timestamp'] :
+                bundled_games_data.append(BundledGame(bundled_game['app_id'], bundled_game['bundle_id'], bundled_game['name'], bundled_game['reduced_value_timestamp'], bundled_game['no_value_timestamp']))
         page_index += 1
         steamgifts_bundled_games_response = json.loads(WebUtils.get_page_content(SteamGiftsConsts.STEAMGIFTS_BUNDLED_GAMES_LINK + SteamGiftsConsts.STEAMGIFTS_BUNDLED_GAMES_PAGE + str(page_index), delay=delay_time))
 

@@ -100,13 +100,11 @@ DROP TABLE IF EXISTS `BundledGames`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `BundledGames` (
-  `AppId` varchar(16) NOT NULL,
+  `AppId` varchar(16) DEFAULT NULL,
+  `BundleId` varchar(16) DEFAULT NULL,
   `GameName` varchar(128) DEFAULT NULL,
-  `WasBundled` boolean DEFAULT TRUE,
-  `WasFree` boolean DEFAULT FALSE,
-
-  PRIMARY KEY (`AppId`),
-  UNIQUE KEY `GameName_UNIQUE` (`AppId`)
+  `WasBundled` boolean DEFAULT NULL,
+  `WasFree` boolean DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
