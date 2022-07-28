@@ -102,7 +102,6 @@ DROP TABLE IF EXISTS `BundledGames`;
 CREATE TABLE `BundledGames` (
   `AppId` varchar(16) NOT NULL,
   `GameName` varchar(128) DEFAULT NULL,
-  `PackageId` varchar(16) DEFAULT NULL,
   `WasBundled` boolean DEFAULT TRUE,
   `WasFree` boolean DEFAULT FALSE,
 

@@ -437,15 +437,15 @@ def overwrite_bundled_games(bundled_games):
 
     bundled_games_data = []
     for bundled_game in bundled_games:
-        bundled_games_data.append((bundled_game.app_id, bundled_game.game_name, bundled_game.package_id, bundled_game.was_bundled, bundled_game.was_free))
+        bundled_games_data.append((bundled_game.app_id, bundled_game.game_name, bundled_game.was_bundled, bundled_game.was_free))
 
     cursor.execute("TRUNCATE TABLE BundledGames")
-    cursor.executemany("INSERT INTO BundledGames (AppId,GameName,PackageId,WasBundled,WasFree) VALUES (%s, %s, %s, %s, %s)", bundled_games_data)
+    cursor.executemany("INSERT INTO BundledGames (AppId,GameName,WasBundled,WasFree) VALUES (%s, %s, %s, %s, %s)", bundled_games_data)
     connection.commit()  # you need to call commit() method to save your changes to the database
 
     cursor.close()
     connection.close()
-    LogUtils.log_info('Update bundled games for ' + str(len(bundled_games)) + ' games took ' + str(time.time() - start_time) + ' seconds')
+    LogUtils.log_info('Rewriting bundled games for ' + str(len(bundled_games)) + ' games took ' + str(time.time() - start_time) + ' seconds')
 
 
 def parse_list(list, prefix=''):
