@@ -79,18 +79,25 @@ def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entrie
     group = MySqlConnector.load_group(group_webpage, limit_by_time=start_date, starts_after_str=start_date)
     if not group:
         return None
-    free_games_list = None
-    if free_group_only:
-        free_games_list = MySqlConnector.get_free_games()
-    users = group.group_users.keys()
+    free_games_list = []
     invalid_giveaways = dict()
     free_games = dict()
-    games = dict()
+    games_to_load = []
+    users = group.group_users.keys()
+
+    if free_group_only:
+        free_games_list = MySqlConnector.get_free_games()
+
+    for group_giveaway in group.group_giveaways.values():
+        if group_giveaway.creator in users:
+            games_to_load.append(group_giveaway.game_name)
+    games = MySqlConnector.get_existing_games_data(games_to_load)
+
     for group_giveaway in group.group_giveaways.values():
         creator = group_giveaway.creator
         if creator in users:
             game_name = group_giveaway.game_name
-            game_data = MySqlConnector.get_game_data(game_name)
+            game_data = games[game_name]
             check_game_data(game_data, game_name)
             if not game_is_according_to_requirements(game_data, min_value, min_num_of_reviews, min_score, alt_min_value, alt_min_num_of_reviews, alt_min_score, alt2_min_value, alt2_min_num_of_reviews, alt2_min_score)\
                     or (group_giveaway.end_time - group_giveaway.start_time).days < min_days\
@@ -98,12 +105,10 @@ def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entrie
                 if creator not in invalid_giveaways:
                     invalid_giveaways[creator] = set()
                 invalid_giveaways[creator].add(group_giveaway)
-                games[game_name] = game_data
             if free_group_only and group_giveaway.game_name in free_games_list and len(group_giveaway.groups) > 1:
                 if creator not in free_games:
                     free_games[creator] = set()
                 free_games[creator].add(group_giveaway)
-                games[game_name] = game_data
 
     return invalid_giveaways, free_games, games
 
