@@ -57,6 +57,8 @@ def generate_check_all_giveaways_ui(groups):
     response += get_start_date()
     response += get_min_entries()
     response += get_min_days_with_game_stats()
+    response += '<input type="checkbox" name="free_group_only" value="false">Check user did not create free group-only giveaways<BR>'
+
     response += get_footer('Check Giveaways')
     return response
 
