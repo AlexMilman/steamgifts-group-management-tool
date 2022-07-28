@@ -434,7 +434,7 @@ def update_all_users():
 
 
 @app.route('/SGMT-Admin/UpdateBundledGames', methods=['GET'])
-def update_all_games():
+def update_bundled_games():
     start_time = time.time()
     SGMTBusinessLogic.update_bundled_games_data()
     LogUtils.log_info('UpdateBundledGames took ' + str(time.time() - start_time) +  ' seconds')
