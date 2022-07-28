@@ -92,6 +92,25 @@ CREATE TABLE `Users` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
+--
+-- Table structure for table `BundledGames`
+--
+
+DROP TABLE IF EXISTS `BundledGames`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `BundledGames` (
+  `AppId` varchar(16) NOT NULL,
+  `GameName` varchar(128) DEFAULT NULL,
+  `PackageId` varchar(16) DEFAULT NULL,
+  `WasBundled` boolean DEFAULT TRUE,
+  `WasFree` boolean DEFAULT FALSE,
+
+  PRIMARY KEY (`AppId`),
+  UNIQUE KEY `GameName_UNIQUE` (`AppId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
 /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;

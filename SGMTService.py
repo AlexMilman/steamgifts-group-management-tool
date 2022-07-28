@@ -433,6 +433,15 @@ def update_all_users():
     return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
 
 
+@app.route('/SGMT-Admin/UpdateBundledGames', methods=['GET'])
+def update_all_games():
+    start_time = time.time()
+    SGMTBusinessLogic.update_bundled_games_data()
+    LogUtils.log_info('UpdateBundledGames took ' + str(time.time() - start_time) +  ' seconds')
+    return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
+
+
+
 @app.route('/SGMT-Admin/GroupUsersCheckRules', methods=['GET'])
 def group_users_check_rules():
     group_webpage = request.args.get('group_webpage')

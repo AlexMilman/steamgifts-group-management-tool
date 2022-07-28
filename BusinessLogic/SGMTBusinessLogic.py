@@ -450,7 +450,7 @@ def test():
     # MySqlConnector.get_users_by_names(['a404381120'])
     # pass
     # free_games = BarterVGScrapingUtils.get_free_games_list()
-    SteamGiftsScrapingUtils.get_group_giveaways("https://www.steamgifts.com/group/6HSPr/qgg-group", "__gads=ID=5dc87d4015cff31b:T=1486315976:S=ALNI_MbsjCesUHx_EnIbaUSsE9BG0dIYng;_ga=GA1.2.1062554528.1469041573; _gid=GA1.2.723800780.1538165878;PHPSESSID=fpp6kcu05kte5pp62daalkctsq403uutdo49tt9p2e5kj8n0n449i3majs8ig0f8cdg2011tch8mm43ltf8brfpu52tgpilau2cik12;_gat=1", dict())
+    SteamGiftsScrapingUtils.get_group_giveaways("https://www.steamgifts.com/group/h1441/qgg-companion-group", "_ga=GA1.2.2030495629.1584053874; __qca=P0-1161601042-1638994062738; _gid=GA1.2.330070482.1655743244; __gads=ID=b71d92a741f24267:T=1655743245:S=ALNI_MYfi4hLpBw_rgssD43S41LALYTBSQ; __gpi=UID=00000355be47fc49:T=1648924086:RT=1655743245:S=ALNI_MaJfOgTTvEPmzIvkrkNA8QDs7yj4A; PHPSESSID=0ho3kl39mvj11k967u5r87v4v40map7hmg20gab3ctf34puu; _gat_gtag_UA_3791796_9=1", dict())
     pass
 
 
@@ -713,6 +713,13 @@ def update_all_db_games_data():
     # Delete from DB Games with no available data
     if removed_games:
         MySqlConnector.remove_games(removed_games)
+
+
+def update_bundled_games_data():
+    bundled_games_data = SteamGiftsScrapingUtils.get_bundled_games_data()
+
+    if bundled_games_data:
+        MySqlConnector.update_bundled_games(bundled_games_data)
 
 
 def get_group_by_year_month(group_webpage, year_month):

@@ -7,6 +7,8 @@ STEAMGIFTS_SEARCH_QUERY = '/search?q='
 STEAMGIFTS_USER_LINK = 'https://www.steamgifts.com/user/'
 STEAMGIFTS_GIVEAWAY_LINK = 'https://www.steamgifts.com/giveaway/'
 STEAMGIFTS_LINK = 'https://www.steamgifts.com'
+STEAMGIFTS_BUNDLED_GAMES_LINK = 'https://www.steamgifts.com/bundle-games?format=json'
+STEAMGIFTS_BUNDLED_GAMES_PAGE = '&page='
 
 
 def get_steamgifts_users_page(group_webpage):

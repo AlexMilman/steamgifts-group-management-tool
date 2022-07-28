@@ -1,9 +1,11 @@
 from datetime import datetime
 import requests
 import ConfigParser
+import json
 
 from BusinessLogic.ScrapingUtils import SteamGiftsConsts, SteamConsts
 from BusinessLogic.Utils import StringUtils, WebUtils, LogUtils
+from Data.BundledGame import BundledGame
 from Data.GameData import GameData
 from Data.GiveawayEntry import GiveawayEntry
 from Data.GroupGiveaway import GroupGiveaway
@@ -16,6 +18,7 @@ config = ConfigParser.ConfigParser()
 config.read('application.config')
 delay_time = float(config.get('Web', 'Delay'))
 failures_threshold = int(config.get('Web', 'FailuresThreshold'))
+
 
 def get_group_users(group_webpage):
     LogUtils.log_info('Processing users for group ' + group_webpage)
@@ -254,6 +257,20 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
 
     LogUtils.log_info('Finished processing giveaways for group ' + group_webpage)
     return group_giveaways, ignored_giveaways, games, reached_threshold
+
+
+def get_bundled_games_data():
+    bundled_games_data = []
+    page = 1
+    steamgifts_bundled_games_response = json.loads(WebUtils.get_page_content(SteamGiftsConsts.STEAMGIFTS_BUNDLED_GAMES_LINK))
+    while steamgifts_bundled_games_response['success'] and steamgifts_bundled_games_response['results']:
+        bundled_games = steamgifts_bundled_games_response
+        for bundled_game in bundled_games:
+            bundled_games_data.append(BundledGame(bundled_game['app_id'], bundled_game['name'], bundled_game['package_id'], bundled_game['reduced_value_timestamp'], bundled_game['no_value_timestamp']))
+        page += 1
+        steamgifts_bundled_games_response = json.loads(WebUtils.get_page_content(SteamGiftsConsts.STEAMGIFTS_BUNDLED_GAMES_LINK + SteamGiftsConsts.STEAMGIFTS_BUNDLED_GAMES_PAGE + str(page)))
+
+    return bundled_games_data
 
 
 def extract_game_name(giveaway_elem):
