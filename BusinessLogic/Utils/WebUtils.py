@@ -33,12 +33,11 @@ def get_item_by_xpath(data, xpath_param, default=None):
 
 def get_html_page(page_url, cookies=None, retries=3, https=False, delay=0):
     while retries > 0:
-        time.sleep(delay)
         try:
             if https:
                 return html.fromstring(get_https_page_content(page_url))
             else:
-                return html.fromstring(get_page_content(page_url, cookies))
+                return html.fromstring(get_page_content(page_url, cookies, delay))
         except Exception as e:
             if retries > 0:
                 LogUtils.log_error('Error downloading page ' + page_url + '. ' + str(retries) + ' retries left. retyring...')
@@ -51,7 +50,8 @@ def get_html_page(page_url, cookies=None, retries=3, https=False, delay=0):
     return None
 
 
-def get_page_content(page_url, cookies=None):
+def get_page_content(page_url, cookies=None, delay=0):
+    time.sleep(delay)
     page_url = page_url.encode('utf-8')
     content = ""
     opener = urllib2.build_opener()
