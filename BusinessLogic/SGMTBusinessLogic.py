@@ -99,7 +99,7 @@ def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entrie
             game_name = group_giveaway.game_name
             if game_name not in games:
                 if game_name.decode('utf-8') in games:
-                    LogUtils.log_warning('Game ' + str(game_name) + ' was not found in loaded games, but ' + game_name.decode('utf-8') + ' was. Using it instead')
+                    LogUtils.log_warning('Game ' + str(game_name) + ' was not found in loaded games, but ' + str(game_name.decode('utf-8')) + ' was. Using it instead')
                     games[game_name] = games[game_name.decode('utf-8')]
                 else:
                     LogUtils.log_warning('Game ' + str(game_name) + ' was not found in loaded games')
