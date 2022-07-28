@@ -261,14 +261,15 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
 
 def get_bundled_games_data():
     bundled_games_data = []
-    page = 1
-    steamgifts_bundled_games_response = json.loads(WebUtils.get_page_content(SteamGiftsConsts.STEAMGIFTS_BUNDLED_GAMES_LINK))
+    page_index = 1
+    steamgifts_bundled_games_response = json.loads(WebUtils.get_page_content(SteamGiftsConsts.STEAMGIFTS_BUNDLED_GAMES_LINK, delay=delay_time))
     while steamgifts_bundled_games_response['success'] and steamgifts_bundled_games_response['results']:
-        bundled_games = steamgifts_bundled_games_response
+        LogUtils.log_info('Processing bundled games page #' + str(page_index))
+        bundled_games = steamgifts_bundled_games_response['results']
         for bundled_game in bundled_games:
             bundled_games_data.append(BundledGame(bundled_game['app_id'], bundled_game['name'], bundled_game['package_id'], bundled_game['reduced_value_timestamp'], bundled_game['no_value_timestamp']))
-        page += 1
-        steamgifts_bundled_games_response = json.loads(WebUtils.get_page_content(SteamGiftsConsts.STEAMGIFTS_BUNDLED_GAMES_LINK + SteamGiftsConsts.STEAMGIFTS_BUNDLED_GAMES_PAGE + str(page)))
+        page_index += 1
+        steamgifts_bundled_games_response = json.loads(WebUtils.get_page_content(SteamGiftsConsts.STEAMGIFTS_BUNDLED_GAMES_LINK + SteamGiftsConsts.STEAMGIFTS_BUNDLED_GAMES_PAGE + str(page_index), delay=delay_time))
 
     return bundled_games_data
 
