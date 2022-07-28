@@ -27,7 +27,7 @@ def generate_invalid_giveaways_response(games, invalid_giveaways, free_games):
         response += u'<BR><BR>'
 
     if free_games:
-        response += u'<B>Games given away for free (possibly marked as ** on SteamGifts):</B>'
+        response += u'<B>Games given away for free (marked as ** on SteamGifts):</B>'
         for user, user_giveaways in free_games.iteritems():
             response += u'<BR>User ' + generate_user_link(user) + ':<BR>'
 

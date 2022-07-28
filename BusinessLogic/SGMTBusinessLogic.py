@@ -81,7 +81,7 @@ def check_giveaways_valid(group_webpage, start_date=None, min_days=0, min_entrie
         return None
     free_games_list = None
     if free_group_only:
-        free_games_list = BarterVGScrapingUtils.get_free_games_list()
+        free_games_list = MySqlConnector.get_free_games()
     users = group.group_users.keys()
     invalid_giveaways = dict()
     free_games = dict()

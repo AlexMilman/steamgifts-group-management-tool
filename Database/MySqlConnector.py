@@ -448,6 +448,24 @@ def overwrite_bundled_games(bundled_games):
     LogUtils.log_info('Rewriting bundled games for ' + str(len(bundled_games)) + ' games took ' + str(time.time() - start_time) + ' seconds')
 
 
+def get_free_games():
+    start_time = time.time()
+    connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
+    cursor = connection.cursor()
+
+    free_games = list()
+    cursor.execute("SELECT GameName FROM BundledGames WHERE WasFree = true")
+    data = cursor.fetchall()
+    for row in data:
+        free_games.append(row[0])
+
+    cursor.close()
+    connection.close()
+
+    LogUtils.log_info('Get free games took ' + str(time.time() - start_time) + ' seconds')
+    return free_games
+
+
 def parse_list(list, prefix=''):
     result = ''
     if not list or len(list) == 0:

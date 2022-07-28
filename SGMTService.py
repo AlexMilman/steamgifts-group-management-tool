@@ -412,6 +412,7 @@ def update_group_data():
 @app.route('/SGMT-Admin/UpdateAllGroups', methods=['GET'])
 def update_all_groups():
     start_time = time.time()
+    LogUtils.log_info('UpdateAllGroups started to run')
     SGMTBusinessLogic.update_all_db_groups()
     LogUtils.log_info('UpdateAllGroups took ' + str(time.time() - start_time) +  ' seconds')
     return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
@@ -420,6 +421,7 @@ def update_all_groups():
 @app.route('/SGMT-Admin/UpdateAllGames', methods=['GET'])
 def update_all_games():
     start_time = time.time()
+    LogUtils.log_info('UpdateAllGames started to run')
     SGMTBusinessLogic.update_all_db_games_data()
     LogUtils.log_info('UpdateAllGames took ' + str(time.time() - start_time) +  ' seconds')
     return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
@@ -428,6 +430,7 @@ def update_all_games():
 @app.route('/SGMT-Admin/UpdateAllUsers', methods=['GET'])
 def update_all_users():
     start_time = time.time()
+    LogUtils.log_info('UpdateAllUsers started to run')
     SGMTBusinessLogic.update_all_db_users_data()
     LogUtils.log_info('UpdateAllUsers took ' + str(time.time() - start_time) +  ' seconds')
     return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
@@ -436,6 +439,7 @@ def update_all_users():
 @app.route('/SGMT-Admin/UpdateBundledGames', methods=['GET'])
 def update_bundled_games():
     start_time = time.time()
+    LogUtils.log_info('UpdateBundledGames started to run')
     SGMTBusinessLogic.update_bundled_games_data()
     LogUtils.log_info('UpdateBundledGames took ' + str(time.time() - start_time) +  ' seconds')
     return json.dumps({'success': True, 'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}), 200, {'ContentType': 'application/json'}
