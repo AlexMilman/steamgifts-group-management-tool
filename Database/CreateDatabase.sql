@@ -101,7 +101,7 @@ DROP TABLE IF EXISTS `BundledGames`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `BundledGames` (
   `AppId` varchar(16) DEFAULT NULL,
-  `BundleId` varchar(16) DEFAULT NULL,
+  `PackageId` varchar(16) DEFAULT NULL,
   `GameName` varchar(128) DEFAULT NULL,
   `WasBundled` boolean DEFAULT NULL,
   `WasFree` boolean DEFAULT NULL

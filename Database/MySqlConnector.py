@@ -437,10 +437,10 @@ def overwrite_bundled_games(bundled_games):
 
     bundled_games_data = []
     for bundled_game in bundled_games:
-        bundled_games_data.append((bundled_game.app_id, bundled_game.bundle_id, bundled_game.game_name, bundled_game.was_bundled, bundled_game.was_free))
+        bundled_games_data.append((bundled_game.app_id, bundled_game.package_id, bundled_game.game_name, bundled_game.was_bundled, bundled_game.was_free))
 
     cursor.execute("TRUNCATE TABLE BundledGames")
-    cursor.executemany("INSERT INTO BundledGames (AppId,BundleId,GameName,WasBundled,WasFree) VALUES (%s, %s, %s, %s, %s)", bundled_games_data)
+    cursor.executemany("INSERT INTO BundledGames (AppId,PackageId,GameName,WasBundled,WasFree) VALUES (%s, %s, %s, %s, %s)", bundled_games_data)
     connection.commit()  # you need to call commit() method to save your changes to the database
 
     cursor.close()
