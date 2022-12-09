@@ -617,6 +617,7 @@ def update_all_db_groups():
     #For each existing group, run: update_group_data from last 2 months
     start_date = (datetime.datetime.now() - relativedelta(months=1)).replace(day=1).strftime('%Y-%m-%d')
     for group_name, group_url in groups.items():
+        LogUtils.log_info("Starting to handle " + group_name)
         if group_name not in empty_groups.keys():
             try:
                 update_existing_group(group_url, start_date=start_date, update_games=True)
