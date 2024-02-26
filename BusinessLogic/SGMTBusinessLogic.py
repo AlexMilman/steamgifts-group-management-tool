@@ -436,8 +436,16 @@ def test():
     # from BusinessLogic.Utils import WebUtils
     # group = MySqlConnector.load_group('https://www.steamgifts.com/group/6HSPr/qgg-group')
     # print WebUtils.get_page_content('https://www.steamgifts.com/giveaway/JtzUN/broken-sword-5-the-serpents-curse', cookies=group.cookies)
+    # group_webpage = ''
     # group = add_new_group(group_webpage, '')
     # MySqlConnector.save_group(group_webpage, group)
+    #
+    # group_name = SteamGiftsScrapingUtils.get_group_name(group_webpage)
+    # cookies = common_cookies
+    # games = update_group_data(group_webpage, cookies,
+    #                           Group(group_name=group_name, group_webpage=group_webpage, cookies=cookies),
+    #                           force_full_run=True, start_date=start_date)
+    # update_games_data(games)
     # group = MySqlConnector.load_group(group_webpage)
     # SteamScrapingUtils.get_steam_user_name_from_steam_id('76561198018110309')
 
@@ -461,15 +469,15 @@ def test():
     # MySqlConnector.get_users_by_names(['a404381120'])
     # pass
     # free_games = BarterVGScrapingUtils.get_free_games_list()
-    SteamGiftsScrapingUtils.get_group_giveaways("https://www.steamgifts.com/group/h1441/qgg-companion-group", "_ga=GA1.2.2030495629.1584053874; __qca=P0-1161601042-1638994062738; _gid=GA1.2.330070482.1655743244; __gads=ID=b71d92a741f24267:T=1655743245:S=ALNI_MYfi4hLpBw_rgssD43S41LALYTBSQ; __gpi=UID=00000355be47fc49:T=1648924086:RT=1655743245:S=ALNI_MaJfOgTTvEPmzIvkrkNA8QDs7yj4A; PHPSESSID=0ho3kl39mvj11k967u5r87v4v40map7hmg20gab3ctf34puu; _gat_gtag_UA_3791796_9=1", dict())
+    # SteamGiftsScrapingUtils.get_group_giveaways("https://www.steamgifts.com/group/h1441/qgg-companion-group", "_ga=GA1.2.2030495629.1584053874; __qca=P0-1161601042-1638994062738; _gid=GA1.2.330070482.1655743244; __gads=ID=b71d92a741f24267:T=1655743245:S=ALNI_MYfi4hLpBw_rgssD43S41LALYTBSQ; __gpi=UID=00000355be47fc49:T=1648924086:RT=1655743245:S=ALNI_MaJfOgTTvEPmzIvkrkNA8QDs7yj4A; PHPSESSID=0ho3kl39mvj11k967u5r87v4v40map7hmg20gab3ctf34puu; _gat_gtag_UA_3791796_9=1", dict())
     pass
 
 
 def lazy_add_group(group_webpage, cookies):
     if not cookies:
-        cookies = ''
+        cookies = common_cookies
     group_name = SteamGiftsScrapingUtils.get_group_name(group_webpage, cookies)
-    MySqlConnector.save_empty_group(group_name, group_webpage, cookies)
+    MySqlConnector.save_empty_group(group_name, group_webpage)
     return group_name
 
 
@@ -485,10 +493,7 @@ def update_existing_group(group_webpage, start_date=None, end_date=None, force_f
     group = MySqlConnector.load_group(group_webpage, fetch_not_started_giveaways=True)
     if not group:
         return None
-    cookies = common_cookies
-    if group.cookies:
-        cookies = group.cookies
-    games = update_group_data(group_webpage, cookies, group, start_date=start_date, end_date=end_date, force_full_run=force_full_run)
+    games = update_group_data(group_webpage, common_cookies, group, start_date=start_date, end_date=end_date, force_full_run=force_full_run)
     if update_games:
         update_games_data(games, update_value=True)
 
@@ -591,7 +596,7 @@ def update_group_data(group_webpage, cookies, group, force_full_run=False, start
     group_giveaways, ignored_giveaways, games, reached_threshold = SteamGiftsScrapingUtils.get_group_giveaways(group_webpage, cookies, group.group_giveaways, force_full_run=force_full_run, start_date=start_date, end_date=end_date)
     if not reached_threshold:
         remove_deleted_giveaways(cookies, group, group_giveaways, ignored_giveaways)
-    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways, group_webpage=group_webpage, cookies=cookies, group_name=group.group_name), existing_users, group)
+    MySqlConnector.save_group(group_webpage, Group(group_users, group_giveaways, group_webpage=group_webpage, group_name=group.group_name), existing_users, group)
 
     return games
 
