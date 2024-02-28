@@ -206,6 +206,9 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
                                 entries_page_index += 1
                     else:
                         LogUtils.log_warning('Error processing entries for ' + giveaway_link)
+                        error_message_elements = WebUtils.get_items_by_xpath(entries_content, u'.//div[@class="table__column--width-fill"]/text()')
+                        if len(error_message_elements) > 0:
+                            LogUtils.log_warning('Error message: ' + error_message_elements[-1])
                         # We can't access the GA data, but we can still know who won
                         for entry_user in winners:
                             giveaway_entries[entry_user] = GiveawayEntry(entry_user, datetime.utcfromtimestamp(0), winner=True)
@@ -214,11 +217,10 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
                     ignored_giveaways.append(giveaway_link)
                     LogUtils.log_warning('Unable to process entries for ' + giveaway_entries_link)
                     continue
-
             elif existing_giveaway:
                 giveaway_entries = existing_giveaway.entries
 
-            if existing_giveaway:
+            if existing_giveaway and existing_giveaway.groups:
                 giveaway_groups = existing_giveaway.groups
             else:
                 giveaway_groups_link = SteamGiftsConsts.get_giveaway_groups_link(partial_giveaway_link)
@@ -230,6 +232,9 @@ def get_group_giveaways(group_webpage, cookies, existing_giveaways=None, force_f
                     ignored_giveaways.append(giveaway_link)
                     LogUtils.log_warning('Unable to process groups for ' + giveaway_groups_link)
                     continue
+
+            if not giveaway_groups:
+                giveaway_groups = [SteamGiftsConsts.get_giveaway_group_from_webpage(group_webpage)]
 
             group_giveaway = GroupGiveaway(giveaway_link, game_name, poster, creation_time, end_time, giveaway_entries, giveaway_groups)
 

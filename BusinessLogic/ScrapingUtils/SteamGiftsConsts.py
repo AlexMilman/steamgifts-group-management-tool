@@ -33,3 +33,7 @@ def get_giveaway_link(partial_giveaway_link):
 
 def get_user_link(user):
     return STEAMGIFTS_USER_LINK + user
+
+#  https://www.steamgifts.com/group/oyVaf/vpgga => /group/oyVaf/vpgga
+def get_giveaway_group_from_webpage(group_webpage):
+    return group_webpage[26:]
