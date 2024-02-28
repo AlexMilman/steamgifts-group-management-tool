@@ -300,7 +300,7 @@ def is_giveaway_deleted(giveaway_link, cookies):
     giveaway_content = WebUtils.get_html_page(giveaway_link, cookies=cookies, delay=delay_time)
     if giveaway_content is not None:
         error_messages = WebUtils.get_items_by_xpath(giveaway_content,u'.//div[@class="table__column--width-fill"]/text()')
-        if error_messages and len(error_messages) >= 4 and error_messages[0].startswith('Deleted'):
+        if error_messages and len(error_messages) >= 4 and error_messages[3].startswith('Deleted'):
             return True
     return False
 
