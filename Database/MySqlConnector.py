@@ -1,9 +1,10 @@
 # MySql connector of SGMT
 # Copyright (C) 2017  Alex Milman
-import calendar
 import json
 
 import datetime
+from __builtin__ import basestring
+
 import pymysql
 import ConfigParser
 
@@ -43,8 +44,8 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
         giveaways_data.append((giveaway_id, group_giveaway.link, group_giveaway.creator, group_giveaway.game_name, json.dumps(entries_data), json.dumps(group_giveaway.groups)))
 
     if giveaways_data:
-        cursor.executemany("INSERT INTO Giveaways (GiveawayID,LinkURL,Creator,GameName,Entries,Groups) VALUES (%s,%s,%s,%s,%s,%s)"\
-                       + " ON DUPLICATE KEY UPDATE LinkURL=VALUES(LinkURL),Creator=VALUES(Creator),GameName=VALUES(GameName),Entries=VALUES(Entries),Groups=VALUES(Groups)", giveaways_data)
+        cursor.executemany("INSERT INTO Giveaways (GiveawayID,LinkURL,Creator,GameName,Entries,`Groups`) VALUES (%s,%s,%s,%s,%s,%s)"\
+                       + " ON DUPLICATE KEY UPDATE LinkURL=VALUES(LinkURL),Creator=VALUES(Creator),GameName=VALUES(GameName),Entries=VALUES(Entries),`Groups`=VALUES(`Groups`)", giveaways_data)
 
     # Merge with existing group data (in case of update/merge)
     if existing_group_data and existing_group_data.group_giveaways:
@@ -73,7 +74,7 @@ def save_group(group_website, group, users_to_ignore, existing_group_data=None):
     group_name_str = "\"" + to_str(group.group_name) + "\""
     group_webpage_str = "\"" + to_str(group.group_webpage) + "\""
     cookies_str = "\"" + to_str(group.cookies) + "\""
-    cursor.execute("INSERT INTO Groups (GroupID,Users,Giveaways,Name,Webpage,Cookies) VALUES ("
+    cursor.execute("INSERT INTO `Groups` (GroupID,Users,Giveaways,Name,Webpage,Cookies) VALUES ("
                    + group_id_str + ","
                    + group_users_data_str + ","
                    + group_giveaways_data_str + ","
@@ -96,7 +97,7 @@ def load_group(group_website, load_users_data=True, load_giveaway_data=True, fet
 
     # Load Group
     group_id = StringUtils.get_hashed_id(group_website)
-    cursor.execute('SELECT Users,Giveaways,Cookies FROM Groups WHERE GroupID="' + group_id + '"')
+    cursor.execute('SELECT Users,Giveaways,Cookies FROM `Groups` WHERE GroupID="' + group_id + '"')
     data = cursor.fetchone()
     group_users_data = json.loads(data[0])
     group_giveaways_data = json.loads(data[1])
@@ -169,7 +170,7 @@ def get_all_groups():
     cursor = connection.cursor()
 
     groups = dict()
-    cursor.execute("SELECT Name,Webpage FROM Groups")
+    cursor.execute("SELECT Name,Webpage FROM `Groups`")
     data = cursor.fetchall()
     for row in data:
         groups[row[0]] = row[1]
@@ -187,7 +188,7 @@ def get_all_groups_with_users():
     cursor = connection.cursor()
 
     groups = dict()
-    cursor.execute("SELECT Name,Webpage,Users FROM Groups WHERE Users<>'[]'")
+    cursor.execute("SELECT Name,Webpage,Users FROM `Groups` WHERE Users<>'[]'")
     data = cursor.fetchall()
     for row in data:
         users = set()
@@ -403,7 +404,7 @@ def save_empty_group(group_name, group_webpage, cookies):
     connection = pymysql.connect(host=host, port=port, user=user, passwd=password, db=db_schema, charset='utf8')
     cursor = connection.cursor()
 
-    cursor.execute('INSERT IGNORE INTO Groups (GroupID,Users,Giveaways,Name,Webpage,Cookies) '
+    cursor.execute('INSERT IGNORE INTO `Groups` (GroupID,Users,Giveaways,Name,Webpage,Cookies) '
                    'VALUES ("' + StringUtils.get_hashed_id(group_webpage) + '","[]","[]","' + group_name + '","' + group_webpage + '","' + to_str(cookies.replace('"','')) + '")')
 
     connection.commit()  # you need to call commit() method to save your changes to the database
@@ -418,7 +419,7 @@ def get_all_empty_groups():
     cursor = connection.cursor()
 
     groups = dict()
-    cursor.execute("SELECT Name,Webpage FROM Groups WHERE Users='[]' AND Giveaways='[]'")
+    cursor.execute("SELECT Name,Webpage FROM `Groups` WHERE Users='[]' AND Giveaways='[]'")
     data = cursor.fetchall()
     for row in data:
         groups[row[0]] = row[1]
