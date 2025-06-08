@@ -433,7 +433,7 @@ def load_user(group_user, user_name):
 
 
 def test():
-    # from BusinessLogic.Utils import WebUtils
+    from BusinessLogic.Utils import WebUtils
     # group = MySqlConnector.load_group('https://www.steamgifts.com/group/6HSPr/qgg-group')
     # print WebUtils.get_page_content('https://www.steamgifts.com/giveaway/JtzUN/broken-sword-5-the-serpents-curse', cookies=group.cookies)
     # group_webpage = ''
@@ -470,6 +470,31 @@ def test():
     # pass
     # free_games = BarterVGScrapingUtils.get_free_games_list()
     # SteamGiftsScrapingUtils.get_group_giveaways("https://www.steamgifts.com/group/h1441/qgg-companion-group", "_ga=GA1.2.2030495629.1584053874; __qca=P0-1161601042-1638994062738; _gid=GA1.2.330070482.1655743244; __gads=ID=b71d92a741f24267:T=1655743245:S=ALNI_MYfi4hLpBw_rgssD43S41LALYTBSQ; __gpi=UID=00000355be47fc49:T=1648924086:RT=1655743245:S=ALNI_MaJfOgTTvEPmzIvkrkNA8QDs7yj4A; PHPSESSID=0ho3kl39mvj11k967u5r87v4v40map7hmg20gab3ctf34puu; _gat_gtag_UA_3791796_9=1", dict())
+    game_name = 'As Dusk Falls'
+    game_link = 'https://store.steampowered.com/app/1341820?utm_source=SteamGifts'
+    LogUtils.log_info('Processing game ' + game_name)
+    steam_score = 0
+    num_of_reviews = 0
+    html_content = WebUtils.get_html_page(game_link,
+                                          "birthtime=-7199; lastagecheckage=1-January-1970; mature_content=1;")
+    base_game_link = WebUtils.get_item_by_xpath(html_content, u'.//div[@class="glance_details"]/a/@href')
+    if base_game_link is not None:
+        # If this is DLC - get additional data according to base game
+        html_content = WebUtils.get_html_page(base_game_link,
+                                              "birthtime=-7199; lastagecheckage=1-January-1970; mature_content=1;")
+    steam_game_tooltip = None
+    steam_game_tooltip_list = WebUtils.get_items_by_xpath(html_content,
+                                                          u'.//a[@class="user_reviews_summary_row"]/@data-tooltip-html')
+    print('steam_game_tooltip_list:' + steam_game_tooltip_list)
+    if len(steam_game_tooltip_list) == 1:
+        steam_game_tooltip = steam_game_tooltip_list[0]
+    elif len(steam_game_tooltip_list) == 3:
+        steam_game_tooltip = steam_game_tooltip_list[1]
+    elif len(steam_game_tooltip_list) > 0:
+        LogUtils.log_error('Invalid tooltips: \n' + str(steam_game_tooltip_list))
+    if steam_game_tooltip != 'Need more user reviews to generate a score' and steam_game_tooltip != 'No user reviews':
+        steam_score = StringUtils.normalize_int(steam_game_tooltip.split('%')[0])
+        num_of_reviews = StringUtils.normalize_int(steam_game_tooltip.split('of the')[1].split('user reviews')[0])
     pass
 
 
