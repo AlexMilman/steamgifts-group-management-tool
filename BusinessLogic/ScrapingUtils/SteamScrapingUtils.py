@@ -72,7 +72,7 @@ def get_game_additional_data(game_name, game_link):
         # If this is DLC - get additional data according to base game
         html_content = WebUtils.get_html_page(base_game_link, "birthtime=-7199; lastagecheckage=1-January-1970; mature_content=1;")
     steam_game_tooltip = None
-    steam_game_tooltip_list = WebUtils.get_items_by_xpath(html_content, u'.//div[@class="user_reviews_summary_row"]/@data-tooltip-html')
+    steam_game_tooltip_list = WebUtils.get_items_by_xpath(html_content, u'.//a[@class="user_reviews_summary_row"]/@data-tooltip-html')
     if len(steam_game_tooltip_list) == 1:
         steam_game_tooltip = steam_game_tooltip_list[0]
     elif len(steam_game_tooltip_list) == 3:
